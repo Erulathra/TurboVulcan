@@ -362,8 +362,8 @@ namespace Turbo
 		pass->mExecutePass.BindLambda(
 			[=](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
-				const THandle<FBuffer> instanceDataBuffer = resources.mBuffers.at(instanceDataBufferHandle);
-				const THandle<FBuffer> scratchBuffer = resources.mBuffers.at(scratchBufferHandle);
+				const THandle<FBuffer> instanceDataBuffer = resources.GetBuffer(instanceDataBufferHandle);
+				const THandle<FBuffer> scratchBuffer = resources.GetBuffer(scratchBufferHandle);
 
 				cmd.BuildTLAS({
 					.mTLAS = sceneView->mTLAS,
@@ -511,7 +511,7 @@ namespace Turbo
 				cmd.BindPipeline(pipeline);
 
 				const FAssetManager& assetManager = entt::locator<FAssetManager>::value();
-				const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.mBuffers.at(sceneView->mViewDataBufferHandle));
+				const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
 
 				SceneCullingCS::FPushConstants pushConstants = {
 					.mViewData = viewDataBuffer->mDeviceAddress,
@@ -520,8 +520,8 @@ namespace Turbo
 
 				for (const FDrawIndirectBucket& bucket : drawIndirectBuckets)
 				{
-					const FBuffer* drawBuffer = gpu.AccessBuffer(resources.mBuffers.at(bucket.mDrawBuffer));
-					const FBuffer* indirectCommandBuffer = gpu.AccessBuffer(resources.mBuffers.at(bucket.mIndirectCommandBuffer));
+					const FBuffer* drawBuffer = gpu.AccessBuffer(resources.GetBuffer(bucket.mDrawBuffer));
+					const FBuffer* indirectCommandBuffer = gpu.AccessBuffer(resources.GetBuffer(bucket.mIndirectCommandBuffer));
 
 					pushConstants.mDrawData = drawBuffer->mDeviceAddress;
 					pushConstants.mDrawIndirectCommand = indirectCommandBuffer->mDeviceAddress;
@@ -573,15 +573,15 @@ namespace Turbo
 							cmd.BindPipeline(material->mDepthOnlyPipeline);
 							cmd.BindDescriptorSet(gpu.GetBindlessResourcesSet(), 0);
 
-							const FBuffer* drawBuffer = gpu.AccessBuffer(resources.mBuffers.at(bucket.mDrawBuffer));
-							const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.mBuffers.at(sceneView->mViewDataBufferHandle));
+							const FBuffer* drawBuffer = gpu.AccessBuffer(resources.GetBuffer(bucket.mDrawBuffer));
+							const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
 
 							const FMaterial::PushConstants pushConstants = {
 								.mViewData = viewDataBuffer->mDeviceAddress,
 								.mDrawData = drawBuffer->mDeviceAddress
 							};
 
-							const THandle<FBuffer> commandBufferHandle = resources.mBuffers.at(bucket.mIndirectCommandBuffer);
+							const THandle<FBuffer> commandBufferHandle = resources.GetBuffer(bucket.mIndirectCommandBuffer);
 
 							cmd.PushConstants(pushConstants);
 							cmd.DrawIndirectCount(FDrawIndirectCountParams{
@@ -639,10 +639,10 @@ namespace Turbo
 						cmd.BindPipeline(material->mGraphicsPipeline);
 						cmd.BindDescriptorSet(gpu.GetBindlessResourcesSet(), 0);
 
-						const FBuffer* drawBuffer = gpu.AccessBuffer(resources.mBuffers.at(bucket.mDrawBuffer));
-						const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.mBuffers.at(sceneView->mViewDataBufferHandle));
-						const FBuffer* sceneDataBuffer = gpu.AccessBuffer(resources.mBuffers.at(sceneView->mSceneDataBufferHandle));
-						const FBuffer* lightsBuffer = gpu.AccessBuffer(resources.mBuffers.at(sceneView->mLightsBufferHandle));
+						const FBuffer* drawBuffer = gpu.AccessBuffer(resources.GetBuffer(bucket.mDrawBuffer));
+						const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
+						const FBuffer* sceneDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mSceneDataBufferHandle));
+						const FBuffer* lightsBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mLightsBufferHandle));
 
 						const FMaterial::PushConstants pushConstants = {
 							.mViewData = viewDataBuffer->mDeviceAddress,
@@ -651,7 +651,7 @@ namespace Turbo
 							.mDrawData = drawBuffer->mDeviceAddress
 						};
 
-						THandle<FBuffer> commandBufferHandle = resources.mBuffers.at(bucket.mIndirectCommandBuffer);
+						THandle<FBuffer> commandBufferHandle = resources.GetBuffer(bucket.mIndirectCommandBuffer);
 
 						cmd.PushConstants(pushConstants);
 						cmd.DrawIndirectCount(FDrawIndirectCountParams{
@@ -717,15 +717,15 @@ namespace Turbo
 			pass->mExecutePass.BindLambda(
 				[=, pipeline = mToneMapperPipeline](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
 				{
-					const THandle<FTexture> sceneColorHandle = resources.mTextures.at(geometryBuffer.mSceneColor);
+   				const THandle<FTexture> sceneColorHandle = resources.GetTexture(geometryBuffer.mSceneColor);
 					const FTextureCold* sceneColorCold = gpu.AccessTextureCold(sceneColorHandle);
-					const THandle<FTexture> afterToneMapHandle = resources.mTextures.at(geometryBuffer.mAfterToneMap);
-					const FBuffer* uniformBuffer = gpu.AccessBuffer(resources.mBuffers.at(uniformBufferHandle));
-					const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.mBuffers.at(sceneView->mViewDataBufferHandle));
+					const THandle<FTexture> afterToneMapHandle = resources.GetTexture(geometryBuffer.mAfterToneMap);
+					const FBuffer* uniformBuffer = gpu.AccessBuffer(resources.GetBuffer(uniformBufferHandle));
+					const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
 
 					const ToneMapperPostProcess::FPushConstants pushConstants = {
-						.mSceneColor = sceneColorHandle.GetIndex(),
-						.mOutput = afterToneMapHandle.GetIndex(),
+   					.mSceneColor = sceneColorHandle.GetIndex(),
+   					.mOutput = afterToneMapHandle.GetIndex(),
 						.mTextureSize = sceneColorCold->GetSize2D(),
 						.mUniforms = uniformBuffer->mDeviceAddress,
 					};
@@ -733,6 +733,7 @@ namespace Turbo
 					cmd.BindPipeline(pipeline);
 					cmd.PushConstants(pushConstants);
 					cmd.BindDescriptorSet(gpu.GetBindlessResourcesSet(), 0);
+					cmd.BindDescriptorSet(resources.mDescriptorSet, 1);
 
 					const glm::uint3 groupCount = Math::DivideAndRoundUp<glm::uint3>(
 						sceneColorCold->GetSize(),

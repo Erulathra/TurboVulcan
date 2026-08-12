@@ -62,7 +62,7 @@ namespace Turbo
 	void FEditorLayer::EndFrame(FRenderGraphBuilder& graphBuilder, FRGResourceHandle presentTexture)
 	{
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		const uint32 bufferedFrameId = gpu.GetBufferedFrameId();
+		const uint32 bufferedFrameId = gpu.GetFrameInFlightId();
 
 		std::vector<THandle<FTexture>>& renderedTextures = mViewportWindow->mRenderedTextures;
 		if (bufferedFrameId < renderedTextures.size())

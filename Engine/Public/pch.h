@@ -29,12 +29,12 @@
 #include <unordered_set>
 
 // Vulkan headers
-#include <vulkan/vulkan.hpp>
-
-// VMA
 #ifndef VULKAN_HPP_ASSERT_ON_RESULT
 #define VULKAN_HPP_ASSERT_ON_RESULT {}
 #endif // ifndef VULKAN_HPP_ASSERT_ON_RESULT
+#include <vulkan/vulkan.hpp>
+
+// VMA
 #include "vk_mem_alloc.hpp"
 
 // GLM

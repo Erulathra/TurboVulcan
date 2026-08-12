@@ -1,10 +1,14 @@
 #pragma once
 
+#include "CommonMacros.h"
 #include "Core/DataStructures/Handle.h"
 #include "Core/Delegate.h"
 #include "Core/Allocators/StackAllocator.h"
 #include "Graphics/GraphicsCore.h"
 #include "Graphics/FrameGraph/RenderGraphHelpers.h"
+#include "Graphics/Resources.h"
+#include <array>
+#include <vector>
 
 DECLARE_LOG_CATEGORY(LogRenderGraph, Info, Display)
 
@@ -74,24 +78,42 @@ namespace Turbo
 
 	struct FRenderResources
 	{
-		entt::dense_map<FRGResourceHandle, THandle<FTexture>> mTextures = {};
-		entt::dense_map<FRGResourceHandle, THandle<FBuffer>> mBuffers = {};
+      THandle<FDescriptorSet> mDescriptorSet = {};
+      std::vector<THandle<FTexture>> mTextures;
+      std::vector<THandle<FBuffer>> mBuffers;
+
+      THandle<FTexture> GetTexture(FRGResourceHandle handle)
+      {
+         TURBO_CHECK(handle.IsValid() && handle.GetType() == ERGResourceType::Texture && handle.GetIndex() < mTextures.size())
+         return mTextures[handle.GetIndex()];
+      }
+
+      THandle<FBuffer> GetBuffer(FRGResourceHandle handle)
+      {
+         TURBO_CHECK(handle.IsValid() && handle.GetType() == ERGResourceType::Buffer && handle.GetIndex() < mBuffers.size())
+         return mBuffers[handle.GetIndex()];
+      }
 	};
 
 	struct FRenderGraphBuilder
 	{
 		static constexpr uint32 kPerFrameStackSize = 64 * Constants::kMebi;
+		static constexpr uint32 kBufferAddressTableSize = 1024;
+		static constexpr uint32 kTextureBindingTableSize = 1024;
 
 		DELETE_COPY(FRenderGraphBuilder)
 		FRenderGraphBuilder() = default;
 
-		// Texture related methods
+		void Init();
+		void Shutdown();
+
+		/* Texture related methods */
 		[[nodiscard]] FRGResourceHandle CreateTexture(const FRGTextureInfo& textureInfo);
 		FRGResourceHandle RegisterExternalTexture(THandle<FTexture> texture, ETextureLayout initLayout);
 		FRGResourceHandle RegisterExternalTexture(THandle<FTexture> textureHandle, ETextureLayout initLayout, ETextureLayout finalLayout);
 		[[nodiscard]] FRGTextureInfo GetTextureInfo(FRGResourceHandle resourceHandle) const;
 
-		// Buffer related methods
+		/* Buffer related methods */
 		[[nodiscard]] FRGResourceHandle CreateBuffer(const FRGBufferInfo& bufferInfo);
 		FRGResourceHandle RegisterExternalBuffer(THandle<FBuffer> buffer);
 		void QueueBufferUpload(const FRGBufferUpload& bufferUpload);
@@ -105,54 +127,56 @@ namespace Turbo
 			return std::make_tuple(std::get<0>(result), static_cast<T*>(std::get<1>(result)));
 		}
 
-		// Pass related methods
+		/* Pass related methods */
 		[[nodiscard]] FRGPassInitializer AddPass(FName passName, EPassType passType = EPassType::Undefined);
 
-		// Compilation
+		/* Compilation */
 		void Compile();
 		void CompileTextureSynchronization();
 		void CompileBufferSynchronization();
 
+		/* Execution */
 		void Execute(FGPUDevice& gpu, FCommandBuffer& cmd);
-
 		void Reset();
 
-		[[nodiscard]] byte* Allocate(size_t numBytes)
-		{
-			return mAllocator.Allocate(numBytes);
-		}
+		/* Stack allocation Interface */
+		[[nodiscard]] byte* Allocate(size_t numBytes) { return mAllocator.Allocate(numBytes); }
 
 		template <typename PODType>
-		[[nodiscard]] PODType* AllocatePOD()
-		{
-			return mAllocator.Allocate<PODType>();
-		}
+		[[nodiscard]] PODType* AllocatePOD() { return mAllocator.Allocate<PODType>(); }
 
 		template <typename PODType>
-		[[nodiscard]] PODType* AllocatePOD(size_t num)
-		{
-			return mAllocator.Allocate<PODType>(num);
-		}
+		[[nodiscard]] PODType* AllocatePOD(size_t num) { return mAllocator.Allocate<PODType>(num); }
 
+		/* Other */
 		[[nodiscard]] vk::Format GetTextureFormat(FRGResourceHandle resourceHandle) const;
 
+		[[nodiscard]] THandle<FDescriptorSetLayout> GetDescriptorSetLayout() const { return mDescriptorSetLayout; }
+
 	public:
+	   /* Render passes */
 		std::vector<FRGPassInfo> mRenderPasses;
+
+		/* Textures */
+		std::vector<FRGTextureInfo> mTextures;
 
 		using FRGPassTextureBarriers = std::vector<FRGTextureMemoryBarrier>;
 		std::vector<FRGPassTextureBarriers> mPerPassTextureBarriers;
 		FRGPassTextureBarriers mExternalTexturesBarriers;
 
+		/* Buffer */
+		std::vector<FRGBufferInfo> mBuffers;
+		std::vector<FRGBufferUpload> mQueuedBufferUploads;
+
 		using FRGPassBufferBarriers = std::vector<FRGBufferMemoryBarrier>;
 		std::vector<FRGPassBufferBarriers> mPerPassBufferBarriers;
 
-		std::vector<FRGTextureInfo> mTextures;
-		std::vector<FRGExternalTextureInfo> mExternalTextures;
+		/* Render graph Resources */
+      THandle<FDescriptorPool> mDescriptorPool;
+      THandle<FDescriptorSetLayout> mDescriptorSetLayout;
+      std::array<THandle<FDescriptorSet>, kMaxFramesInFlight> mDescriptorSets;
 
-		std::vector<FRGBufferInfo> mBuffers;
-		std::vector<FRGBufferUpload> mQueuedBufferUploads;
-		std::vector<FRGExternalBufferInfo> mExternalBuffers;
-
+      /* Allocator */
 		FArenaAllocator mAllocator = FArenaAllocator(kPerFrameStackSize);
 	};
 } // Turbo

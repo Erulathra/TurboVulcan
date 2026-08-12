@@ -3,6 +3,7 @@
 #include "Assets/EngineResources.h"
 #include "CommonMacros.h"
 #include "Core/Allocators/StackAllocator.h"
+#include "Core/DataStructures/Handle.h"
 #include "Core/Engine.h"
 #include "Graphics/CommandBuffer.h"
 #include "Graphics/GraphicsCore.h"
@@ -477,9 +478,10 @@ namespace Turbo
 			const FBinding& binding = layout->mBindings[bindingId];
 			const FHandle resource = builder.mResources[bindingId];
 
+#if 0
 			const bool bPartiallyBound = !!(binding.mFlags & vk::DescriptorBindingFlagBits::ePartiallyBound);
-
 			TURBO_CHECK(resource.IsValid() || bPartiallyBound)
+#endif
 
 			if (resource.IsValid())
 			{
@@ -993,6 +995,8 @@ namespace Turbo
 		device12Features.scalarBlockLayout = true;
 		device12Features.descriptorBindingSampledImageUpdateAfterBind = true;
 		device12Features.descriptorBindingStorageImageUpdateAfterBind = true;
+		device12Features.descriptorBindingUniformBufferUpdateAfterBind = true;
+		device12Features.descriptorBindingStorageBufferUpdateAfterBind = true;
 		device12Features.storagePushConstant8 = true;
 		device12Features.shaderInt8 = true;
 		device12Features.drawIndirectCount = true;
@@ -1424,7 +1428,7 @@ namespace Turbo
 		CHECK_VULKAN_HPP_MSG(presentResult, "Cannot present swapchain image.");
 
 		TURBO_CHECK(mNumSwapChainImages > 0)
-		mBufferedFrameId = (mBufferedFrameId + 1) % kMaxBufferedFrames;
+		mBufferedFrameId = (mBufferedFrameId + 1) % kMaxFramesInFlight;
 		++mRenderedFrames;
 
 		return true;
@@ -1454,7 +1458,7 @@ namespace Turbo
 		std::vector<vk::DescriptorImageInfo> imageBindings;
 		imageBindings.reserve(mBindlessResourcesToUpdate.size() * 2);
 
-		vk::WriteDescriptorSet writeDescriptorSet;
+		vk::WriteDescriptorSet writeDescriptorSet = {};
 		writeDescriptorSet.descriptorCount = 1;
 		writeDescriptorSet.dstSet = targetDescriptorSet->mVkDescriptorSet;
 
@@ -1795,7 +1799,17 @@ namespace Turbo
 
 		// Bind bindless descriptor set layout
 		const FDescriptorSetLayout* bindlessSetLayout = mDescriptorSetLayoutPool->Access(mBindlessResourcesLayout);
+		TURBO_CHECK(bindlessSetLayout);
 		vkLayouts[0] = bindlessSetLayout->mVkLayout;
+
+		// Bind rest of the descriptor set layouts
+		for (uint32 layoutId = 1; layoutId < builder.mNumActiveLayouts; ++layoutId)
+		{
+         FDescriptorSetLayout* layout = AccessDescriptorSetLayout(builder.mDescriptorSetLayouts[layoutId]);
+         TURBO_CHECK(layout)
+
+			vkLayouts[layoutId] = layout->mVkLayout;
+		}
 
 		vk::PushConstantRange pushConstantRange = {};
 		pushConstantRange.offset = 0;

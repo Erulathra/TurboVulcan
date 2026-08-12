@@ -4,6 +4,7 @@
 #include "Core/CommandLineArgs.h"
 #include "Core/EnviromentalVariables.h"
 #include "Core/Platform.h"
+#include "Graphics/FrameGraph/RenderGraph.h"
 #include "TaskScheduler.h"
 #include "Assets/AssetManager.h"
 #include "Assets/EngineResources.h"
@@ -25,6 +26,7 @@
 #include "Layers/SceneRenderingLayer.h"
 #include "TurboLog.h"
 #include "World/World.h"
+#include "entt/locator/locator.hpp"
 
 namespace Turbo
 {
@@ -111,7 +113,8 @@ namespace Turbo
 
 		IFrameDebuggerAPI::Emplace();
 
-		entt::locator<FRenderGraphBuilder>::emplace();
+		FRenderGraphBuilder& renderGraph = entt::locator<FRenderGraphBuilder>::emplace();
+		renderGraph.Init();
 
 		FAssetManager& assetManager = entt::locator<FAssetManager>::emplace<FAssetManager>();
 		assetManager.Init(gpu);
@@ -325,6 +328,7 @@ namespace Turbo
 		entt::locator<FAssetManager>::value().Destroy(gpu);
 		entt::locator<FMaterialManager>::value().Destroy(gpu);
 
+		entt::locator<FRenderGraphBuilder>::value().Shutdown();
 		entt::locator<IFrameDebuggerAPI>::value().Shutdown();
 
 		gpu.Shutdown();

@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Core/DataStructures/Handle.h"
+#include "Graphics/FrameGraph/RenderGraph.h"
 #include "Graphics/GPUDevice.h"
 #include "Graphics/ResourceBuilders.h"
 #include "Graphics/Resources.h"
+#include "entt/locator/locator.hpp"
 
 namespace Turbo::ToneMapperPostProcess
 {
@@ -32,8 +34,11 @@ namespace Turbo::ToneMapperPostProcess
 
 	inline THandle<FPipeline> CreatePipeline(FGPUDevice& gpu)
 	{
+	   const FRenderGraphBuilder& graphBuilder = entt::locator<FRenderGraphBuilder>::value();
+
 		FPipelineBuilder builder;
 		builder
+		   .AddDescriptorSetLayout(graphBuilder.GetDescriptorSetLayout())
 			.SetPushConstantType<FPushConstants>()
 			.SetName(FName("ToneMapperPostProcess"));
 

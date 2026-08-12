@@ -13,7 +13,7 @@ namespace Turbo
 		pass->mExecutePass.BindLambda(
 			[texture, color](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
-				const THandle<FTexture> handle = resources.mTextures[texture];
+				const THandle<FTexture> handle = resources.GetTexture(texture);
 				cmd.ClearImage(handle, color, vk::ImageLayout::eTransferDstOptimal);
 			}
 		);
@@ -36,8 +36,8 @@ namespace Turbo
 		pass->mExecutePass.BindLambda(
 			[srcTexture, dstTexture](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
-				const THandle<FTexture> srcHandle = resources.mTextures[srcTexture];
-				const THandle<FTexture> dstHandle = resources.mTextures[dstTexture];
+				const THandle<FTexture> srcHandle = resources.GetTexture(srcTexture);
+				const THandle<FTexture> dstHandle = resources.GetTexture(dstTexture);
 
 				const FTextureCold* colorTexCold = gpu.AccessTextureCold(srcHandle);
 				const FTextureCold* presentTexCold = gpu.AccessTextureCold(dstHandle);
@@ -72,7 +72,7 @@ namespace Turbo
 		pass->mExecutePass.BindLambda(
 			[=](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
-				const THandle<FBuffer> srcHandle = resources.mBuffers[srcBuffer];
+				const THandle<FBuffer> srcHandle = resources.GetBuffer(srcBuffer);
 				cmd.FillBuffer(srcHandle, offset, size, value);
 			}
 		);

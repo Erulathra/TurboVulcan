@@ -74,9 +74,9 @@ namespace Turbo
 		}
 
 		[[nodiscard]] glm::uint2 GetFrameBufferSize() const { return mFramebufferSize; }
-		[[nodiscard]] uint32 GetBufferedFrameId() const { return mBufferedFrameId; }
+		[[nodiscard]] uint32 GetFrameInFlightId() const { return mBufferedFrameId; }
 		[[nodiscard]] uint32 GetNumRenderedFrames() const { return mRenderedFrames; }
-		[[nodiscard]] uint32 GetNumBufferedFrames() const { return kMaxBufferedFrames; }
+		[[nodiscard]] uint32 GetNumBufferedFrames() const { return kMaxFramesInFlight; }
 		[[nodiscard]] uint32 GetNumRenderingThreads() const { return mNumRenderingThreads; }
 
 		void RequestSwapChainResize() { mbRequestedSwapchainResize = true; }
@@ -254,9 +254,9 @@ namespace Turbo
 
 		template<typename HandleType>
 		void SetResourceName(HandleType vkHandle, std::string_view name) const;
-		/** Debug end */
+		/* Debug end */
 
-		/** Resource pools */
+		/* Resource pools */
 	private:
 		TPoolHeap<FBuffer, 16384, FBufferCold, true> mBufferPool;
 		TPoolHeap<FTexture, kTexturePoolSize, FTextureCold, true> mTexturePool;
@@ -269,9 +269,9 @@ namespace Turbo
 		TPoolHeap<FBLAS, 1024, FDummyColdType, false> mBLASPool;
 		TPoolHeap<FTLAS, 32, FDummyColdType, true> mTLASPool;
 
-		/** Resource pools end */
+		/* Resource pools end */
 
-		/** Bindless resources */
+		/* Bindless resources */
 	private:
 		THandle<FDescriptorPool> mBindlessResourcesPool;
 		THandle<FDescriptorSetLayout> mBindlessResourcesLayout;
@@ -279,9 +279,9 @@ namespace Turbo
 
 		std::vector<FBindlessResourceUpdateRequest> mBindlessResourcesToUpdate;
 
-		/** Bindless resources end */
+		/* Bindless resources end */
 
-		/** Vulkan handles */
+		/* Vulkan handles */
 	private:
 		vk::Instance mVkInstance = nullptr;
 
@@ -328,7 +328,7 @@ namespace Turbo
 
 		/** Frame handing */
 		uint32 mNumRenderingThreads = 1;
-		std::array<FBufferedFrameData, kMaxBufferedFrames> mFrameDatas;
+		std::array<FBufferedFrameData, kMaxFramesInFlight> mFrameDatas;
 
 		/** Note that this is an index of buffered frame */
 		uint32 mBufferedFrameId = 0;

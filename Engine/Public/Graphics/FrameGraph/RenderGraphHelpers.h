@@ -35,6 +35,7 @@ namespace Turbo
 
 	struct FRGResourceHandle
 	{
+   	/* Constants */
 		static constexpr uint32 kTypeMask = 0xE0000000;
 		static constexpr uint32 kExternalMax = 0x10000000;
 		static constexpr uint32 kIndexMask = 0x0FFFFFFF;
@@ -42,8 +43,11 @@ namespace Turbo
 
 		static_assert(kTypeMask | kExternalMax | kIndexMask == 0xFFFFFFFF);
 
-		FRGResourceHandle() = default;
+		/* Data */
+		uint32 mHandle = kInvalidHandle;
 
+		/* Interface */
+		FRGResourceHandle() = default;
 		FRGResourceHandle(ERGResourceType type, uint32 index, bool bExternal = false)
 		{
 			mHandle = static_cast<uint32>(type) << std::countr_zero(kTypeMask)
@@ -52,7 +56,6 @@ namespace Turbo
 		}
 
 		[[nodiscard]] bool IsValid() const { return mHandle != kInvalidHandle; }
-
 		[[nodiscard]] ERGResourceType GetType() const
 		{
 			return static_cast<ERGResourceType>((mHandle & kTypeMask) >> std::countr_zero(kTypeMask));
@@ -61,8 +64,7 @@ namespace Turbo
 		[[nodiscard]] bool IsExternal() const { return (mHandle & kExternalMax) != 0; }
 		[[nodiscard]] uint32 GetIndex() const { return (mHandle & kIndexMask) >> std::countr_zero(kIndexMask); }
 
-		uint32 mHandle = kInvalidHandle;
-
+		/* Operators */
 		friend bool operator==(const FRGResourceHandle& lhs, const FRGResourceHandle& rhs)
 		{
 			return lhs.mHandle == rhs.mHandle;
@@ -178,39 +180,35 @@ namespace Turbo
 	{
 		uint16 mWidth = 1;
 		uint16 mHeight = 1;
+		uint16 mDepth = 1;
 
 		vk::Format mFormat = vk::Format::eUndefined;
 		ETextureFlags mFlags = ETextureFlags::Invalid;
 		EMSAASamples mNumSamples = EMSAASamples::One;
 
+		/* If valid, the texture is external */
+		THandle<FTexture> mExternalTextureHandle = {};
+
+		/* Valid only if the texture is external */
+		ETextureLayout mInitialLayout = ETextureLayout::Undefined;
+		ETextureLayout mFinalLayout = ETextureLayout::Undefined;
+
 		FName mName = {};
 
 		[[nodiscard]] bool IsValid() const;
-	};
-
-	struct FRGExternalTextureInfo
-	{
-		FRGTextureInfo mTextureInfo = {};
-
-		THandle<FTexture> mTextureHandle = {};
-		ETextureLayout mInitialLayout = ETextureLayout::Undefined;
-		ETextureLayout mFinalLayout = ETextureLayout::Undefined;
 	};
 
 	struct FRGBufferInfo
 	{
 		FDeviceSize mSize = 0;
-		EBufferFlags mBufferFlags;
+		EBufferFlags mBufferFlags = {};
+
+		/* If valid, the buffer is external */
+		THandle<FBuffer> mExternalBufferHandle = {};
 
 		FName mName = {};
 
 		[[nodiscard]] bool IsValid() const;
-	};
-
-	struct FRGExternalBufferInfo
-	{
-		FRGBufferInfo mInfo = {};
-		THandle<FBuffer> mHandle;
 	};
 
 	struct FRGBufferMemoryBarrier

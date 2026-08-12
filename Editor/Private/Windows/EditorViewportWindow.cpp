@@ -56,7 +56,7 @@ namespace Turbo
 		}
 
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		const uint32 bufferedFrameId = gpu.GetBufferedFrameId();
+		const uint32 bufferedFrameId = gpu.GetFrameInFlightId();
 		if (bufferedFrameId < mRenderedTextures.size())
 		{
 			ImGui::Texture(mRenderedTextures[bufferedFrameId]);

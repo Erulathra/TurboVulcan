@@ -9,13 +9,12 @@ namespace Turbo
 	inline constexpr uint8 kMaxShaderStages = 5;
 	inline constexpr uint8 kMaxDescriptorsPerSet = 8;
 	inline constexpr uint32 kMaxSwapChainImages = 5;
-	inline constexpr uint32 kMaxBufferedFrames = 2;
+	inline constexpr uint32 kMaxFramesInFlight = 2;
 
 	inline constexpr uint32 kMaxRenderingThreads = 16;
 
-	// In theory VK supports up to 16, but I want to save some memory.
-	inline constexpr uint8 kMaxDescriptorSetLayouts = 4;
-	inline constexpr uint32 kMaxDescriptorSets = 4;
+	inline constexpr uint8 kMaxDescriptorSetLayouts = 2;
+	inline constexpr uint32 kMaxDescriptorSets = 2;
 
 	inline constexpr uint32 kMaxPushConstantSize = 256;
 
@@ -103,4 +102,3 @@ struct fmt::formatter<VkResult> : formatter<int32>
 #else
 #define CHECK_VULKAN_HPP_MSG(EXPRESSION, MESSAGE, ...) { (void)(EXPRESSION); }
 #endif // else TURBO_BUILD_SHIPPING
-

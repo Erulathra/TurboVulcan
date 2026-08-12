@@ -402,7 +402,10 @@ namespace Turbo
 	struct FPipelineBuilder
 	{
 		FPipelineBuilder& AddDescriptorSetLayout(THandle<FDescriptorSetLayout> handle)
-			{ mDescriptorSetLayouts[mNumActiveLayouts++] = handle; return *this; }
+		{
+			mDescriptorSetLayouts[mNumActiveLayouts++] = handle;
+			return *this;
+		}
 
 		template <PushConstant PushConstantType>
 		FPipelineBuilder& SetPushConstantType() { mPushConstantSize = sizeof(PushConstantType); return *this; }
