@@ -70,11 +70,10 @@ namespace Turbo
 		vkBarrier.dstQueueFamilyIndex = vk::QueueFamilyIgnored;
 
 		const FTexture* texture = gpu.AccessTexture(textureHandle);
-		const FTextureCold* textureCold = gpu.AccessTextureCold(textureHandle);
 		TURBO_CHECK(texture)
 
 		vkBarrier.image = texture->mVkImage;
-		vkBarrier.subresourceRange = FindSubresourceRange(textureCold->mFormat);
+		vkBarrier.subresourceRange = FindSubresourceRange(texture->mFormat);
 
 		return vkBarrier;
 	}

@@ -2,12 +2,18 @@
 
 namespace Turbo
 {
-	struct FDummyColdType {};
-
-	template<typename HotType, FHandle::IndexType size, typename ColdType = FDummyColdType, bool bAllowGenReuse = false>
+	template<typename Type, FHandle::IndexType size>
 		requires (size < FHandle::kMaxIndex)
 	class TGenPool
 	{
+	private:
+		std::array<Type, size> mHotData;
+		std::array<FHandle::GenerationType, size> mGenerations;
+		std::array<FHandle::IndexType, size> mFreeIndices;
+
+		FHandle::IndexType mFreeIndicesHead = 0;
+		FHandle::IndexType mUsedIndices = 0;
+
 	public:
 		TGenPool() { Clear(); }
 
@@ -31,15 +37,17 @@ namespace Turbo
 			}
 		}
 
-		THandle<HotType> Acquire()
+		THandle<Type> Acquire()
 		{
 			TURBO_CHECK_MSG(mFreeIndicesHead < size, "No more resources left!")
 
 			FHandle::IndexType newIndex = mFreeIndices[mFreeIndicesHead];
 
-			THandle<HotType> NewHandle {};
+			THandle<Type> NewHandle {};
 			NewHandle.mIndexAndGen = FHandle::CreateIndex(newIndex, mGenerations[newIndex]);
+#if 0
 			TURBO_CHECK_MSG(NewHandle.GetGeneration() < FHandle::kMaxGeneration, "No more resource generations left!")
+#endif
 
 			++mFreeIndicesHead;
 			++mUsedIndices;
@@ -47,7 +55,7 @@ namespace Turbo
 			return NewHandle;
 		}
 
-		void Release(THandle<HotType> handle)
+		void Release(THandle<Type> handle)
 		{
 			TURBO_CHECK(mUsedIndices > 0)
 
@@ -56,17 +64,10 @@ namespace Turbo
 
 			mFreeIndices[mFreeIndicesHead] = handle.GetIndex();
 
-			if constexpr (bAllowGenReuse)
-			{
-				mGenerations[handle.GetIndex()] = (mGenerations[handle.GetIndex()] + 1) % FHandle::kMaxGeneration;
-			}
-			else
-			{
-				++mGenerations[handle.GetIndex()];
-			}
+			++mGenerations[handle.GetIndex()];
 		}
 
-		HotType* Access(THandle<HotType> handle)
+		Type* Access(THandle<Type> handle)
 		{
 			if (handle.IsValid() && handle.GetIndex() < mHotData.size())
 			{
@@ -79,43 +80,13 @@ namespace Turbo
 			return nullptr;
 		}
 
-		const HotType* Access(THandle<HotType> handle) const
+		const Type* Access(THandle<Type> handle) const
 		{
 			if (handle.IsValid() && handle.GetIndex() < mHotData.size())
 			{
 				if (handle.GetGeneration() == mGenerations[handle.GetIndex()])
 				{
 					return &mHotData[handle.GetIndex()];
-				}
-			}
-
-			return nullptr;
-		}
-
-		ColdType* AccessCold(THandle<HotType> handle)
-		{
-			static_assert(std::is_same_v<ColdType, FDummyColdType> == false);
-
-			if (handle.IsValid() && handle.GetIndex() < mHotData.size())
-			{
-				if (handle.GetGeneration() == mGenerations[handle.GetIndex()])
-				{
-					return &mColdData[handle.GetIndex()];
-				}
-			}
-
-			return nullptr;
-		}
-
-		const HotType* AccessCold(THandle<HotType> handle) const
-		{
-			static_assert(std::is_same_v<ColdType, FDummyColdType> == false);
-
-			if (handle.IsValid() && handle.GetIndex() < mHotData.size())
-			{
-				if (handle.GetGeneration() == mGenerations[handle.GetIndex()])
-				{
-					return &mColdData[handle.GetIndex()];
 				}
 			}
 
@@ -129,21 +100,11 @@ namespace Turbo
 			{
 				FHandle::IndexType newIndex = mFreeIndices[ElementId];
 
-				THandle<HotType> newHandle = {};
+				THandle<Type> newHandle = {};
 				newHandle.mIndexAndGen = FHandle::CreateIndex(newIndex, mGenerations[newIndex]);
 				function(newHandle);
 			}
 		}
 
-	private:
-		constexpr static size_t kColdDataArraySize = size * (std::is_same_v<FDummyColdType, ColdType> ? 0 : 1);
-
-		std::array<HotType, size> mHotData;
-		std::array<ColdType, kColdDataArraySize> mColdData;
-		std::array<FHandle::GenerationType, size> mGenerations;
-		std::array<FHandle::IndexType, size> mFreeIndices;
-
-		FHandle::IndexType mFreeIndicesHead = 0;
-		FHandle::IndexType mUsedIndices = 0;
 	};
 } // turbo

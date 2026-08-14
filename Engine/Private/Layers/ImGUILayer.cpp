@@ -180,8 +180,8 @@ namespace Turbo
 		initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
 		initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
 
-		const FTextureCold* presentTextureCold = gpu.AccessTextureCold(gpu.GetPresentImage());
-		VkFormat presentTextureFormat = static_cast<VkFormat>(presentTextureCold->GetFormat());
+		const FTexture* presentTexture = gpu.AccessTexture(gpu.GetPresentImage());
+		VkFormat presentTextureFormat = static_cast<VkFormat>(presentTexture->GetFormat());
 		initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = &presentTextureFormat;
 
 		initInfo.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
@@ -291,11 +291,10 @@ void ImGui::Texture(Turbo::THandle<Turbo::FTexture> textureHandle)
 
 	FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 	const FTexture* texture = gpu.AccessTexture(textureHandle);
-	const FTextureCold* textureCold = gpu.AccessTextureCold(textureHandle);
 
 	const THandle<FSampler> samplerHandle = EngineResources::GetDefaultNearestNeighbourSampler();
 	const FSampler* sampler = gpu.AccessSampler(samplerHandle);
 
 	imGuiTexture.mDescriptorSet = ImGui_ImplVulkan_AddTexture(sampler->mVkSampler, texture->mVkImageView, VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL);
-	Image(static_cast<VkDescriptorSet>(imGuiTexture.mDescriptorSet), textureCold->GetSize2D());
+	Image(static_cast<VkDescriptorSet>(imGuiTexture.mDescriptorSet), texture->GetSize2D());
 }

@@ -718,7 +718,7 @@ namespace Turbo
 				[=, pipeline = mToneMapperPipeline](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
 				{
    				const THandle<FTexture> sceneColorHandle = resources.GetTexture(geometryBuffer.mSceneColor);
-					const FTextureCold* sceneColorCold = gpu.AccessTextureCold(sceneColorHandle);
+					const FTexture* sceneColor = gpu.AccessTexture(sceneColorHandle);
 					const THandle<FTexture> afterToneMapHandle = resources.GetTexture(geometryBuffer.mAfterToneMap);
 					const FBuffer* uniformBuffer = gpu.AccessBuffer(resources.GetBuffer(uniformBufferHandle));
 					const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
@@ -726,7 +726,7 @@ namespace Turbo
 					const ToneMapperPostProcess::FPushConstants pushConstants = {
    					.mSceneColor = sceneColorHandle.GetIndex(),
    					.mOutput = afterToneMapHandle.GetIndex(),
-						.mTextureSize = sceneColorCold->GetSize2D(),
+						.mTextureSize = sceneColor->GetSize2D(),
 						.mUniforms = uniformBuffer->mDeviceAddress,
 					};
 
@@ -736,7 +736,7 @@ namespace Turbo
 					cmd.BindDescriptorSet(resources.mDescriptorSet, 1);
 
 					const glm::uint3 groupCount = Math::DivideAndRoundUp<glm::uint3>(
-						sceneColorCold->GetSize(),
+						sceneColor->GetSize(),
 						glm::uint3(8, 8, 1)
 					);
 					cmd.Dispatch(groupCount);

@@ -171,8 +171,7 @@ namespace Turbo
 	{
 		const FBuffer* srcBuffer = mGpu->AccessBuffer(src);
 		const FTexture* dstTexture = mGpu->AccessTexture(dst);
-		const FTextureCold* dstTextureCold = mGpu->AccessTextureCold(dst);
-		const glm::int2 texSize = dstTextureCold->GetSize2D();
+		const glm::int2 texSize = dstTexture->GetSize2D();
 		const glm::int2 mipSize = glm::int2(texSize.x >> mipIndex, texSize.y >> mipIndex);
 
 		vk::ImageSubresourceLayers imageSubresource = {};
@@ -259,11 +258,10 @@ namespace Turbo
 			const FAttachment& attachment = renderingAttachments.mColorAttachments[attachmentIndex];
 
 			const FTexture* attachmentTexture = mGpu->AccessTexture(attachment.mTexture);
-			const FTextureCold* attachmentTextureCold = mGpu->AccessTextureCold(attachment.mTexture);
 			TURBO_CHECK(attachmentTexture)
 
-			TURBO_CHECK(attachmentIndex == 0 || attachmentSize == attachmentTextureCold->GetSize2D())
-			attachmentSize = attachmentTextureCold->GetSize2D();
+			TURBO_CHECK(attachmentIndex == 0 || attachmentSize == attachmentTexture->GetSize2D())
+			attachmentSize = attachmentTexture->GetSize2D();
 
 			vk::RenderingAttachmentInfo& vkAttachmentInfo = colorAttachments[attachmentIndex];
 			vkAttachmentInfo = vk::RenderingAttachmentInfo();
@@ -314,8 +312,8 @@ namespace Turbo
 
 			if (renderingAttachments.mNumColorAttachments == 0)
 			{
-				const FTextureCold* depthTextureCold = mGpu->AccessTextureCold(attachment.mTexture);
-				attachmentSize = depthTextureCold->GetSize2D();
+				const FTexture* depthTexture = mGpu->AccessTexture(attachment.mTexture);
+				attachmentSize = depthTexture->GetSize2D();
 			}
 		}
 

@@ -39,11 +39,11 @@ namespace Turbo
 				const THandle<FTexture> srcHandle = resources.GetTexture(srcTexture);
 				const THandle<FTexture> dstHandle = resources.GetTexture(dstTexture);
 
-				const FTextureCold* colorTexCold = gpu.AccessTextureCold(srcHandle);
-				const FTextureCold* presentTexCold = gpu.AccessTextureCold(dstHandle);
+				const FTexture* colorTex= gpu.AccessTexture(srcHandle);
+				const FTexture* presentTex= gpu.AccessTexture(dstHandle);
 
-				const FRect2DInt srcRect = FRect2DInt::FromSize(colorTexCold->GetSize2D());
-				const FRect2DInt dstRect = FRect2DInt::FromSize(presentTexCold->GetSize2D());
+				const FRect2DInt srcRect = FRect2DInt::FromSize(colorTex->GetSize2D());
+				const FRect2DInt dstRect = FRect2DInt::FromSize(presentTex->GetSize2D());
 
 				cmd.BlitImage(srcHandle, srcRect, dstHandle, dstRect);
 			}

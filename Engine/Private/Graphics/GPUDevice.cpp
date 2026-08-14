@@ -52,14 +52,13 @@ namespace Turbo
 			[&](THandle<FPipeline> pipelineHandle)
 			{
 				FPipeline* pipeline = mPipelinePool.Access(pipelineHandle);
-				FPipelineCold* pipelineCold = mPipelinePool.AccessCold(pipelineHandle);
 
-				DestroyShaderState(pipelineCold->mShaderState);
+				DestroyShaderState(pipeline->mShaderState);
 
 				mVkDevice.destroyPipelineLayout(pipeline->mVkLayout);
 				mVkDevice.destroyPipeline(pipeline->mVkPipeline);
 
-				InitPipeline(*pipelineCold->mPipelineBuilder, pipelineHandle);
+				InitPipeline(*pipeline->mPipelineBuilder, pipelineHandle);
 			});
 	}
 
@@ -197,11 +196,10 @@ namespace Turbo
 #endif
 
 		FBuffer* buffer = AccessBuffer(handle);
-		FBufferCold* bufferCold = AccessBufferCold(handle);
 		buffer->mDeviceSize = builder.mSize;
 
-		bufferCold->mName = builder.mName;
-		bufferCold->mBufferFlags = builder.mBufferFlags;
+		buffer->mName = builder.mName;
+		buffer->mBufferFlags = builder.mBufferFlags;
 
 		vk::BufferCreateInfo createInfo = {};
 		createInfo.size = buffer->mDeviceSize;
@@ -256,7 +254,7 @@ namespace Turbo
 		std::pair<vma::Allocation, vk::Buffer> allocationResult;
 		CHECK_VULKAN_RESULT(allocationResult, mVmaAllocator.createBufferWithAlignment(createInfo, allocationCreateInfo, minAlignment, allocationInfo));
 
-		bufferCold->mAllocation = allocationResult.first;
+		buffer->mAllocation = allocationResult.first;
 		buffer->mVkBuffer = allocationResult.second;
 
 		vk::BufferDeviceAddressInfo deviceAddressInfo = {};
@@ -264,14 +262,14 @@ namespace Turbo
 		buffer->mDeviceAddress = mVkDevice.getBufferAddress(deviceAddressInfo);
 		TURBO_CHECK(buffer->mDeviceAddress != 0)
 
-		SetResourceName(buffer->mVkBuffer, bufferCold->mName);
+		SetResourceName(buffer->mVkBuffer, buffer->mName);
 
 		if (bCreateMapped)
 		{
 			buffer->mMappedAddress = static_cast<byte*>(allocationInfo.pMappedData);
 		}
 
-		const vk::MemoryPropertyFlags& allocationMemoryProperties = mVmaAllocator.getAllocationMemoryProperties(bufferCold->mAllocation);
+		const vk::MemoryPropertyFlags& allocationMemoryProperties = mVmaAllocator.getAllocationMemoryProperties(buffer->mAllocation);
 
 		if (builder.mInitialData)
 		{
@@ -279,7 +277,7 @@ namespace Turbo
 			{
 				TRACE_ZONE_SCOPED_N("Copy mapped")
 
-				CHECK_VULKAN_HPP(mVmaAllocator.copyMemoryToAllocation(builder.mInitialData, bufferCold->mAllocation, 0, builder.mSize));
+				CHECK_VULKAN_HPP(mVmaAllocator.copyMemoryToAllocation(builder.mInitialData, buffer->mAllocation, 0, builder.mSize));
 			}
 			else // Use staging buffer
 			{
@@ -320,22 +318,22 @@ namespace Turbo
 		TURBO_CHECK(handle);
 
 		FSampler* sampler = AccessSampler(handle);
-		FSamplerCold* samplerCold = AccessSamplerCold(handle);
-		samplerCold->mAddressModeU = builder.mAddressModeU;
-		samplerCold->mAddressModeV = builder.mAddressModeV;
-		samplerCold->mAddressModeW = builder.mAddressModeW;
-		samplerCold->mMinFilter = builder.mMinFilter;
-		samplerCold->mMagFilter = builder.mMagFilter;
-		samplerCold->mMipFilter = builder.mMipFilter;
-		samplerCold->mName = builder.mName;
+		sampler->mAddressModeU = builder.mAddressModeU;
+		sampler->mAddressModeV = builder.mAddressModeV;
+		sampler->mAddressModeW = builder.mAddressModeW;
+		sampler->mMinFilter = builder.mMinFilter;
+		sampler->mMagFilter = builder.mMagFilter;
+		sampler->mMipFilter = builder.mMipFilter;
+		sampler->mHandle = handle;
+		sampler->mName = builder.mName;
 
 		vk::SamplerCreateInfo createInfo = {};
-		createInfo.addressModeU = samplerCold->mAddressModeU;
-		createInfo.addressModeV = samplerCold->mAddressModeV;
-		createInfo.addressModeW = samplerCold->mAddressModeW;
-		createInfo.minFilter = samplerCold->mMinFilter;
-		createInfo.magFilter = samplerCold->mMagFilter;
-		createInfo.mipmapMode = samplerCold->mMipFilter;
+		createInfo.addressModeU = sampler->mAddressModeU;
+		createInfo.addressModeV = sampler->mAddressModeV;
+		createInfo.addressModeW = sampler->mAddressModeW;
+		createInfo.minFilter = sampler->mMinFilter;
+		createInfo.magFilter = sampler->mMagFilter;
+		createInfo.mipmapMode = sampler->mMipFilter;
 		createInfo.minLod = 0;
 		createInfo.maxLod = vk::LodClampNone;
 
@@ -374,6 +372,7 @@ namespace Turbo
 
 		FDescriptorPool* pool = mDescriptorPoolPool.Access(handle);
 		pool->mDescriptorSets.clear();
+		pool->mHandle = handle;
 		pool->mName = builder.mName;
 
 		std::vector<vk::DescriptorPoolSize> poolSizes;
@@ -460,7 +459,8 @@ namespace Turbo
 		CHECK_VULKAN_RESULT(descriptorSets, mVkDevice.allocateDescriptorSets(allocateInfo))
 
 		set->mVkDescriptorSet = descriptorSets.front();
-		set->mOwnerPool = builder.mDescriptorPool;
+		set->mHandle = handle;
+		set->mName = builder.mName;
 
 		pool->mDescriptorSets.push_back(handle);
 
@@ -499,7 +499,6 @@ namespace Turbo
 				case vk::DescriptorType::eStorageImage:
 					{
 						const FTexture* texture = AccessTexture(THandle<FTexture>(resource));
-						const FTextureCold* textureCold = AccessTextureCold(THandle<FTexture>(resource));
 
 						vk::DescriptorImageInfo& imageInfo = imageInfos.emplace_back();
 						imageInfo.imageView = texture->mVkImageView;
@@ -507,7 +506,7 @@ namespace Turbo
 						if (binding.mType == vk::DescriptorType::eSampledImage)
 						{
 							imageInfo.imageLayout =
-								TextureFormat::HasDepthOrStencil(textureCold->mFormat)
+								TextureFormat::HasDepthOrStencil(texture->mFormat)
 									? vk::ImageLayout::eDepthReadOnlyStencilAttachmentOptimal
 									: vk::ImageLayout::eReadOnlyOptimal;
 						}
@@ -572,9 +571,10 @@ namespace Turbo
 		TURBO_CHECK(shaderState)
 
 		shaderState->mShaderStageCrateInfo = {};
-
 		shaderState->mbGraphicsPipeline = true;
 		shaderState->mNumActiveShaders = 0;
+		shaderState->mHandle = handle;
+		shaderState->mName = builder.mName;
 
 		if (builder.mStages[0].mStage == vk::ShaderStageFlagBits::eCompute)
 		{
@@ -795,15 +795,14 @@ namespace Turbo
 	void FGPUDevice::DestroyBuffer(THandle<FBuffer> handle)
 	{
 		const FBuffer* buffer = AccessBuffer(handle);
-		const FBufferCold* bufferCold = AccessBufferCold(handle);
 		TURBO_CHECK(buffer);
 
-		TURBO_LOG(LogGPUDevice, Display, "Destroying {} buffer.", bufferCold->mName);
+		TURBO_LOG(LogGPUDevice, Display, "Destroying {} buffer.", buffer->mName);
 
 		FBufferDestroyer destroyer;
 		destroyer.mHandle = handle;
 		destroyer.mVkBuffer = buffer->mVkBuffer;
-		destroyer.mAllocation = bufferCold->mAllocation;
+		destroyer.mAllocation = buffer->mAllocation;
 
 		FBufferedFrameData& frameData = mFrameDatas[mBufferedFrameId];
 		frameData.mDestroyQueue.RequestDestroy(destroyer);
@@ -814,10 +813,7 @@ namespace Turbo
 		const FTexture* texture = AccessTexture(handle);
 		TURBO_CHECK(texture)
 
-#if TURBO_BUILD_DEVELOPMENT
-		const FTextureCold* textureCold = AccessTextureCold(handle);
-		TURBO_LOG(LogGPUDevice, Display, "Destroying {} texture.", textureCold->mName);
-#endif // TURBO_BUILD_DEVELOPMENT
+		TURBO_LOG(LogGPUDevice, Display, "Destroying {} texture.", texture->mName);
 
 		FTextureDestroyer destroyer = {};
 		destroyer.mHandle = handle;
@@ -834,10 +830,7 @@ namespace Turbo
 		const FSampler* sampler = AccessSampler(handle);
 		TURBO_CHECK(sampler)
 
-#if TURBO_BUILD_DEVELOPMENT
-		const FSamplerCold* samplerCold = AccessSamplerCold(handle);
-		TURBO_LOG(LogGPUDevice, Display, "Destroying {} sampler.", samplerCold->mName);
-#endif // TURBO_BUILD_DEVELOPMENT
+		TURBO_LOG(LogGPUDevice, Display, "Destroying {} sampler.", sampler->mName);
 
 		FSamplerDestroyer destroyer = {};
 		destroyer.mHandle = handle;
@@ -850,8 +843,7 @@ namespace Turbo
 	void FGPUDevice::DestroyPipeline(THandle<FPipeline> handle)
 	{
 		const FPipeline* pipeline = AccessPipeline(handle);
-		const FPipelineCold* pipelineCold = AccessPipelineCold(handle);
-		TURBO_CHECK(pipeline && pipelineCold);
+		TURBO_CHECK(pipeline);
 
 		FPipelineDestroyer destroyer = {};
 		destroyer.mPipeline = pipeline->mVkPipeline;
@@ -861,7 +853,7 @@ namespace Turbo
 		FBufferedFrameData& frameData = mFrameDatas[mBufferedFrameId];
 		frameData.mDestroyQueue.RequestDestroy(destroyer);
 
-		DestroyShaderState(pipelineCold->mShaderState);
+		DestroyShaderState(pipeline->mShaderState);
 	}
 
 	void FGPUDevice::DestroyDescriptorPool(THandle<FDescriptorPool> handle)
@@ -1170,22 +1162,21 @@ namespace Turbo
 		{
 			THandle<FTexture> handle = mTexturePool.Acquire();
 			FTexture* texture = mTexturePool.Access(handle);
-			FTextureCold* textureCold = mTexturePool.AccessCold(handle);
 			*texture = {};
 			texture->mVkImage = builtImages[imageId];
 			texture->mVkImageView = builtImageViews[imageId];
 
-			textureCold->mFormat = mVkSurfaceFormat.format;
+			texture->mFormat = mVkSurfaceFormat.format;
 
-			textureCold->mWidth = mFramebufferSize.x;
-			textureCold->mHeight = mFramebufferSize.y;
+			texture->mWidth = mFramebufferSize.x;
+			texture->mHeight = mFramebufferSize.y;
 
-			textureCold->mHandle = handle;
+			texture->mHandle = handle;
 
 			static const std::array<FName, kMaxSwapChainImages> swapChainTextureNames = CreateSwapChainTexturesNames();
-			textureCold->mName = swapChainTextureNames[imageId];
-			SetResourceName(texture->mVkImage, textureCold->mName);
-			SetResourceName(texture->mVkImageView, textureCold->mName);
+			texture->mName = swapChainTextureNames[imageId];
+			SetResourceName(texture->mVkImage, texture->mName);
+			SetResourceName(texture->mVkImageView, texture->mName);
 
 			mSwapChainTextures[imageId] = handle;
 
@@ -1686,21 +1677,20 @@ namespace Turbo
 	void FGPUDevice::InitVulkanTexture(const FTextureBuilder& builder, THandle<FTexture> handle)
 	{
 		FTexture* texture = AccessTexture(handle);
-		FTextureCold* textureCold = AccessTextureCold(handle);
 
 		*texture = {
 			.mFlags = builder.mFlags
 		};
 
-		textureCold->mFormat = builder.mFormat;
+		texture->mFormat = builder.mFormat;
 
-		textureCold->mWidth = builder.mWidth;
-		textureCold->mHeight = builder.mHeight;
-		textureCold->mDepth = builder.mDepth;
-		textureCold->mNumMips = builder.mNumMips;
+		texture->mWidth = builder.mWidth;
+		texture->mHeight = builder.mHeight;
+		texture->mDepth = builder.mDepth;
+		texture->mNumMips = builder.mNumMips;
 
-		textureCold->mHandle = handle;
-		textureCold->mName = builder.mName;
+		texture->mHandle = handle;
+		texture->mName = builder.mName;
 
 		vk::ImageCreateInfo imageCreateInfo = {};
 		imageCreateInfo.format = builder.mFormat;
@@ -1750,7 +1740,7 @@ namespace Turbo
 			std::tie(texture->mImageAllocation, texture->mVkImage) = allocationResult;
 		}
 
-		SetResourceName(texture->mVkImage, textureCold->mName);
+		SetResourceName(texture->mVkImage, texture->mName);
 
 		vk::ImageViewCreateInfo viewCreateInfo = {};
 		viewCreateInfo.image = texture->mVkImage;
@@ -1782,8 +1772,7 @@ namespace Turbo
 	void FGPUDevice::InitPipeline(const FPipelineBuilder& builder, THandle<FPipeline> handle)
 	{
 		FPipeline* pipeline = mPipelinePool.Access(handle);
-		FPipelineCold* pipelineCold = mPipelinePool.AccessCold(handle);
-		TURBO_CHECK(pipeline && pipelineCold)
+		TURBO_CHECK(pipeline)
 
 		THandle<FShaderState> shaderStateHandle = CreateShaderState(builder.mShaderStateBuilder);
 		TURBO_CHECK(shaderStateHandle)
@@ -1791,9 +1780,11 @@ namespace Turbo
 		FShaderState* shaderState = AccessShaderState(shaderStateHandle);
 		TURBO_CHECK(shaderState)
 
-		pipelineCold->mPipelineBuilder = new FPipelineBuilder(builder);
-		pipelineCold->mShaderState = shaderStateHandle;
+		pipeline->mPipelineBuilder = new FPipelineBuilder(builder);
+		pipeline->mShaderState = shaderStateHandle;
 		pipeline->mbGraphicsPipeline = shaderState->mbGraphicsPipeline;
+		pipeline->mHandle = handle;
+		pipeline->mName = builder.mName;
 
 		std::array<vk::DescriptorSetLayout, kMaxDescriptorSetLayouts> vkLayouts;
 
@@ -2013,9 +2004,9 @@ namespace Turbo
 		mVkDevice.destroyPipelineLayout(destroyer.mLayout);
 		mVkDevice.destroyPipeline(destroyer.mPipeline);
 
-		FPipelineCold* pipelineCold = AccessPipelineCold(destroyer.mHandle);
-		delete pipelineCold->mPipelineBuilder;
-		pipelineCold = nullptr;
+		FPipeline* pipeline = AccessPipeline(destroyer.mHandle);
+		delete pipeline->mPipelineBuilder;
+		pipeline->mPipelineBuilder = nullptr;
 
 		mPipelinePool.Release(destroyer.mHandle);
 	}
@@ -2046,13 +2037,12 @@ namespace Turbo
 	void FGPUDevice::DestroyAccelerationStructureImmediate(const FAccelerationStructureDestroyer& destroyer)
 	{
 		const FBuffer* storageBuffer = AccessBuffer(destroyer.mBuffer);
-		const FBufferCold* storageBufferCold = AccessBufferCold(destroyer.mBuffer);
 
 		mVkDevice.destroyAccelerationStructureKHR(destroyer.mAccelerationStructure);
 
 		FBufferDestroyer bufferDestroyer = {};
 		bufferDestroyer.mVkBuffer = storageBuffer->mVkBuffer;
-		bufferDestroyer.mAllocation = storageBufferCold->mAllocation;
+		bufferDestroyer.mAllocation = storageBuffer->mAllocation;
 		bufferDestroyer.mHandle = destroyer.mBuffer;
 
 		DestroyBufferImmediate(bufferDestroyer);

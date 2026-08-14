@@ -204,20 +204,19 @@ namespace Turbo
 
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 		const FTexture* texture = gpu.AccessTexture(textureHandle);
-		const FTextureCold* textureCold = gpu.AccessTextureCold(textureHandle);
 		TURBO_CHECK(textureHandle);
 
 		FRGTextureInfo textureInfo = {
-			.mWidth = textureCold->mWidth,
-			.mHeight = textureCold->mHeight,
-			.mFormat = textureCold->GetFormat(),
+			.mWidth = texture->mWidth,
+			.mHeight = texture->mHeight,
+			.mFormat = texture->GetFormat(),
 			.mFlags =  texture->mFlags,
 
 			.mExternalTextureHandle = textureHandle,
 			.mInitialLayout = initLayout,
 			.mFinalLayout = finalLayout,
 
-			.mName = textureCold->mName,
+			.mName = texture->mName,
 		};
 
 		mTextures.push_back(textureInfo);
@@ -298,14 +297,13 @@ namespace Turbo
 
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 		const FBuffer* buffer = gpu.AccessBuffer(bufferHandle);
-		const FBufferCold* bufferCold = gpu.AccessBufferCold(bufferHandle);
 		TURBO_CHECK(bufferHandle)
 
 		const FRGBufferInfo externalBufferInfo = {
 			.mSize = buffer->mDeviceSize,
-			.mBufferFlags = bufferCold->mBufferFlags,
+			.mBufferFlags = buffer->mBufferFlags,
 			.mExternalBufferHandle = bufferHandle,
-			.mName = bufferCold->mName,
+			.mName = buffer->mName,
 		};
 
 		mBuffers.push_back(externalBufferInfo);
@@ -862,7 +860,7 @@ namespace Turbo
 				THandle<FTexture> textureHandle = renderResources.GetTexture(rgBarrier.mTexture);
 				TURBO_LOG(
 					LogRenderGraph, Display, "[Image Barrier] Texture: {}; ({}, {}, {}) -> ({}, {}, {})",
-					gpu.AccessTextureCold(textureHandle)->mName,
+					gpu.AccessTexture(textureHandle)->mName,
 					magic_enum::enum_name(rgBarrier.mOldLayout),
 					vk::to_string(rgBarrier.mSrcStageMask),
 					vk::to_string(rgBarrier.mSrcAccessMask),
@@ -884,7 +882,7 @@ namespace Turbo
 				THandle<FBuffer> bufferHandle = renderResources.GetBuffer(rgBarrier.mBuffer);
 				bufferBarriers.push_back(rgBarrier.ToVkBufferBarrier(gpu, bufferHandle));
 
-				TURBO_LOG(LogRenderGraph, Display, "[Buffer Barrier] Buffer: {}", gpu.AccessBufferCold(bufferHandle)->mName);
+				TURBO_LOG(LogRenderGraph, Display, "[Buffer Barrier] Buffer: {}", gpu.AccessBuffer(bufferHandle)->mName);
 			}
 
 			vk::DependencyInfo dependencyInfo = {};
@@ -923,7 +921,7 @@ namespace Turbo
 
 						TURBO_LOG(
 							LogRenderGraph, Display, "[GraphicsPass] Bind {} as color attachment {}",
-							gpu.AccessTextureCold(renderResources.GetTexture(attachment.mTexture))->mName,
+							gpu.AccessTexture(renderResources.GetTexture(attachment.mTexture))->mName,
 							attachmentId
 						);
 					}
@@ -951,7 +949,7 @@ namespace Turbo
 
 					TURBO_LOG(
 						LogRenderGraph, Display, "[GraphicsPass] Bind {} as depth attachment",
-						gpu.AccessTextureCold(renderResources.GetTexture(pass.mDepthStencilAttachment.mTexture))->mName
+						gpu.AccessTexture(renderResources.GetTexture(pass.mDepthStencilAttachment.mTexture))->mName
 					);
 				}
 
@@ -993,7 +991,7 @@ namespace Turbo
          if (textureInfo.mExternalTextureHandle.IsValid() == false)
          {
             THandle<FTexture> textureHandle = renderResources.mTextures[textureId];
-            TURBO_LOG(LogRenderGraph, Display, "Destroying texture: {}", gpu.AccessTextureCold(textureHandle)->mName);
+            TURBO_LOG(LogRenderGraph, Display, "Destroying texture: {}", gpu.AccessTexture(textureHandle)->mName);
    			gpu.DestroyTexture(textureHandle);
          }
 		}
@@ -1005,7 +1003,7 @@ namespace Turbo
 			if (bufferInfo.mExternalBufferHandle.IsValid() == false)
 			{
             THandle<FBuffer> bufferHandle = renderResources.mBuffers[bufferId];
-            TURBO_LOG(LogRenderGraph, Display, "Destroying buffer: {}", gpu.AccessBufferCold(bufferHandle)->mName);
+            TURBO_LOG(LogRenderGraph, Display, "Destroying buffer: {}", gpu.AccessBuffer(bufferHandle)->mName);
 
             gpu.DestroyBuffer(bufferHandle);
 			}
@@ -1024,7 +1022,7 @@ namespace Turbo
 
 			TURBO_LOG(
 				LogRenderGraph, Display, "[External Image Barrier] Texture: {}; ({}, {}, {}) -> ({}, {}, {})",
-				gpu.AccessTextureCold(textureHandle)->mName,
+				gpu.AccessTexture(textureHandle)->mName,
 				magic_enum::enum_name(rgBarrier.mOldLayout),
 				vk::to_string(rgBarrier.mSrcStageMask),
 				vk::to_string(rgBarrier.mSrcAccessMask),

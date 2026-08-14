@@ -19,7 +19,6 @@ DECLARE_LOG_CATEGORY(LogGPUDevice, Info, Display)
 
 namespace Turbo
 {
-	struct FDummyColdType;
 	class FWindow;
 
 	DECLARE_DELEGATE(FOnImmediateSubmit, FCommandBuffer&);
@@ -89,13 +88,9 @@ namespace Turbo
 		/** Resource accessors */
 	public:
 		[[nodiscard]] FBuffer* AccessBuffer(THandle<FBuffer> handle) { return mBufferPool.Access(handle); }
-		[[nodiscard]] FBufferCold* AccessBufferCold(THandle<FBuffer> handle) { return mBufferPool.AccessCold(handle); }
 		[[nodiscard]] FTexture* AccessTexture(THandle<FTexture> handle) { return mTexturePool.Access(handle); }
-		[[nodiscard]] FTextureCold* AccessTextureCold(THandle<FTexture> handle) { return mTexturePool.AccessCold(handle); }
 		[[nodiscard]] FSampler* AccessSampler(THandle<FSampler> handle) { return mSamplerPool.Access(handle); }
-		[[nodiscard]] FSamplerCold* AccessSamplerCold(THandle<FSampler> handle) { return mSamplerPool.AccessCold(handle); }
 		[[nodiscard]] FPipeline* AccessPipeline(THandle<FPipeline> handle) { return mPipelinePool.Access(handle); }
-		[[nodiscard]] FPipelineCold* AccessPipelineCold(THandle<FPipeline> handle) { return mPipelinePool.AccessCold(handle); }
 		[[nodiscard]] FDescriptorPool* AccessDescriptorPool(THandle<FDescriptorPool> handle) { return mDescriptorPoolPool.Access(handle); }
 		[[nodiscard]] FDescriptorSetLayout* AccessDescriptorSetLayout(THandle<FDescriptorSetLayout> handle) { return mDescriptorSetLayoutPool.Access(handle); }
 		[[nodiscard]] FDescriptorSet* AccessDescriptorSet(THandle<FDescriptorSet> handle) { return mDescriptorSetPool.Access(handle); }
@@ -258,16 +253,16 @@ namespace Turbo
 
 		/* Resource pools */
 	private:
-		TGenPool<FBuffer, 16384, FBufferCold, true> mBufferPool;
-		TGenPool<FTexture, kTexturePoolSize, FTextureCold, true> mTexturePool;
-		TGenPool<FSampler, kSamplerPoolSize, FSamplerCold> mSamplerPool;
-		TGenPool<FPipeline, 256, FPipelineCold> mPipelinePool;
+		TGenPool<FBuffer, 16384> mBufferPool;
+		TGenPool<FTexture, kTexturePoolSize> mTexturePool;
+		TGenPool<FSampler, kSamplerPoolSize> mSamplerPool;
+		TGenPool<FPipeline, 256> mPipelinePool;
 		TGenPool<FDescriptorSetLayout, 128> mDescriptorSetLayoutPool;
 		TGenPool<FDescriptorPool, 16> mDescriptorPoolPool;
 		TGenPool<FDescriptorSet, 256> mDescriptorSetPool;
 		TGenPool<FShaderState, 256> mShaderStatePool;
-		TGenPool<FBLAS, 1024, FDummyColdType, false> mBLASPool;
-		TGenPool<FTLAS, 32, FDummyColdType, true> mTLASPool;
+		TGenPool<FBLAS, 1024> mBLASPool;
+		TGenPool<FTLAS, 32> mTLASPool;
 
 		/* Resource pools end */
 

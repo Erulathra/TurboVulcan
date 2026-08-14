@@ -39,28 +39,24 @@ namespace Turbo
 		FHandle mHandle = FHandle();
 	};
 
-	/** Vulkan object abstractions */
+	/* Vulkan object abstractions */
 
 	struct FBuffer
 	{
-		[[nodiscard]] bool IsValid() const { return  mVkBuffer != nullptr; }
-
 		vk::Buffer mVkBuffer = nullptr;
 
 		FDeviceSize mDeviceSize = {};
-
 		FDeviceAddress mDeviceAddress = {};
 		byte* mMappedAddress = nullptr;
-	};
 
-	struct FBufferCold
-	{
 		vma::Allocation mAllocation = nullptr;
 		EBufferFlags mBufferFlags = EBufferFlags::None;
 
 		THandle<FBuffer> mHandle = {};
-
 		FName mName;
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const {return IsValid();}
 	};
 
 	class FBufferDestroyer : IDestroyer
@@ -78,10 +74,7 @@ namespace Turbo
 	struct FSampler
 	{
 		vk::Sampler mVkSampler = nullptr;
-	};
 
-	struct FSamplerCold
-	{
 		vk::Filter mMinFilter = vk::Filter::eNearest;
 		vk::Filter mMagFilter = vk::Filter::eNearest;
 		vk::SamplerMipmapMode mMipFilter = vk::SamplerMipmapMode::eNearest;
@@ -90,7 +83,13 @@ namespace Turbo
 		vk::SamplerAddressMode mAddressModeV = vk::SamplerAddressMode::eRepeat;
 		vk::SamplerAddressMode mAddressModeW = vk::SamplerAddressMode::eRepeat;
 
+		THandle<FSampler> mHandle;
 		FName mName = {};
+
+		uint32 _PAD;
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const {return IsValid();}
 	};
 
 	class FSamplerDestroyer : IDestroyer
@@ -112,13 +111,6 @@ namespace Turbo
 		uint32 mBindIndex = std::numeric_limits<uint32>::max();
 
 		ETextureFlags mFlags = ETextureFlags::Invalid;
-	};
-
-	struct FTextureCold
-	{
-		[[nodiscard]] glm::int2 GetSize2D() const { return glm::ivec2{mWidth, mHeight}; }
-		[[nodiscard]] glm::int3 GetSize() const { return glm::ivec3{mWidth, mHeight, mDepth}; }
-		[[nodiscard]] vk::Format GetFormat() const { return mFormat; }
 
 		vk::Format mFormat = vk::Format::eUndefined;
 
@@ -129,6 +121,13 @@ namespace Turbo
 
 		THandle<FTexture> mHandle = {};
 		FName mName = {};
+
+		[[nodiscard]] glm::int2 GetSize2D() const { return glm::ivec2{mWidth, mHeight}; }
+		[[nodiscard]] glm::int3 GetSize() const { return glm::ivec3{mWidth, mHeight, mDepth}; }
+		[[nodiscard]] vk::Format GetFormat() const { return mFormat; }
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const {return IsValid();}
 	};
 
 	class FTextureDestroyer : public IDestroyer
@@ -148,10 +147,14 @@ namespace Turbo
 	{
 		std::array<vk::PipelineShaderStageCreateInfo, kMaxShaderStages> mShaderStageCrateInfo;
 
-		FName mName;
-
 		uint32 mNumActiveShaders = 0;
 		bool mbGraphicsPipeline = true;
+
+		THandle<FShaderState> mHandle;
+		FName mName;
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const {return IsValid();}
 	};
 
 	class FShaderStateDestroyer : public IDestroyer
@@ -187,6 +190,9 @@ namespace Turbo
 		uint16 mSetIndex = 0;
 
 		THandle<FDescriptorSetLayout> mHandle = {};
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const {return IsValid();}
 	};
 
 	struct FDescriptorPool;
@@ -195,7 +201,11 @@ namespace Turbo
 	{
 		vk::DescriptorSet mVkDescriptorSet = nullptr;
 
-		THandle<FDescriptorPool> mOwnerPool = {};
+		THandle<FDescriptorSet> mHandle;
+		FName mName;
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const {return IsValid();}
 	};
 
 	struct FDescriptorPool
@@ -205,7 +215,11 @@ namespace Turbo
 		vk::DescriptorPool mVkDescriptorPool;
 		std::vector<THandle<FDescriptorSet>> mDescriptorSets;
 
+		THandle<FDescriptorPool> mHandle;
 		FName mName;
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const {return IsValid();}
 	};
 
 	class FDescriptorSetLayoutDestroyer : public IDestroyer
@@ -239,13 +253,16 @@ namespace Turbo
 
 		vk::PipelineBindPoint mVkBindPoint = {};
 
-		bool mbGraphicsPipeline = true;
-	};
-
-	struct FPipelineCold
-	{
 		THandle<FShaderState> mShaderState = {};
-		FPipelineBuilder* mPipelineBuilder = nullptr; // Allows to recompile pipeline at runtime
+		FPipelineBuilder* mPipelineBuilder = nullptr; // Allows to recompile pipeline at runtime. Replace with handle?
+
+		bool mbGraphicsPipeline = true;
+
+		THandle<FPipeline> mHandle;
+		FName mName;
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const {return IsValid();}
 	};
 
 	class FPipelineDestroyer : IDestroyer
@@ -274,16 +291,22 @@ namespace Turbo
 		THandle<FBuffer> mBuffer;
 		EAccelerationStructureType mType = EAccelerationStructureType::BLAS;
 
+		FHandle mHandle;
 		FName mName = {};
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const {return IsValid();}
 	};
 
 	struct FBLAS : FAccelerationStructure
 	{
 	};
+	static_assert(sizeof(FBLAS) == sizeof(FAccelerationStructure));
 
 	struct FTLAS : FAccelerationStructure
 	{
 	};
+	static_assert(sizeof(FTLAS) == sizeof(FAccelerationStructure));
 
 	class FAccelerationStructureDestroyer : IDestroyer
 	{
