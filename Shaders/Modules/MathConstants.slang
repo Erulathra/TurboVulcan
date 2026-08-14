@@ -1,3 +1,5 @@
+#pragma once
+
 // Constants from <cmath>
 #define M_E                 2.71828182845904523536  // e
 #define M_LOG2E             1.44269504088896340736  // log2(e)
@@ -14,10 +16,13 @@
 #define M_SQRT2             1.41421356237309504880  // sqrt(2)
 #define M_SQRT1_2           0.707106781186547524401 // 1/sqrt(2)
 
+#define DEG_TO_RAD          (1. / 180. * M_PI)
+#define RAD_TO_DEG          (180. / M_PI)
+
 // Numeric limits from <cstdint>
-#define UINT32_MAX          4294967295
-#define INT32_MIN           -2147483648
-#define INT32_MAX           2147483647
+#define UINT_MAX          4294967295
+#define INT_MIN           -2147483648
+#define INT_MAX           2147483647
 
 // Numeric limits from <cfloat>
 #define DBL_DECIMAL_DIG     17                      // # of decimal digits of rounding precision

@@ -100,6 +100,7 @@ namespace Turbo
 		{
 			FWorldSettings& settings = registry.get<FWorldSettings>(entity);
 			ImGui::DragFloat("Ambient Light", &settings.mAmbientLight, 0.1f);
+			ImGui::InputInt("Shadow Samples", &settings.mNumShadowSamples, 1, 8);
 		})
 	);
 

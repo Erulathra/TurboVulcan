@@ -476,6 +476,7 @@ namespace Turbo
 		sceneData->mNumLights = lights.size();
 		sceneData->mSceneTLAS = sceneView->mTLAS.GetIndex();
 		sceneData->mAmbientLight = worldSettings.mAmbientLight;
+		sceneData->mNumShadowSamples = worldSettings.mNumShadowSamples;
 
 		std::tie(sceneView->mSceneDataBufferHandle, sceneView->mSceneData) =
 			graphBuilder.CreateAndQueueBufferUpload<FSceneData>(FCreateAndUploadBuffer{

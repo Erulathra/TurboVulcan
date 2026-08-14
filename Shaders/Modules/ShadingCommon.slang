@@ -2,6 +2,7 @@ module ShadingCommon;
 
 import Math;
 import ViewData;
+import Hash;
 
 #include "MathConstants.slang"
 
@@ -118,22 +119,30 @@ public float CalculateGeometryShading(float3 normal, float3 lightToCamera, float
     return geometryObstruction * geometryShadowing;
 }
 
-public float CalculateShadow(in FLight light, in float3 mPosition, in RaytracingAccelerationStructure sceneTLAS)
+public float CalculateShadow(FLight light, float3 position, RaytracingAccelerationStructure sceneTLAS, uint numSamples, uint seed = 0)
 {
    if (GetLightType(light) == ELightType::Directional)
    {
-      RayDesc rayDesc;
-      rayDesc.Origin = mPosition;
-      rayDesc.Direction = -light.mDirection;
-      rayDesc.TMin = 1e-3; // shadow-bias
-      rayDesc.TMax = 1e4;
+      uint seed = WangHash(asuint(position.x + position.y + position.z) + seed);
 
-      RayQuery<RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> rayQuery;
-      let rayFlags = RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
-      rayQuery.TraceRayInline(sceneTLAS, rayFlags, 0xFF, rayDesc);
-      rayQuery.Proceed();
+      float shadowTerm = 0.f;
+      for (uint sample = 0; sample < numSamples; ++sample)
+      {
+         RayDesc rayDesc;
+         rayDesc.Origin = position;
+         rayDesc.Direction = GetRandomDirectionInCone(seed, -light.mDirection, 0.5357f * DEG_TO_RAD); // TODO: move to light struct
+         rayDesc.TMin = 1e-3; // shadow-bias
+         rayDesc.TMax = 1e4;
 
-      return rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT ? 1.f : 0.f;
+         RayQuery<RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH> rayQuery;
+         let rayFlags = RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH;
+         rayQuery.TraceRayInline(sceneTLAS, rayFlags, 0xFF, rayDesc);
+         rayQuery.Proceed();
+
+         shadowTerm += float(rayQuery.CommittedStatus() == COMMITTED_TRIANGLE_HIT);
+      }
+
+      return shadowTerm / numSamples;
    }
 
    return 0.f;

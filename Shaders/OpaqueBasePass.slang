@@ -116,7 +116,7 @@ void psMain(in VSOut vsOut, out PSOut psOut)
 		// For now only support point lights
 		FLight light = lights[lightIndex];
 
-		const float shadowFactor = CalculateShadow(light, pixelInput.mPosition, tlas);
+		const float shadowFactor = CalculateShadow(light, pixelInput.mPosition, tlas, scene.mNumShadowSamples, viewData.mFrameIndex);
 		irradiance += CalculatePixelRadiance(light, pixelInput) * (1.f - shadowFactor);
 	}
 

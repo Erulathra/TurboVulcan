@@ -25,6 +25,8 @@ namespace Turbo
 
 		float mAmbientLight = 0.03f;
 
+		uint32 mNumShadowSamples = 1;
+
 		uint32 _PADDING[2];
 	};
 

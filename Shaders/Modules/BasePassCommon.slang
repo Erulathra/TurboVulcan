@@ -24,6 +24,8 @@ public struct FSceneData
 
     public float mAmbientLight;
 
+    public uint mNumShadowSamples;
+
     uint _PADDING[3];
 }
 

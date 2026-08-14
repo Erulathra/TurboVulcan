@@ -86,3 +86,19 @@ public FSphere TransformSphere(float4x4 transform, FSphere sphere)
 
     return result;
 }
+
+public float3x3 RotateAroundAxis(float3 axis, float angle)
+{
+   // Equation from https://en.wikipedia.org/wiki/Rotation_matrix
+   float cosA, sinA;
+   sincos(angle, sinA, cosA);
+
+   const float oneMinusCosA = 1.f - cosA;
+   const float3 u = axis;
+
+   return float3x3(
+      u.x * u.x * oneMinusCosA + cosA,       u.x * u.y * oneMinusCosA - u.z * sinA, u.x * u.z * oneMinusCosA + u.y * sinA,
+      u.x * u.y * oneMinusCosA + u.z * sinA, u.y * u.y * oneMinusCosA + cosA,       u.y * u.z * oneMinusCosA - u.x * sinA,
+      u.x * u.z * oneMinusCosA - u.y * sinA, u.y * u.z * oneMinusCosA + u.x * sinA, u.z * u.z * oneMinusCosA + cosA
+   );
+}

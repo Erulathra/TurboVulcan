@@ -15,5 +15,6 @@ namespace Turbo
    struct FWorldSettings
    {
       float mAmbientLight = 2000.f;
+      int32 mNumShadowSamples = 1;
    };
 }
