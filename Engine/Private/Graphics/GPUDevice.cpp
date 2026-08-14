@@ -48,11 +48,11 @@ namespace Turbo
 
 		TURBO_LOG(LogGPUDevice, Info, "Recompiling pipelines")
 
-		mPipelinePool->ForEachEntry(
+		mPipelinePool.ForEachEntry(
 			[&](THandle<FPipeline> pipelineHandle)
 			{
-				FPipeline* pipeline = mPipelinePool->Access(pipelineHandle);
-				FPipelineCold* pipelineCold = mPipelinePool->AccessCold(pipelineHandle);
+				FPipeline* pipeline = mPipelinePool.Access(pipelineHandle);
+				FPipelineCold* pipelineCold = mPipelinePool.AccessCold(pipelineHandle);
 
 				DestroyShaderState(pipelineCold->mShaderState);
 
@@ -186,7 +186,7 @@ namespace Turbo
 	{
 		TRACE_ZONE_SCOPED()
 
-		const THandle<FBuffer> handle = mBufferPool->Acquire();
+		const THandle<FBuffer> handle = mBufferPool.Acquire();
 		TURBO_CHECK(handle)
 
 #if TURBO_BUILD_DEVELOPMENT
@@ -303,7 +303,7 @@ namespace Turbo
 	{
 		TRACE_ZONE_SCOPED()
 
-		const THandle<FTexture> handle = mTexturePool->Acquire();
+		const THandle<FTexture> handle = mTexturePool.Acquire();
 		TURBO_CHECK(handle)
 
 		FTexture* texture = AccessTexture(handle);
@@ -316,7 +316,7 @@ namespace Turbo
 	{
 		TRACE_ZONE_SCOPED()
 
-		const THandle<FSampler> handle = mSamplerPool->Acquire();
+		const THandle<FSampler> handle = mSamplerPool.Acquire();
 		TURBO_CHECK(handle);
 
 		FSampler* sampler = AccessSampler(handle);
@@ -357,7 +357,7 @@ namespace Turbo
 	{
 		TRACE_ZONE_SCOPED()
 
-		THandle<FPipeline> handle = mPipelinePool->Acquire();
+		THandle<FPipeline> handle = mPipelinePool.Acquire();
 		TURBO_CHECK(handle)
 
 		InitPipeline(builder, handle);
@@ -369,10 +369,10 @@ namespace Turbo
 	{
 		TRACE_ZONE_SCOPED()
 
-		THandle<FDescriptorPool> handle = mDescriptorPoolPool->Acquire();
+		THandle<FDescriptorPool> handle = mDescriptorPoolPool.Acquire();
 		TURBO_CHECK(handle)
 
-		FDescriptorPool* pool = mDescriptorPoolPool->Access(handle);
+		FDescriptorPool* pool = mDescriptorPoolPool.Access(handle);
 		pool->mDescriptorSets.clear();
 		pool->mName = builder.mName;
 
@@ -398,10 +398,10 @@ namespace Turbo
 	{
 		TRACE_ZONE_SCOPED()
 
-		THandle<FDescriptorSetLayout> handle = mDescriptorSetLayoutPool->Acquire();
+		THandle<FDescriptorSetLayout> handle = mDescriptorSetLayoutPool.Acquire();
 		TURBO_CHECK(handle)
 
-		FDescriptorSetLayout* layout = mDescriptorSetLayoutPool->Access(handle);
+		FDescriptorSetLayout* layout = mDescriptorSetLayoutPool.Access(handle);
 		layout->mNumBindings = builder.mNumBindings;
 		layout->mHandle = handle;
 		layout->mSetIndex = builder.mSetIndex;
@@ -441,14 +441,14 @@ namespace Turbo
 
 	THandle<FDescriptorSet> FGPUDevice::CreateDescriptorSet(const FDescriptorSetBuilder& builder)
 	{
-		THandle<FDescriptorSet> handle = mDescriptorSetPool->Acquire();
+		THandle<FDescriptorSet> handle = mDescriptorSetPool.Acquire();
 		TURBO_CHECK(handle);
 
-		FDescriptorSet* set = mDescriptorSetPool->Access(handle);
-		const FDescriptorSetLayout* layout = mDescriptorSetLayoutPool->Access(builder.mLayout);
+		FDescriptorSet* set = mDescriptorSetPool.Access(handle);
+		const FDescriptorSetLayout* layout = mDescriptorSetLayoutPool.Access(builder.mLayout);
 		TURBO_CHECK(set && layout)
 
-		FDescriptorPool* pool = mDescriptorPoolPool->Access(builder.mDescriptorPool);
+		FDescriptorPool* pool = mDescriptorPoolPool.Access(builder.mDescriptorPool);
 
 		// Allocate set
 		vk::DescriptorSetAllocateInfo allocateInfo = {};
@@ -521,7 +521,7 @@ namespace Turbo
 					}
 				case vk::DescriptorType::eSampler:
 					{
-						const FSampler* sampler = mSamplerPool->Access(THandle<FSampler>(resource));
+						const FSampler* sampler = mSamplerPool.Access(THandle<FSampler>(resource));
 
 						vk::DescriptorImageInfo& imageInfo = imageInfos.emplace_back();
 						imageInfo.sampler = sampler->mVkSampler;
@@ -532,7 +532,7 @@ namespace Turbo
 				case vk::DescriptorType::eStorageBuffer:
 				case vk::DescriptorType::eUniformBuffer:
 					{
-						const FBuffer* buffer = mBufferPool->Access(THandle<FBuffer>(resource));
+						const FBuffer* buffer = mBufferPool.Access(THandle<FBuffer>(resource));
 
 						vk::DescriptorBufferInfo& bufferInfo = bufferInfos.emplace_back();
 						bufferInfo.buffer = buffer->mVkBuffer;
@@ -565,10 +565,10 @@ namespace Turbo
 			return handle;
 		}
 
-		handle = mShaderStatePool->Acquire();
+		handle = mShaderStatePool.Acquire();
 		TURBO_CHECK(handle)
 
-		FShaderState* shaderState = mShaderStatePool->Access(handle);
+		FShaderState* shaderState = mShaderStatePool.Access(handle);
 		TURBO_CHECK(shaderState)
 
 		shaderState->mShaderStageCrateInfo = {};
@@ -612,8 +612,8 @@ namespace Turbo
 
 	THandle<FBLAS> FGPUDevice::CreateBLAS(const FBLASBuilder& builder)
 	{
-		THandle<FBLAS> handle = mBLASPool->Acquire();
-		FBLAS* blas = mBLASPool->Access(handle);
+		THandle<FBLAS> handle = mBLASPool.Acquire();
+		FBLAS* blas = mBLASPool.Access(handle);
 		blas->mName = builder.mName;
 		blas->mType = EAccelerationStructureType::BLAS;
 
@@ -697,8 +697,8 @@ namespace Turbo
 
 	THandle<FTLAS> FGPUDevice::CreateTLAS(const FTLASBuilder& builder)
 	{
-		THandle<FTLAS> handle = mTLASPool->Acquire();
-		FTLAS* tlas = mTLASPool->Access(handle);
+		THandle<FTLAS> handle = mTLASPool.Acquire();
+		FTLAS* tlas = mTLASPool.Access(handle);
 		tlas->mName = builder.mName;
 		tlas->mType = EAccelerationStructureType::TLAS;
 
@@ -786,7 +786,7 @@ namespace Turbo
 
 		for (const THandle<FDescriptorSet>& descriptorSet : descriptorPool->mDescriptorSets)
 		{
-			mDescriptorSetPool->Release(descriptorSet);
+			mDescriptorSetPool.Release(descriptorSet);
 		}
 
 		descriptorPool->mDescriptorSets.clear();
@@ -910,7 +910,7 @@ namespace Turbo
 
 	void FGPUDevice::DestroyBLAS(THandle<FBLAS> handle)
 	{
-      FBLAS* blas = mBLASPool->Access(handle);
+      FBLAS* blas = mBLASPool.Access(handle);
       TURBO_CHECK(blas)
 
       DestroyAccelerationStructure(handle, blas);
@@ -918,7 +918,7 @@ namespace Turbo
 
 	void FGPUDevice::DestroyTLAS(THandle<FTLAS> handle)
 	{
-      FTLAS* tlas = mTLASPool->Access(handle);
+      FTLAS* tlas = mTLASPool.Access(handle);
       TURBO_CHECK(tlas)
 
       DestroyAccelerationStructure(handle, tlas);
@@ -1168,9 +1168,9 @@ namespace Turbo
 
 		for (uint32 imageId = 0; imageId < mNumSwapChainImages; ++imageId)
 		{
-			THandle<FTexture> handle = mTexturePool->Acquire();
-			FTexture* texture = mTexturePool->Access(handle);
-			FTextureCold* textureCold = mTexturePool->AccessCold(handle);
+			THandle<FTexture> handle = mTexturePool.Acquire();
+			FTexture* texture = mTexturePool.Access(handle);
+			FTextureCold* textureCold = mTexturePool.AccessCold(handle);
 			*texture = {};
 			texture->mVkImage = builtImages[imageId];
 			texture->mVkImageView = builtImageViews[imageId];
@@ -1609,7 +1609,7 @@ namespace Turbo
 		{
 			FTexture* texture = AccessTexture(mSwapChainTextures[imageId]);
 			mVkDevice.destroyImageView(texture->mVkImageView);
-			mTexturePool->Release(mSwapChainTextures[imageId]);
+			mTexturePool.Release(mSwapChainTextures[imageId]);
 
 			mVkDevice.destroySemaphore(mSubmitSemaphores[imageId]);
 		}
@@ -1781,8 +1781,8 @@ namespace Turbo
 
 	void FGPUDevice::InitPipeline(const FPipelineBuilder& builder, THandle<FPipeline> handle)
 	{
-		FPipeline* pipeline = mPipelinePool->Access(handle);
-		FPipelineCold* pipelineCold = mPipelinePool->AccessCold(handle);
+		FPipeline* pipeline = mPipelinePool.Access(handle);
+		FPipelineCold* pipelineCold = mPipelinePool.AccessCold(handle);
 		TURBO_CHECK(pipeline && pipelineCold)
 
 		THandle<FShaderState> shaderStateHandle = CreateShaderState(builder.mShaderStateBuilder);
@@ -1798,7 +1798,7 @@ namespace Turbo
 		std::array<vk::DescriptorSetLayout, kMaxDescriptorSetLayouts> vkLayouts;
 
 		// Bind bindless descriptor set layout
-		const FDescriptorSetLayout* bindlessSetLayout = mDescriptorSetLayoutPool->Access(mBindlessResourcesLayout);
+		const FDescriptorSetLayout* bindlessSetLayout = mDescriptorSetLayoutPool.Access(mBindlessResourcesLayout);
 		TURBO_CHECK(bindlessSetLayout);
 		vkLayouts[0] = bindlessSetLayout->mVkLayout;
 
@@ -1991,20 +1991,20 @@ namespace Turbo
 	void FGPUDevice::DestroyBufferImmediate(const FBufferDestroyer& destroyer)
 	{
 		mVmaAllocator.destroyBuffer(destroyer.mVkBuffer, destroyer.mAllocation);
-		mBufferPool->Release(destroyer.mHandle);
+		mBufferPool.Release(destroyer.mHandle);
 	}
 
 	void FGPUDevice::DestroyTextureImmediate(const FTextureDestroyer& destroyer)
 	{
 		mVmaAllocator.destroyImage(destroyer.mImage, destroyer.mImageAllocation);
 		mVkDevice.destroyImageView(destroyer.mImageView);
-		mTexturePool->Release(destroyer.mHandle);
+		mTexturePool.Release(destroyer.mHandle);
 	}
 
 	void FGPUDevice::DestroySamplerImmediate(const FSamplerDestroyer& destroyer)
 	{
 		mVkDevice.destroySampler(destroyer.mVkSampler);
-		mSamplerPool->Release(destroyer.mHandle);
+		mSamplerPool.Release(destroyer.mHandle);
 	}
 
 	void FGPUDevice::DestroyPipelineImmediate(const FPipelineDestroyer& destroyer)
@@ -2017,20 +2017,20 @@ namespace Turbo
 		delete pipelineCold->mPipelineBuilder;
 		pipelineCold = nullptr;
 
-		mPipelinePool->Release(destroyer.mHandle);
+		mPipelinePool.Release(destroyer.mHandle);
 	}
 
 	void FGPUDevice::DestroyDescriptorPoolImmediate(const FDescriptorPoolDestroyer& destroyer)
 	{
 		ResetDescriptorPool(destroyer.mhandle);
 		mVkDevice.destroyDescriptorPool(destroyer.mVkDescriptorPool);
-		mDescriptorPoolPool->Release(destroyer.mhandle);
+		mDescriptorPoolPool.Release(destroyer.mhandle);
 	}
 
 	void FGPUDevice::DestroyDescriptorSetLayoutImmediate(const FDescriptorSetLayoutDestroyer& destroyer)
 	{
 		mVkDevice.destroyDescriptorSetLayout(destroyer.mVkLayout);
-		mDescriptorSetLayoutPool->Release(destroyer.mHandle);
+		mDescriptorSetLayoutPool.Release(destroyer.mHandle);
 	}
 
 	void FGPUDevice::DestroyShaderStateImmediate(const FShaderStateDestroyer& destroyer)
@@ -2040,7 +2040,7 @@ namespace Turbo
 			mVkDevice.destroyShaderModule(destroyer.mModules[shaderId]);
 		}
 
-		mShaderStatePool->Release(destroyer.mHandle);
+		mShaderStatePool.Release(destroyer.mHandle);
 	}
 
 	void FGPUDevice::DestroyAccelerationStructureImmediate(const FAccelerationStructureDestroyer& destroyer)
@@ -2060,10 +2060,10 @@ namespace Turbo
 		switch (destroyer.mType)
 		{
 		case Turbo::EAccelerationStructureType::BLAS:
-   		mBLASPool->Release(THandle<FBLAS>(destroyer.mHandle));
+   		mBLASPool.Release(THandle<FBLAS>(destroyer.mHandle));
 			break;
 		case Turbo::EAccelerationStructureType::TLAS:
-   		mTLASPool->Release(THandle<FTLAS>(destroyer.mHandle));
+   		mTLASPool.Release(THandle<FTLAS>(destroyer.mHandle));
 			break;
 		default:
 			TURBO_UNINPLEMENTED()

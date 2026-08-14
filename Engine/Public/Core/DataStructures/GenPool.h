@@ -146,19 +146,4 @@ namespace Turbo
 		FHandle::IndexType mFreeIndicesHead = 0;
 		FHandle::IndexType mUsedIndices = 0;
 	};
-
-	template<typename HotType, FHandle::IndexType size, typename ColdType = FDummyColdType, bool bAllowGenReuse = false>
-		requires (size < FHandle::kMaxIndex)
-	class TPoolHeap
-	{
-		using TPoolType = TGenPool<HotType, size, ColdType, bAllowGenReuse>;
-	public:
-		TPoolHeap() { mPoolPtr = MakeUnique<TPoolType>(); }
-		TPoolType* operator->() { return mPoolPtr.get(); }
-		const TPoolType* operator->() const { return mPoolPtr.get(); }
-
-	private:
-		TUniquePtr<TPoolType> mPoolPtr;
-	};
-
 } // turbo

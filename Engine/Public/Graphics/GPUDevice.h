@@ -88,31 +88,31 @@ namespace Turbo
 
 		/** Resource accessors */
 	public:
-		[[nodiscard]] FBuffer* AccessBuffer(THandle<FBuffer> handle) { return mBufferPool->Access(handle); }
-		[[nodiscard]] FBufferCold* AccessBufferCold(THandle<FBuffer> handle) { return mBufferPool->AccessCold(handle); }
-		[[nodiscard]] FTexture* AccessTexture(THandle<FTexture> handle) { return mTexturePool->Access(handle); }
-		[[nodiscard]] FTextureCold* AccessTextureCold(THandle<FTexture> handle) { return mTexturePool->AccessCold(handle); }
-		[[nodiscard]] FSampler* AccessSampler(THandle<FSampler> handle) { return mSamplerPool->Access(handle); }
-		[[nodiscard]] FSamplerCold* AccessSamplerCold(THandle<FSampler> handle) { return mSamplerPool->AccessCold(handle); }
-		[[nodiscard]] FPipeline* AccessPipeline(THandle<FPipeline> handle) { return mPipelinePool->Access(handle); }
-		[[nodiscard]] FPipelineCold* AccessPipelineCold(THandle<FPipeline> handle) { return mPipelinePool->AccessCold(handle); }
-		[[nodiscard]] FDescriptorPool* AccessDescriptorPool(THandle<FDescriptorPool> handle) { return mDescriptorPoolPool->Access(handle); }
-		[[nodiscard]] FDescriptorSetLayout* AccessDescriptorSetLayout(THandle<FDescriptorSetLayout> handle) { return mDescriptorSetLayoutPool->Access(handle); }
-		[[nodiscard]] FDescriptorSet* AccessDescriptorSet(THandle<FDescriptorSet> handle) { return mDescriptorSetPool->Access(handle); }
-		[[nodiscard]] FShaderState* AccessShaderState(THandle<FShaderState> handle) { return mShaderStatePool->Access(handle); }
-		[[nodiscard]] FBLAS* AccessBLAS(THandle<FBLAS> handle) { return mBLASPool->Access(handle); }
-		[[nodiscard]] FTLAS* AccessTLAS(THandle<FTLAS> handle) { return mTLASPool->Access(handle); }
+		[[nodiscard]] FBuffer* AccessBuffer(THandle<FBuffer> handle) { return mBufferPool.Access(handle); }
+		[[nodiscard]] FBufferCold* AccessBufferCold(THandle<FBuffer> handle) { return mBufferPool.AccessCold(handle); }
+		[[nodiscard]] FTexture* AccessTexture(THandle<FTexture> handle) { return mTexturePool.Access(handle); }
+		[[nodiscard]] FTextureCold* AccessTextureCold(THandle<FTexture> handle) { return mTexturePool.AccessCold(handle); }
+		[[nodiscard]] FSampler* AccessSampler(THandle<FSampler> handle) { return mSamplerPool.Access(handle); }
+		[[nodiscard]] FSamplerCold* AccessSamplerCold(THandle<FSampler> handle) { return mSamplerPool.AccessCold(handle); }
+		[[nodiscard]] FPipeline* AccessPipeline(THandle<FPipeline> handle) { return mPipelinePool.Access(handle); }
+		[[nodiscard]] FPipelineCold* AccessPipelineCold(THandle<FPipeline> handle) { return mPipelinePool.AccessCold(handle); }
+		[[nodiscard]] FDescriptorPool* AccessDescriptorPool(THandle<FDescriptorPool> handle) { return mDescriptorPoolPool.Access(handle); }
+		[[nodiscard]] FDescriptorSetLayout* AccessDescriptorSetLayout(THandle<FDescriptorSetLayout> handle) { return mDescriptorSetLayoutPool.Access(handle); }
+		[[nodiscard]] FDescriptorSet* AccessDescriptorSet(THandle<FDescriptorSet> handle) { return mDescriptorSetPool.Access(handle); }
+		[[nodiscard]] FShaderState* AccessShaderState(THandle<FShaderState> handle) { return mShaderStatePool.Access(handle); }
+		[[nodiscard]] FBLAS* AccessBLAS(THandle<FBLAS> handle) { return mBLASPool.Access(handle); }
+		[[nodiscard]] FTLAS* AccessTLAS(THandle<FTLAS> handle) { return mTLASPool.Access(handle); }
 
-		[[nodiscard]] const FBuffer* AccessBuffer(THandle<FBuffer> handle) const { return mBufferPool->Access(handle); }
-		[[nodiscard]] const FTexture* AccessTexture(THandle<FTexture> handle) const { return mTexturePool->Access(handle); }
-		[[nodiscard]] const FSampler* AccessSampler(THandle<FSampler> handle) const { return mSamplerPool->Access(handle); }
-		[[nodiscard]] const FPipeline* AccessPipeline(THandle<FPipeline> handle) const { return mPipelinePool->Access(handle); }
-		[[nodiscard]] const FDescriptorPool* AccessDescriptorPool(THandle<FDescriptorPool> handle) const { return mDescriptorPoolPool->Access(handle); }
-		[[nodiscard]] const FDescriptorSetLayout* AccessDescriptorSetLayout(THandle<FDescriptorSetLayout> handle) const { return mDescriptorSetLayoutPool->Access(handle); }
-		[[nodiscard]] const FDescriptorSet* AccessDescriptorSet(THandle<FDescriptorSet> handle) const { return mDescriptorSetPool->Access(handle); }
-		[[nodiscard]] const FShaderState* AccessShaderState(THandle<FShaderState> handle) const { return mShaderStatePool->Access(handle); }
-		[[nodiscard]] const FBLAS* AccessBLAS(THandle<FBLAS> handle) const { return mBLASPool->Access(handle); }
-		[[nodiscard]] const FTLAS* AccessTLAS(THandle<FTLAS> handle) const { return mTLASPool->Access(handle); }
+		[[nodiscard]] const FBuffer* AccessBuffer(THandle<FBuffer> handle) const { return mBufferPool.Access(handle); }
+		[[nodiscard]] const FTexture* AccessTexture(THandle<FTexture> handle) const { return mTexturePool.Access(handle); }
+		[[nodiscard]] const FSampler* AccessSampler(THandle<FSampler> handle) const { return mSamplerPool.Access(handle); }
+		[[nodiscard]] const FPipeline* AccessPipeline(THandle<FPipeline> handle) const { return mPipelinePool.Access(handle); }
+		[[nodiscard]] const FDescriptorPool* AccessDescriptorPool(THandle<FDescriptorPool> handle) const { return mDescriptorPoolPool.Access(handle); }
+		[[nodiscard]] const FDescriptorSetLayout* AccessDescriptorSetLayout(THandle<FDescriptorSetLayout> handle) const { return mDescriptorSetLayoutPool.Access(handle); }
+		[[nodiscard]] const FDescriptorSet* AccessDescriptorSet(THandle<FDescriptorSet> handle) const { return mDescriptorSetPool.Access(handle); }
+		[[nodiscard]] const FShaderState* AccessShaderState(THandle<FShaderState> handle) const { return mShaderStatePool.Access(handle); }
+		[[nodiscard]] const FBLAS* AccessBLAS(THandle<FBLAS> handle) const { return mBLASPool.Access(handle); }
+		[[nodiscard]] const FTLAS* AccessTLAS(THandle<FTLAS> handle) const { return mTLASPool.Access(handle); }
 
 		/** Resource accessors end */
 
@@ -258,16 +258,16 @@ namespace Turbo
 
 		/* Resource pools */
 	private:
-		TPoolHeap<FBuffer, 16384, FBufferCold, true> mBufferPool;
-		TPoolHeap<FTexture, kTexturePoolSize, FTextureCold, true> mTexturePool;
-		TPoolHeap<FSampler, kSamplerPoolSize, FSamplerCold> mSamplerPool;
-		TPoolHeap<FPipeline, 256, FPipelineCold> mPipelinePool;
-		TPoolHeap<FDescriptorSetLayout, 128> mDescriptorSetLayoutPool;
-		TPoolHeap<FDescriptorPool, 16> mDescriptorPoolPool;
-		TPoolHeap<FDescriptorSet, 256> mDescriptorSetPool;
-		TPoolHeap<FShaderState, 256> mShaderStatePool;
-		TPoolHeap<FBLAS, 1024, FDummyColdType, false> mBLASPool;
-		TPoolHeap<FTLAS, 32, FDummyColdType, true> mTLASPool;
+		TGenPool<FBuffer, 16384, FBufferCold, true> mBufferPool;
+		TGenPool<FTexture, kTexturePoolSize, FTextureCold, true> mTexturePool;
+		TGenPool<FSampler, kSamplerPoolSize, FSamplerCold> mSamplerPool;
+		TGenPool<FPipeline, 256, FPipelineCold> mPipelinePool;
+		TGenPool<FDescriptorSetLayout, 128> mDescriptorSetLayoutPool;
+		TGenPool<FDescriptorPool, 16> mDescriptorPoolPool;
+		TGenPool<FDescriptorSet, 256> mDescriptorSetPool;
+		TGenPool<FShaderState, 256> mShaderStatePool;
+		TGenPool<FBLAS, 1024, FDummyColdType, false> mBLASPool;
+		TGenPool<FTLAS, 32, FDummyColdType, true> mTLASPool;
 
 		/* Resource pools end */
 
