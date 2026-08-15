@@ -3,6 +3,7 @@
 #include "CommonMacros.h"
 #include "Core/DataStructures/Handle.h"
 #include "Core/Memory.h"
+#include "spdlog/fmt/bundled/format.h"
 #include <cstddef>
 
 namespace Turbo
@@ -20,12 +21,24 @@ namespace Turbo
 		bool mUsed[size];
 		GenType mGenerations[size];
 
+		IndexType mNextFree[size];
+		IndexType mFirstFree = 1;
+		IndexType mLastFree = size - 1;
+
 	public:
 		TGenPool()
 		{
 			Memory::MemZero(mData, sizeof(Type) * size);
 			Memory::MemZero(mUsed, sizeof(bool) * size);
 			Memory::MemZero(mGenerations, sizeof(GenType) * size);
+
+			for (IndexType i = 1; i < (size - 1); ++i)
+			{
+            mNextFree[i] = i + 1;
+			}
+
+			mNextFree[0] = 0;
+			mNextFree[size - 1] = 0;
 		}
 
 	public:
@@ -36,6 +49,9 @@ namespace Turbo
 			if (IndexType newIndex = FindEmptySlot())
 			{
 				TURBO_CHECK(mUsed[newIndex] == false)
+
+				mFirstFree = mNextFree[newIndex];
+				mNextFree[newIndex] = 0;
 
 				mData[newIndex] = {};
 				mUsed[newIndex] = true;
@@ -54,10 +70,18 @@ namespace Turbo
 			return THandle<Type>::Nil();
 		}
 
-		void Release(THandle<Type> handle) { mUsed[DeRef(handle)] = false; }
+		void Release(THandle<Type> handle)
+		{
+			if (IndexType slot = DeRef(handle))
+			{
+				mNextFree[mLastFree] = slot;
+				mLastFree = slot;
+
+				mUsed[slot] = false;
+			}
+		}
 
 		Type* Get(THandle<Type> handle) { return &mData[DeRef(handle)]; }
-
 		const Type* Get(THandle<Type> handle) const { return &mData[DeRef(handle)]; }
 
 		IndexType DeRef(THandle<Type> handle) const
@@ -74,15 +98,7 @@ namespace Turbo
 
 		IndexType FindEmptySlot() const
 		{
-			for (IndexType i = 1; i < size; ++i)
-			{
-				if (mUsed[i] == false)
-				{
-					return i;
-				}
-			}
-
-			return 0;
+			return mFirstFree;
 		}
 
 		template <typename Function>

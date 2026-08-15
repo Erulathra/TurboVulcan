@@ -11,6 +11,7 @@
 #include "Graphics/Resources.h"
 #include "ProfilingMacros.h"
 #include "TaskScheduler.h"
+#include "TurboLog.h"
 #include "VkBootstrap.h"
 
 #include "Core/Window.h"
@@ -472,84 +473,6 @@ namespace Turbo
 		bufferInfos.reserve(kMaxDescriptorsPerSet);
 
 		uint32 numWrites = 0;
-
-#if 0
-		for (uint32 bindingId = 0; bindingId < layout->mNumBindings; ++bindingId)
-		{
-			const FBinding& binding = layout->mBindings[bindingId];
-			const FHandle resource = builder.mResources[bindingId];
-
-#if 0
-			const bool bPartiallyBound = !!(binding.mFlags & vk::DescriptorBindingFlagBits::ePartiallyBound);
-			TURBO_CHECK(resource.IsValid() || bPartiallyBound)
-#endif
-
-			if (resource.IsValid())
-			{
-				vk::WriteDescriptorSet& write = writes[numWrites];
-				write.descriptorCount = 1;
-				write.dstSet = set->mVkDescriptorSet;
-				write.dstBinding = bindingId;
-				write.descriptorType = binding.mType;
-
-				++numWrites;
-
-				switch (binding.mType)
-				{
-				case vk::DescriptorType::eSampledImage:
-				case vk::DescriptorType::eStorageImage:
-					{
-						const FTexture* texture = AccessTexture(THandle<FTexture>(resource));
-
-						vk::DescriptorImageInfo& imageInfo = imageInfos.emplace_back();
-						imageInfo.imageView = texture->mVkImageView;
-
-						if (binding.mType == vk::DescriptorType::eSampledImage)
-						{
-							imageInfo.imageLayout =
-								TextureFormat::HasDepthOrStencil(texture->mFormat)
-									? vk::ImageLayout::eDepthReadOnlyStencilAttachmentOptimal
-									: vk::ImageLayout::eReadOnlyOptimal;
-						}
-						else
-						{
-							imageInfo.imageLayout = vk::ImageLayout::eGeneral;
-						}
-
-						write.setImageInfo({imageInfo});
-						break;
-					}
-				case vk::DescriptorType::eSampler:
-					{
-						const FSampler* sampler = mSamplerPool.Get(THandle<FSampler>(resource));
-
-						vk::DescriptorImageInfo& imageInfo = imageInfos.emplace_back();
-						imageInfo.sampler = sampler->mVkSampler;
-
-						write.setImageInfo({imageInfo});
-						break;
-					}
-				case vk::DescriptorType::eStorageBuffer:
-				case vk::DescriptorType::eUniformBuffer:
-					{
-						const FBuffer* buffer = mBufferPool.Get(THandle<FBuffer>(resource));
-
-						vk::DescriptorBufferInfo& bufferInfo = bufferInfos.emplace_back();
-						bufferInfo.buffer = buffer->mVkBuffer;
-						bufferInfo.offset = 0;
-						bufferInfo.range = buffer->mDeviceSize;
-
-						write.pBufferInfo = &bufferInfo;
-						break;
-					}
-				default:
-					TURBO_UNINPLEMENTED()
-				}
-			}
-		}
-
-		mVkDevice.updateDescriptorSets(numWrites, writes.data(), 0, nullptr);
-#endif
 
 		return handle;
 	}

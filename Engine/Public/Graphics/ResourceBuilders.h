@@ -157,50 +157,15 @@ namespace Turbo
 	struct FDescriptorSetBuilder
 	{
 	public:
-		FDescriptorSetBuilder& Reset() { mNumResources = 0; return *this; }
 		FDescriptorSetBuilder& SetLayout(THandle<FDescriptorSetLayout> layout) { mLayout = layout; return *this; }
 		FDescriptorSetBuilder& SetDescriptorPool(THandle<FDescriptorPool> descriptorPool) { mDescriptorPool = descriptorPool; return *this; }
-
-		FDescriptorSetBuilder& SetTexture(THandle<FTexture> texture, uint16 binding)
-		{
-			mBindings[mNumResources] = binding;
-			mResources[mNumResources] = texture;
-
-			++mNumResources;
-
-			return *this;
-		}
-
-		FDescriptorSetBuilder& SetBuffer(THandle<FBuffer> buffer, uint16 binding)
-		{
-			mBindings[mNumResources] = binding;
-			mResources[mNumResources] = buffer;
-
-			++mNumResources;
-
-			return *this;
-		}
-
-		FDescriptorSetBuilder& SetSampler(THandle<FSampler> sampler, uint16 binding)
-		{
-			mBindings[mNumResources] = binding;
-			mResources[mNumResources] = sampler;
-
-			++mNumResources;
-
-			return *this;
-		}
 
 		FDescriptorSetBuilder& SetName(FName name) { mName = name; return *this; }
 		FDescriptorSetBuilder& SetFlags(vk::DescriptorPoolCreateFlags flags) { mFlags = flags; return *this; }
 
 	public:
-		std::array<FHandle, kMaxDescriptorsPerSet> mResources;
-		std::array<uint16, kMaxDescriptorsPerSet> mBindings;
-
 		THandle<FDescriptorSetLayout> mLayout = {};
 		THandle<FDescriptorPool> mDescriptorPool = {};
-		uint32 mNumResources = 0;
 
 		vk::DescriptorPoolCreateFlags mFlags;
 

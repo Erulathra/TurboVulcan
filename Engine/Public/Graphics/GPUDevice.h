@@ -23,9 +23,13 @@ namespace Turbo
 
 	DECLARE_DELEGATE(FOnImmediateSubmit, FCommandBuffer&);
 
+	constexpr size_t kBufferPoolSize = 16384;
 	constexpr size_t kTexturePoolSize = 1024;
 	constexpr size_t kSamplerPoolSize = 128;
+	constexpr size_t kPipelinePoolSize = 256;
+	constexpr size_t kBLASPoolSize = 1024;
 	constexpr size_t kTLASPoolSize = 16;
+
 	constexpr uint32 kInvalidBinding = std::numeric_limits<uint32>::max();
 
 	struct FBufferedFrameData final
@@ -253,16 +257,16 @@ namespace Turbo
 
 		/* Resource pools */
 	private:
-		TGenPool<FBuffer, 16384> mBufferPool;
+		TGenPool<FBuffer, kBufferPoolSize> mBufferPool;
 		TGenPool<FTexture, kTexturePoolSize> mTexturePool;
 		TGenPool<FSampler, kSamplerPoolSize> mSamplerPool;
-		TGenPool<FPipeline, 256> mPipelinePool;
+		TGenPool<FPipeline, kPipelinePoolSize> mPipelinePool;
 		TGenPool<FDescriptorSetLayout, 128> mDescriptorSetLayoutPool;
 		TGenPool<FDescriptorPool, 16> mDescriptorPoolPool;
 		TGenPool<FDescriptorSet, 256> mDescriptorSetPool;
 		TGenPool<FShaderState, 256> mShaderStatePool;
-		TGenPool<FBLAS, 1024> mBLASPool;
-		TGenPool<FTLAS, 32> mTLASPool;
+		TGenPool<FBLAS, kBLASPoolSize> mBLASPool;
+		TGenPool<FTLAS, kTLASPoolSize> mTLASPool;
 
 		/* Resource pools end */
 
