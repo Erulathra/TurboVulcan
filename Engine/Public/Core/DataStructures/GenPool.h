@@ -55,7 +55,7 @@ namespace Turbo
 
 				mData[newIndex] = {};
 				mUsed[newIndex] = true;
-				mGenerations[newIndex] += 1;
+				mGenerations[newIndex] = (mGenerations[newIndex] + 1) % FHandle::kMaxGeneration;
 
 				THandle<Type> NewHandle;
 				NewHandle.mIndexAndGen = FHandle::CreateIndex(newIndex, mGenerations[newIndex]);
