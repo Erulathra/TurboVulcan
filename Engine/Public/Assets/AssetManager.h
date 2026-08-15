@@ -2,7 +2,7 @@
 
 #include "Assets/StaticMesh.h"
 #include "Assets/AssetManagerHelpers.h"
-#include "Core/DataStructures/GenPoolGrowable.h"
+#include "Core/DataStructures/GenPool.h"
 #include "Core/DataStructures/ManualPoolGrowable.h"
 #include "Graphics/Resources.h"
 
@@ -40,8 +40,8 @@ namespace Turbo
 
 		void UnloadMesh(THandle<FMesh> meshHandle);
 
-		[[nodiscard]] FMesh* AccessMesh(THandle<FMesh> handle) { return mMeshPool.Access(handle); }
-		[[nodiscard]] const FMesh* AccessMesh(THandle<FMesh> handle) const { return mMeshPool.Access(handle); }
+		[[nodiscard]] FMesh* AccessMesh(THandle<FMesh> handle) { return mMeshPool.Get(handle); }
+		[[nodiscard]] const FMesh* AccessMesh(THandle<FMesh> handle) const { return mMeshPool.Get(handle); }
 
 		[[nodiscard]] FDeviceAddress GetMeshPointersAddress(const FGPUDevice& gpu, THandle<FMesh> handle) const;
 		[[nodiscard]] FDeviceAddress GetBoundsAddress(const FGPUDevice& gpu) const;
@@ -73,7 +73,7 @@ namespace Turbo
 		}
 
 	private:
-		TGenPoolGrowable<FMesh> mMeshPool;
+		TGenPool<FMesh, 2048> mMeshPool;
 		THandle<FBuffer> mMeshPointersPool;
 		THandle<FBuffer> mBoundsPool;
 

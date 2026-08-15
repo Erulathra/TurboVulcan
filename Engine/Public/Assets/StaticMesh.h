@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Assets/AssetManagerHelpers.h"
+#include "Core/DataStructures/Handle.h"
 #include "Graphics/GraphicsCore.h"
 
 namespace Turbo
@@ -34,8 +35,12 @@ namespace Turbo
 
 		uint32 mVertexCount = 0;
 
+		THandle<FMesh> mHandle;
 		FName mName;
 		FAssetHash mAssetHash;
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const { return IsValid(); }
 	};
 
 	struct FMeshData final

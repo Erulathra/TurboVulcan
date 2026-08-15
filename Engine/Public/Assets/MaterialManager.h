@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Core/DataStructures/GenPoolGrowable.h"
+#include "Core/DataStructures/GenPool.h"
+#include "Core/DataStructures/Handle.h"
 #include "Graphics/ResourceBuilders.h"
 
 namespace Turbo
@@ -17,7 +18,11 @@ namespace Turbo
 		struct Instance final
 		{
 			THandle<FMaterial> material = {};
+			THandle<FMaterial::Instance> mHandle = {};
 			uint32 mUniformBufferIndex = kInvalidUniformBufferIndex;
+
+			[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+			explicit constexpr operator bool() const { return IsValid(); }
 		};
 
 		struct IndirectDrawData final
@@ -48,7 +53,11 @@ namespace Turbo
 		uint32 mMaterialDataSize = 0;
 		uint32 mMaxInstances = 0;
 
+		THandle<FMaterial> mHandle;
 		FName mName = {};
+
+		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
+		explicit constexpr operator bool() const { return IsValid(); }
 	};
 
 	struct FMaterialBuilder
@@ -97,18 +106,18 @@ namespace Turbo
 		[[nodiscard]] static size_t CalculateInstanceByteOffset(const FMaterial& material, uint32 instanceIndex);
 
 	public:
-		[[nodiscard]] FMaterial* AccessMaterial(THandle<FMaterial> handle) { return mMaterialPool.Access(handle); }
-		[[nodiscard]] const FMaterial* AccessMaterial(THandle<FMaterial> handle) const { return mMaterialPool.Access(handle); }
-		[[nodiscard]] FMaterial::Instance* AccessInstance(THandle<FMaterial::Instance> handle) { return  mMaterialInstancePool.Access(handle); }
-		[[nodiscard]] const FMaterial::Instance* AccessInstance(THandle<FMaterial::Instance> handle) const { return  mMaterialInstancePool.Access(handle); }
+		[[nodiscard]] FMaterial* AccessMaterial(THandle<FMaterial> handle) { return mMaterialPool.Get(handle); }
+		[[nodiscard]] const FMaterial* AccessMaterial(THandle<FMaterial> handle) const { return mMaterialPool.Get(handle); }
+		[[nodiscard]] FMaterial::Instance* AccessInstance(THandle<FMaterial::Instance> handle) { return  mMaterialInstancePool.Get(handle); }
+		[[nodiscard]] const FMaterial::Instance* AccessInstance(THandle<FMaterial::Instance> handle) const { return  mMaterialInstancePool.Get(handle); }
 
 	public:
 		void DestroyMaterial(THandle<FMaterial> materialHandle);
 		void DestroyMaterialInstance(THandle<FMaterial::Instance> handle);
 
 	private:
-		TGenPoolGrowable<FMaterial> mMaterialPool;
-		TGenPoolGrowable<FMaterial::Instance> mMaterialInstancePool;
+		TGenPool<FMaterial, 128> mMaterialPool;
+		TGenPool<FMaterial::Instance, 2048> mMaterialInstancePool;
 
 		using FMaterialInstanceArray = entt::dense_set<THandle<FMaterial::Instance>>;
 		using FMaterialToMaterialInstanceMap = entt::dense_map<THandle<FMaterial>, FMaterialInstanceArray>;

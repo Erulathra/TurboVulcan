@@ -73,7 +73,7 @@ namespace Turbo
 
 		T* Access(THandle<T> handle)
 		{
-			const FHandle::GenerationType currentGeneration = mGenerations[handle.GetIndex()];
+			const FHandle::GenType currentGeneration = mGenerations[handle.GetIndex()];
 			if (handle.IsValid() && handle.GetIndex() < mData.size() && handle.GetGeneration() == currentGeneration)
 			{
 				return &mData[handle.GetIndex()];
@@ -89,7 +89,7 @@ namespace Turbo
 				return nullptr;
 			}
 
-			const FHandle::GenerationType currentGeneration = mGenerations[handle.GetIndex()];
+			const FHandle::GenType currentGeneration = mGenerations[handle.GetIndex()];
 			if (handle.GetIndex() < mData.size() && handle.GetGeneration() == currentGeneration)
 			{
 				return &mData[handle.GetIndex()];
@@ -102,7 +102,7 @@ namespace Turbo
 
 	private:
 		std::vector<T> mData;
-		std::vector<FHandle::GenerationType> mGenerations;
+		std::vector<FHandle::GenType> mGenerations;
 		std::vector<FHandle::IndexType> mFreeIndices;
 
 		FHandle::IndexType mSize = 0;

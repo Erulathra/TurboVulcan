@@ -184,8 +184,7 @@ namespace Turbo
 	struct FDescriptorSetLayout
 	{
 		vk::DescriptorSetLayout mVkLayout = nullptr;
-		TArrayHeap<vk::DescriptorSetLayoutBinding, kMaxDescriptorsPerSet> mVkBindings;
-		TArrayHeap<FBinding, kMaxDescriptorsPerSet> mBindings;
+
 		uint16 mNumBindings = 0;
 		uint16 mSetIndex = 0;
 

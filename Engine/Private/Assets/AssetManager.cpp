@@ -193,7 +193,7 @@ namespace Turbo
 		const std::filesystem::path filePath(assetPath.ToString());
 
 		THandle<FMesh> meshHandle = mMeshPool.Acquire();
-		FMesh* mesh = mMeshPool.Access(meshHandle);
+		FMesh* mesh = mMeshPool.Get(meshHandle);
 		mesh->mName = FName(fmt::format("{}_I{}_S{}", filePath.filename().string(), meshLoadSettings.mMeshIndex, meshLoadSettings.mSubMeshIndex));
 		mesh->mAssetHash = assetHash;
 
@@ -335,7 +335,7 @@ namespace Turbo
 
 	void FAssetManager::UnloadMesh(THandle<FMesh> meshHandle)
 	{
-		const FMesh* mesh = mMeshPool.Access(meshHandle);
+		const FMesh* mesh = mMeshPool.Get(meshHandle);
 
 		if (mesh == nullptr)
 		{

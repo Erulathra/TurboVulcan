@@ -87,27 +87,27 @@ namespace Turbo
 
 		/** Resource accessors */
 	public:
-		[[nodiscard]] FBuffer* AccessBuffer(THandle<FBuffer> handle) { return mBufferPool.Access(handle); }
-		[[nodiscard]] FTexture* AccessTexture(THandle<FTexture> handle) { return mTexturePool.Access(handle); }
-		[[nodiscard]] FSampler* AccessSampler(THandle<FSampler> handle) { return mSamplerPool.Access(handle); }
-		[[nodiscard]] FPipeline* AccessPipeline(THandle<FPipeline> handle) { return mPipelinePool.Access(handle); }
-		[[nodiscard]] FDescriptorPool* AccessDescriptorPool(THandle<FDescriptorPool> handle) { return mDescriptorPoolPool.Access(handle); }
-		[[nodiscard]] FDescriptorSetLayout* AccessDescriptorSetLayout(THandle<FDescriptorSetLayout> handle) { return mDescriptorSetLayoutPool.Access(handle); }
-		[[nodiscard]] FDescriptorSet* AccessDescriptorSet(THandle<FDescriptorSet> handle) { return mDescriptorSetPool.Access(handle); }
-		[[nodiscard]] FShaderState* AccessShaderState(THandle<FShaderState> handle) { return mShaderStatePool.Access(handle); }
-		[[nodiscard]] FBLAS* AccessBLAS(THandle<FBLAS> handle) { return mBLASPool.Access(handle); }
-		[[nodiscard]] FTLAS* AccessTLAS(THandle<FTLAS> handle) { return mTLASPool.Access(handle); }
+		[[nodiscard]] FBuffer* AccessBuffer(THandle<FBuffer> handle) { return mBufferPool.Get(handle); }
+		[[nodiscard]] FTexture* AccessTexture(THandle<FTexture> handle) { return mTexturePool.Get(handle); }
+		[[nodiscard]] FSampler* AccessSampler(THandle<FSampler> handle) { return mSamplerPool.Get(handle); }
+		[[nodiscard]] FPipeline* AccessPipeline(THandle<FPipeline> handle) { return mPipelinePool.Get(handle); }
+		[[nodiscard]] FDescriptorPool* AccessDescriptorPool(THandle<FDescriptorPool> handle) { return mDescriptorPoolPool.Get(handle); }
+		[[nodiscard]] FDescriptorSetLayout* AccessDescriptorSetLayout(THandle<FDescriptorSetLayout> handle) { return mDescriptorSetLayoutPool.Get(handle); }
+		[[nodiscard]] FDescriptorSet* AccessDescriptorSet(THandle<FDescriptorSet> handle) { return mDescriptorSetPool.Get(handle); }
+		[[nodiscard]] FShaderState* AccessShaderState(THandle<FShaderState> handle) { return mShaderStatePool.Get(handle); }
+		[[nodiscard]] FBLAS* AccessBLAS(THandle<FBLAS> handle) { return mBLASPool.Get(handle); }
+		[[nodiscard]] FTLAS* AccessTLAS(THandle<FTLAS> handle) { return mTLASPool.Get(handle); }
 
-		[[nodiscard]] const FBuffer* AccessBuffer(THandle<FBuffer> handle) const { return mBufferPool.Access(handle); }
-		[[nodiscard]] const FTexture* AccessTexture(THandle<FTexture> handle) const { return mTexturePool.Access(handle); }
-		[[nodiscard]] const FSampler* AccessSampler(THandle<FSampler> handle) const { return mSamplerPool.Access(handle); }
-		[[nodiscard]] const FPipeline* AccessPipeline(THandle<FPipeline> handle) const { return mPipelinePool.Access(handle); }
-		[[nodiscard]] const FDescriptorPool* AccessDescriptorPool(THandle<FDescriptorPool> handle) const { return mDescriptorPoolPool.Access(handle); }
-		[[nodiscard]] const FDescriptorSetLayout* AccessDescriptorSetLayout(THandle<FDescriptorSetLayout> handle) const { return mDescriptorSetLayoutPool.Access(handle); }
-		[[nodiscard]] const FDescriptorSet* AccessDescriptorSet(THandle<FDescriptorSet> handle) const { return mDescriptorSetPool.Access(handle); }
-		[[nodiscard]] const FShaderState* AccessShaderState(THandle<FShaderState> handle) const { return mShaderStatePool.Access(handle); }
-		[[nodiscard]] const FBLAS* AccessBLAS(THandle<FBLAS> handle) const { return mBLASPool.Access(handle); }
-		[[nodiscard]] const FTLAS* AccessTLAS(THandle<FTLAS> handle) const { return mTLASPool.Access(handle); }
+		[[nodiscard]] const FBuffer* AccessBuffer(THandle<FBuffer> handle) const { return mBufferPool.Get(handle); }
+		[[nodiscard]] const FTexture* AccessTexture(THandle<FTexture> handle) const { return mTexturePool.Get(handle); }
+		[[nodiscard]] const FSampler* AccessSampler(THandle<FSampler> handle) const { return mSamplerPool.Get(handle); }
+		[[nodiscard]] const FPipeline* AccessPipeline(THandle<FPipeline> handle) const { return mPipelinePool.Get(handle); }
+		[[nodiscard]] const FDescriptorPool* AccessDescriptorPool(THandle<FDescriptorPool> handle) const { return mDescriptorPoolPool.Get(handle); }
+		[[nodiscard]] const FDescriptorSetLayout* AccessDescriptorSetLayout(THandle<FDescriptorSetLayout> handle) const { return mDescriptorSetLayoutPool.Get(handle); }
+		[[nodiscard]] const FDescriptorSet* AccessDescriptorSet(THandle<FDescriptorSet> handle) const { return mDescriptorSetPool.Get(handle); }
+		[[nodiscard]] const FShaderState* AccessShaderState(THandle<FShaderState> handle) const { return mShaderStatePool.Get(handle); }
+		[[nodiscard]] const FBLAS* AccessBLAS(THandle<FBLAS> handle) const { return mBLASPool.Get(handle); }
+		[[nodiscard]] const FTLAS* AccessTLAS(THandle<FTLAS> handle) const { return mTLASPool.Get(handle); }
 
 		/** Resource accessors end */
 

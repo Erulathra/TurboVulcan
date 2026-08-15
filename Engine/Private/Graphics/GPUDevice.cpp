@@ -51,7 +51,7 @@ namespace Turbo
 		mPipelinePool.ForEachEntry(
 			[&](THandle<FPipeline> pipelineHandle)
 			{
-				FPipeline* pipeline = mPipelinePool.Access(pipelineHandle);
+				FPipeline* pipeline = mPipelinePool.Get(pipelineHandle);
 
 				DestroyShaderState(pipeline->mShaderState);
 
@@ -370,7 +370,7 @@ namespace Turbo
 		THandle<FDescriptorPool> handle = mDescriptorPoolPool.Acquire();
 		TURBO_CHECK(handle)
 
-		FDescriptorPool* pool = mDescriptorPoolPool.Access(handle);
+		FDescriptorPool* pool = mDescriptorPoolPool.Get(handle);
 		pool->mDescriptorSets.clear();
 		pool->mHandle = handle;
 		pool->mName = builder.mName;
@@ -400,20 +400,20 @@ namespace Turbo
 		THandle<FDescriptorSetLayout> handle = mDescriptorSetLayoutPool.Acquire();
 		TURBO_CHECK(handle)
 
-		FDescriptorSetLayout* layout = mDescriptorSetLayoutPool.Access(handle);
+		FDescriptorSetLayout* layout = mDescriptorSetLayoutPool.Get(handle);
 		layout->mNumBindings = builder.mNumBindings;
 		layout->mHandle = handle;
 		layout->mSetIndex = builder.mSetIndex;
 
-		std::array<vk::DescriptorBindingFlags, kMaxDescriptorsPerSet> bindingFlags;
+      vk::DescriptorBindingFlags bindingFlags[kMaxDescriptorsPerSet];
+      vk::DescriptorSetLayoutBinding vkBindings[kMaxDescriptorsPerSet];
 
 		for (uint32 bindingId = 0; bindingId < builder.mNumBindings; ++bindingId)
 		{
 			const FBinding& builderBinding = builder.mBindings[bindingId];
 			bindingFlags[bindingId] = builderBinding.mFlags;
-			layout->mBindings[bindingId] = builderBinding;
 
-			vk::DescriptorSetLayoutBinding& vkBinding = layout->mVkBindings[bindingId];
+			vk::DescriptorSetLayoutBinding& vkBinding = vkBindings[bindingId];
 			vkBinding = vk::DescriptorSetLayoutBinding();
 			vkBinding.binding = builderBinding.mIndex;
 			vkBinding.descriptorType = builderBinding.mType;
@@ -423,12 +423,12 @@ namespace Turbo
 		}
 
 		vk::DescriptorSetLayoutCreateInfo layoutCreateInfo = {};
-		layoutCreateInfo.pBindings = layout->mVkBindings->data();
+		layoutCreateInfo.pBindings = vkBindings;
 		layoutCreateInfo.bindingCount = builder.mNumBindings;
 		layoutCreateInfo.flags = builder.mFlags;
 
 		vk::DescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreateInfo;
-		bindingFlagsCreateInfo.pBindingFlags = bindingFlags.data();
+		bindingFlagsCreateInfo.pBindingFlags = bindingFlags;
 		bindingFlagsCreateInfo.bindingCount = builder.mNumBindings;
 
 		layoutCreateInfo.pNext = bindingFlagsCreateInfo;
@@ -443,11 +443,11 @@ namespace Turbo
 		THandle<FDescriptorSet> handle = mDescriptorSetPool.Acquire();
 		TURBO_CHECK(handle);
 
-		FDescriptorSet* set = mDescriptorSetPool.Access(handle);
-		const FDescriptorSetLayout* layout = mDescriptorSetLayoutPool.Access(builder.mLayout);
+		FDescriptorSet* set = mDescriptorSetPool.Get(handle);
+		const FDescriptorSetLayout* layout = mDescriptorSetLayoutPool.Get(builder.mLayout);
 		TURBO_CHECK(set && layout)
 
-		FDescriptorPool* pool = mDescriptorPoolPool.Access(builder.mDescriptorPool);
+		FDescriptorPool* pool = mDescriptorPoolPool.Get(builder.mDescriptorPool);
 
 		// Allocate set
 		vk::DescriptorSetAllocateInfo allocateInfo = {};
@@ -473,6 +473,7 @@ namespace Turbo
 
 		uint32 numWrites = 0;
 
+#if 0
 		for (uint32 bindingId = 0; bindingId < layout->mNumBindings; ++bindingId)
 		{
 			const FBinding& binding = layout->mBindings[bindingId];
@@ -520,7 +521,7 @@ namespace Turbo
 					}
 				case vk::DescriptorType::eSampler:
 					{
-						const FSampler* sampler = mSamplerPool.Access(THandle<FSampler>(resource));
+						const FSampler* sampler = mSamplerPool.Get(THandle<FSampler>(resource));
 
 						vk::DescriptorImageInfo& imageInfo = imageInfos.emplace_back();
 						imageInfo.sampler = sampler->mVkSampler;
@@ -531,7 +532,7 @@ namespace Turbo
 				case vk::DescriptorType::eStorageBuffer:
 				case vk::DescriptorType::eUniformBuffer:
 					{
-						const FBuffer* buffer = mBufferPool.Access(THandle<FBuffer>(resource));
+						const FBuffer* buffer = mBufferPool.Get(THandle<FBuffer>(resource));
 
 						vk::DescriptorBufferInfo& bufferInfo = bufferInfos.emplace_back();
 						bufferInfo.buffer = buffer->mVkBuffer;
@@ -548,6 +549,7 @@ namespace Turbo
 		}
 
 		mVkDevice.updateDescriptorSets(numWrites, writes.data(), 0, nullptr);
+#endif
 
 		return handle;
 	}
@@ -567,7 +569,7 @@ namespace Turbo
 		handle = mShaderStatePool.Acquire();
 		TURBO_CHECK(handle)
 
-		FShaderState* shaderState = mShaderStatePool.Access(handle);
+		FShaderState* shaderState = mShaderStatePool.Get(handle);
 		TURBO_CHECK(shaderState)
 
 		shaderState->mShaderStageCrateInfo = {};
@@ -613,7 +615,7 @@ namespace Turbo
 	THandle<FBLAS> FGPUDevice::CreateBLAS(const FBLASBuilder& builder)
 	{
 		THandle<FBLAS> handle = mBLASPool.Acquire();
-		FBLAS* blas = mBLASPool.Access(handle);
+		FBLAS* blas = mBLASPool.Get(handle);
 		blas->mName = builder.mName;
 		blas->mType = EAccelerationStructureType::BLAS;
 
@@ -698,7 +700,7 @@ namespace Turbo
 	THandle<FTLAS> FGPUDevice::CreateTLAS(const FTLASBuilder& builder)
 	{
 		THandle<FTLAS> handle = mTLASPool.Acquire();
-		FTLAS* tlas = mTLASPool.Access(handle);
+		FTLAS* tlas = mTLASPool.Get(handle);
 		tlas->mName = builder.mName;
 		tlas->mType = EAccelerationStructureType::TLAS;
 
@@ -902,7 +904,7 @@ namespace Turbo
 
 	void FGPUDevice::DestroyBLAS(THandle<FBLAS> handle)
 	{
-      FBLAS* blas = mBLASPool.Access(handle);
+      FBLAS* blas = mBLASPool.Get(handle);
       TURBO_CHECK(blas)
 
       DestroyAccelerationStructure(handle, blas);
@@ -910,7 +912,7 @@ namespace Turbo
 
 	void FGPUDevice::DestroyTLAS(THandle<FTLAS> handle)
 	{
-      FTLAS* tlas = mTLASPool.Access(handle);
+      FTLAS* tlas = mTLASPool.Get(handle);
       TURBO_CHECK(tlas)
 
       DestroyAccelerationStructure(handle, tlas);
@@ -1161,7 +1163,7 @@ namespace Turbo
 		for (uint32 imageId = 0; imageId < mNumSwapChainImages; ++imageId)
 		{
 			THandle<FTexture> handle = mTexturePool.Acquire();
-			FTexture* texture = mTexturePool.Access(handle);
+			FTexture* texture = mTexturePool.Get(handle);
 			*texture = {};
 			texture->mVkImage = builtImages[imageId];
 			texture->mVkImageView = builtImageViews[imageId];
@@ -1771,7 +1773,7 @@ namespace Turbo
 
 	void FGPUDevice::InitPipeline(const FPipelineBuilder& builder, THandle<FPipeline> handle)
 	{
-		FPipeline* pipeline = mPipelinePool.Access(handle);
+		FPipeline* pipeline = mPipelinePool.Get(handle);
 		TURBO_CHECK(pipeline)
 
 		THandle<FShaderState> shaderStateHandle = CreateShaderState(builder.mShaderStateBuilder);
@@ -1789,7 +1791,7 @@ namespace Turbo
 		std::array<vk::DescriptorSetLayout, kMaxDescriptorSetLayouts> vkLayouts;
 
 		// Bind bindless descriptor set layout
-		const FDescriptorSetLayout* bindlessSetLayout = mDescriptorSetLayoutPool.Access(mBindlessResourcesLayout);
+		const FDescriptorSetLayout* bindlessSetLayout = mDescriptorSetLayoutPool.Get(mBindlessResourcesLayout);
 		TURBO_CHECK(bindlessSetLayout);
 		vkLayouts[0] = bindlessSetLayout->mVkLayout;
 

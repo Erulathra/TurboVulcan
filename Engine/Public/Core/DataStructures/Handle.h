@@ -6,7 +6,7 @@ namespace Turbo
 	{
 		// Aliases
 		using IndexType = uint32;
-		using GenerationType = uint16;
+		using GenType = uint16;
 
 		// Constants
 		static constexpr IndexType kIndexMask = 0xFFFFF;
@@ -16,67 +16,63 @@ namespace Turbo
 		static constexpr IndexType kMaxGeneration = kGenerationMask;
 
 		static constexpr uint8 kIndexMaskLength = std::popcount(kIndexMask);
-		static constexpr IndexType kInvalidIndex = std::numeric_limits<IndexType>::max();
+		static constexpr IndexType kNilIndex = 0;
 
 		// Just to make sure that index masks are coherent
-		static_assert((kIndexMask | kGenerationMask << kIndexMaskLength) == kInvalidIndex);
+		static_assert((kIndexMask | kGenerationMask << kIndexMaskLength) == 0xFFFFFFFF);
 
-		// Statics
-		static constexpr IndexType CreateIndex(IndexType index, GenerationType generation)
+		/* Data */
+		IndexType mIndexAndGen = kNilIndex;
+
+		/* API */
+		static constexpr IndexType CreateIndex(IndexType index, GenType generation)
 		{
 			return index | (static_cast<IndexType>(generation) << kIndexMaskLength);
 		}
 
-		// Helpers
-		IndexType GetIndex() const { return mIndexAndGen & kIndexMask; }
-		GenerationType GetGeneration() const { return mIndexAndGen >> kIndexMaskLength; }
+		constexpr static FHandle Nil() { return {0}; }
 
-		[[nodiscard]] constexpr bool IsValid() const { return mIndexAndGen != kInvalidIndex; }
-		constexpr void Reset() { mIndexAndGen = kInvalidIndex; }
+		[[nodiscard]] IndexType GetIndex() const { return mIndexAndGen & kIndexMask; }
+		[[nodiscard]] GenType GetGeneration() const { return mIndexAndGen >> kIndexMaskLength; }
+
+		[[nodiscard]] constexpr bool IsValid() const { return mIndexAndGen != kNilIndex; }
+		constexpr void Reset() { mIndexAndGen = kNilIndex; }
 
 		explicit constexpr operator bool() const { return IsValid(); }
 		constexpr bool operator!() const { return !IsValid(); }
 
-		constexpr bool operator==(const FHandle& rhs) const
-		{
-			return mIndexAndGen == rhs.mIndexAndGen;
-		}
-
-		// Index and Generation
-		IndexType mIndexAndGen = kInvalidIndex;
+		constexpr bool operator==(const FHandle& rhs) const { return mIndexAndGen == rhs.mIndexAndGen; }
 	};
 
 	template <typename ObjectType>
 	struct THandle final : public FHandle
 	{
+		constexpr static THandle<ObjectType> Nil() { return THandle<ObjectType>(FHandle::Nil()); }
 	};
-}
 
-inline bool operator==(const Turbo::FHandle lhs, const Turbo::FHandle rhs)
-{
-	return lhs.mIndexAndGen == rhs.mIndexAndGen;
-}
-
-template<>
-struct std::hash<Turbo::FHandle>
-{
-	size_t operator()(Turbo::FHandle handle) const noexcept
+	inline bool operator==(const Turbo::FHandle lhs, const Turbo::FHandle rhs)
 	{
-		return static_cast<size_t>(handle.mIndexAndGen);
+		return lhs.mIndexAndGen == rhs.mIndexAndGen;
 	}
-};
 
-template<typename T>
-inline bool operator==(const Turbo::THandle<T> lhs, const Turbo::THandle<T> rhs)
-{
-	return lhs.mIndexAndGen == rhs.mIndexAndGen;
-}
-
-template<typename T>
-struct std::hash<Turbo::THandle<T>>
-{
-	size_t operator()(Turbo::THandle<T> handle) const noexcept
+	template <typename T>
+	inline bool operator==(const Turbo::THandle<T> lhs, const Turbo::THandle<T> rhs)
 	{
-		return handle.mIndexAndGen;
+		return lhs.mIndexAndGen == rhs.mIndexAndGen;
 	}
-};
+} // namespace Turbo
+
+namespace std
+{
+	template <>
+	struct hash<Turbo::FHandle>
+	{
+		size_t operator()(Turbo::FHandle handle) const noexcept { return std::hash<uint32>{}(handle.mIndexAndGen); }
+	};
+
+	template <typename T>
+	struct hash<Turbo::THandle<T>>
+	{
+		size_t operator()(Turbo::THandle<T> handle) const noexcept { return std::hash<uint32>{}(handle.mIndexAndGen); }
+	};
+} // namespace std

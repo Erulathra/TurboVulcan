@@ -83,7 +83,7 @@ namespace Turbo
 		TURBO_CHECK(depthPipelineHandle);
 
 		const THandle<FMaterial> materialHandle = mMaterialPool.Acquire();
-		FMaterial* material = mMaterialPool.Access(materialHandle);
+		FMaterial* material = mMaterialPool.Get(materialHandle);
 		material->mGraphicsPipeline = pipelineHandle;
 		material->mDepthOnlyPipeline = depthPipelineHandle;
 		material->mDataBuffer = {};
@@ -141,7 +141,7 @@ namespace Turbo
 		TURBO_CHECK(!availableIndexes.empty())
 
 		THandle<FMaterial::Instance> instanceHandle = mMaterialInstancePool.Acquire();
-		FMaterial::Instance* instance = mMaterialInstancePool.Access(instanceHandle);
+		FMaterial::Instance* instance = mMaterialInstancePool.Get(instanceHandle);
 
 		instance->material = materialHandle;
 		instance->mUniformBufferIndex = availableIndexes.back();
@@ -157,8 +157,8 @@ namespace Turbo
 
 		TRACE_GPU_SCOPED(gpu, cmd, "Update Material Instance")
 
-		const FMaterial::Instance* instance = mMaterialInstancePool.Access(instanceHandle);
-		const FMaterial* material = mMaterialPool.Access(instance->material);
+		const FMaterial::Instance* instance = mMaterialInstancePool.Get(instanceHandle);
+		const FMaterial* material = mMaterialPool.Get(instance->material);
 
 		TURBO_CHECK(data.size() == material->mPerInstanceDataSize)
 
@@ -177,9 +177,9 @@ namespace Turbo
 
 	FDeviceAddress FMaterialManager::GetMaterialInstanceAddress(const FGPUDevice& gpu, THandle<FMaterial::Instance> instanceHandle) const
 	{
-		if (const FMaterial::Instance* instance = mMaterialInstancePool.Access(instanceHandle))
+		if (const FMaterial::Instance* instance = mMaterialInstancePool.Get(instanceHandle))
 		{
-			if (const FMaterial* material = mMaterialPool.Access(instance->material);
+			if (const FMaterial* material = mMaterialPool.Get(instance->material);
 				material->mDataBuffer.IsValid())
 			{
 				const FBuffer* uniformBuffer = gpu.AccessBuffer(material->mDataBuffer);
@@ -197,7 +197,7 @@ namespace Turbo
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 		TRACE_GPU_SCOPED(gpu, cmd, "Update Material Data")
 
-		const FMaterial* material = mMaterialPool.Access(handle);
+		const FMaterial* material = mMaterialPool.Get(handle);
 		TURBO_CHECK(data.size() == material->mMaterialDataSize)
 
 		const FBuffer* instancesDataBuffer = gpu.AccessBuffer(material->mDataBuffer);
@@ -214,7 +214,7 @@ namespace Turbo
 
 	FDeviceAddress FMaterialManager::GetMaterialDataAddress(const FGPUDevice& gpu, THandle<FMaterial> handle) const
 	{
-		const FMaterial* material = mMaterialPool.Access(handle);
+		const FMaterial* material = mMaterialPool.Get(handle);
 		if (material->mDataBuffer.IsValid())
 		{
 			const FBuffer* uniformBuffer = gpu.AccessBuffer(material->mDataBuffer);
@@ -235,7 +235,7 @@ namespace Turbo
 
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 
-		const FMaterial* material = mMaterialPool.Access(materialHandle);
+		const FMaterial* material = mMaterialPool.Get(materialHandle);
 		TURBO_CHECK(material);
 		gpu.DestroyPipeline(material->mGraphicsPipeline);
 		gpu.DestroyPipeline(material->mDepthOnlyPipeline);
@@ -257,7 +257,7 @@ namespace Turbo
 
 	void FMaterialManager::DestroyMaterialInstance(THandle<FMaterial::Instance> handle)
 	{
-		FMaterial::Instance* materialInstance = mMaterialInstancePool.Access(handle);
+		FMaterial::Instance* materialInstance = mMaterialInstancePool.Get(handle);
 		TURBO_CHECK(materialInstance);
 
 		FAvailableIndexes& availableIndexes = mMaterialToAvailableIndexesMap.at(materialInstance->material);
