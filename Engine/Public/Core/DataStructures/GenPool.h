@@ -81,8 +81,17 @@ namespace Turbo
 			}
 		}
 
-		Type* Get(THandle<Type> handle) { return &mData[DeRef(handle)]; }
-		const Type* Get(THandle<Type> handle) const { return &mData[DeRef(handle)]; }
+		Type* Get(THandle<Type> handle)
+		{
+			const IndexType index = DeRef(handle);
+			return index == 0 ? nullptr : &mData[index];
+		}
+
+		const Type* Get(THandle<Type> handle) const
+		{
+			const IndexType index = DeRef(handle);
+			return index == 0 ? nullptr : &mData[index];
+		}
 
 		IndexType DeRef(THandle<Type> handle) const
 		{
