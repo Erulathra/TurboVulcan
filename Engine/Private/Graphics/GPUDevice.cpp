@@ -2,9 +2,10 @@
 
 #include "Assets/EngineResources.h"
 #include "CommonMacros.h"
-#include "Core/Allocators/StackAllocator.h"
+#include "Core/Allocators/ArenaAllocator.h"
 #include "Core/DataStructures/Handle.h"
 #include "Core/Engine.h"
+#include "Core/Memory.h"
 #include "Graphics/CommandBuffer.h"
 #include "Graphics/GraphicsCore.h"
 #include "Graphics/ResourceBuilders.h"
@@ -1441,7 +1442,7 @@ namespace Turbo
 					writeDescriptorSet.descriptorType = vk::DescriptorType::eAccelerationStructureKHR;
 					writeDescriptorSet.dstBinding = BindlessResourcesBindings::kTLAS;
 
-               auto* asWrite = mPerFrameArena.AllocateDefaulted<vk::WriteDescriptorSetAccelerationStructureKHR>();
+					auto* asWrite = Memory::AllocateDefaulted<vk::WriteDescriptorSetAccelerationStructureKHR>(mPerFrameArena);
                asWrite->accelerationStructureCount = 1;
                asWrite->pAccelerationStructures = &asToBind->mVkAccelerationStructure;
 

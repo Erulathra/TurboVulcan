@@ -1,3 +1,4 @@
+#include <cstdlib>
 #if PLATFORM_LINUX
 
 #include "Core/PlatformImplementations/LinuxPlatform.h"
@@ -63,6 +64,26 @@ namespace Turbo
 		};
 
 		nanosleep(&spec, &remaining);
+	}
+
+	void* FLinuxPlatform::Malloc(size_t size)
+	{
+      return malloc(size);
+	}
+
+	void FLinuxPlatform::Free(void *memory)
+	{
+      free(memory);
+	}
+
+	void* FLinuxPlatform::AlignedMalloc(size_t alignment, size_t size)
+	{
+      return aligned_alloc(alignment, size);
+	}
+
+	void FLinuxPlatform::AlignedFree(void *memory)
+	{
+      free(memory);
 	}
 } // namespace Turbo
 

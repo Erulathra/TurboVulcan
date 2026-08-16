@@ -1,8 +1,7 @@
 #pragma once
 
 #include "CommandBuffer.h"
-#include "CommonConstants.h"
-#include "Core/Allocators/StackAllocator.h"
+#include "Core/Allocators/ArenaAllocator.h"
 #include "Core/DataStructures/Handle.h"
 #include "Graphics/GraphicsCore.h"
 #include "Resources.h"
@@ -354,7 +353,7 @@ namespace Turbo
 
 		/** Other */
 	private:
-      FArenaAllocator mPerFrameArena{16 * Constants::kKibi};
+      FArenaAllocator mPerFrameArena{16 * Memory::kKibi};
 
 		FDestroyQueue mDestroyQueue;
 		vk::DebugUtilsMessengerEXT mVkDebugUtilsMessenger;

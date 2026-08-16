@@ -3,7 +3,6 @@
 #include "Core/DataStructures/Handle.h"
 #include "DestoryQueue.h"
 #include "Enums.h"
-#include "Core/DataStructures/ArrayHeap.h"
 #include "Graphics/GraphicsCore.h"
 
 #define DESTROYER_BODY()				\

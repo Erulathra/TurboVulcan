@@ -18,9 +18,12 @@ using uint32 = std::uint32_t;
 using int64 = std::int64_t;
 using uint64 = std::uint64_t;
 
+using TurboSize = uint64;
+
 using fp16 = _Float16;
 using fp32 = float;
 using fp64 = double;
+
 
 using cstring = const char*;
 

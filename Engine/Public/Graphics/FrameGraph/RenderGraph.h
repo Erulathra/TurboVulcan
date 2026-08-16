@@ -1,14 +1,15 @@
 #pragma once
 
 #include "CommonMacros.h"
+#include "CommonTypeDefs.h"
 #include "Core/DataStructures/Handle.h"
 #include "Core/Delegate.h"
-#include "Core/Allocators/StackAllocator.h"
+#include "Core/Allocators/ArenaAllocator.h"
+#include "Core/Memory.h"
 #include "Graphics/GraphicsCore.h"
 #include "Graphics/FrameGraph/RenderGraphHelpers.h"
 #include "Graphics/Resources.h"
 #include <array>
-#include <vector>
 
 DECLARE_LOG_CATEGORY(LogRenderGraph, Info, Display)
 
@@ -97,7 +98,7 @@ namespace Turbo
 
 	struct FRenderGraphBuilder
 	{
-		static constexpr uint32 kPerFrameStackSize = 64 * Constants::kMebi;
+		static constexpr uint32 kPerFrameStackSize = 64 * Memory::kMebi;
 		static constexpr uint32 kBufferAddressTableSize = 1024;
 		static constexpr uint32 kTextureBindingTableSize = 1024;
 
@@ -140,13 +141,13 @@ namespace Turbo
 		void Reset();
 
 		/* Stack allocation Interface */
-		[[nodiscard]] byte* Allocate(size_t numBytes) { return mAllocator.Allocate(numBytes); }
+		[[nodiscard]] void* Allocate(TurboSize numBytes) { return mAllocator.Allocate(numBytes); }
 
 		template <typename PODType>
-		[[nodiscard]] PODType* AllocatePOD() { return mAllocator.Allocate<PODType>(); }
+		[[nodiscard]] PODType* AllocatePOD() { return Memory::Allocate<PODType>(mAllocator); }
 
 		template <typename PODType>
-		[[nodiscard]] PODType* AllocatePOD(size_t num) { return mAllocator.Allocate<PODType>(num); }
+		[[nodiscard]] PODType* AllocatePOD(TurboSize num) { return Memory::Allocate<PODType>(mAllocator, num); }
 
 		/* Other */
 		[[nodiscard]] vk::Format GetTextureFormat(FRGResourceHandle resourceHandle) const;

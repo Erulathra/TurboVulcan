@@ -11,6 +11,11 @@ namespace Turbo
 		static bool IsDebuggerPresent();
 
 		static void Sleep(double seconds);
+
+		static void* Malloc(size_t size);
+		static void Free(void* memory);
+		static void* AlignedMalloc(size_t alignment, size_t size);
+		static void AlignedFree(void* memory);
 	};
 } // namespace Turbo
 
