@@ -2,6 +2,7 @@
 
 #if PLATFORM_WINDOWS
 
+#include <stdlib.h>
 #include "windows.h"
 #include "corecrt_malloc.h"
 
@@ -15,6 +16,22 @@ namespace Turbo
 	void FWindowsPlatform::Sleep(double seconds)
 	{
 		::Sleep(static_cast<DWORD>(seconds * 1000.f));
+	}
+
+	std::optional<std::string> FWindowsPlatform::GetEnviromentalVariable(std::string_view variableName)
+	{
+	   const std::string nullTerminatedVariableName{variableName.data(), variableName.size()};
+
+		char* buffer = nullptr;
+		size_t bufferSize = 0;
+		if (_dupenv_s(&buffer, &bufferSize, nullTerminatedVariableName.c_str()))
+		{
+		   std::string result = std::string(buffer, bufferSize);
+			Free(buffer);
+         return std::move(result);
+		}
+
+		return {};
 	}
 
 	void* FWindowsPlatform::Malloc(size_t size)
@@ -34,7 +51,7 @@ namespace Turbo
 
 	void FWindowsPlatform::AlignedFree(void* memory)
 	{
-      _aligned_free(pointer);
+      _aligned_free(memory);
 	}
 } // namespace Turbo
 

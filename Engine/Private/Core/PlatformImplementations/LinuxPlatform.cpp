@@ -66,6 +66,17 @@ namespace Turbo
 		nanosleep(&spec, &remaining);
 	}
 
+	std::optional<std::string> FLinuxPlatform::GetEnviromentalVariable(std::string_view variableName)
+	{
+	   const std::string nullTerminatedVariableName{variableName};
+		if (const char* variableValue = std::getenv(nullTerminatedVariableName.c_str()))
+		{
+      return std::string(variableValue);
+		}
+
+		return {};
+	}
+
 	void* FLinuxPlatform::Malloc(size_t size)
 	{
       return malloc(size);
