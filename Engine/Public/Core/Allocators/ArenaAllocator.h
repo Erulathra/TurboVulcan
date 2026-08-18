@@ -20,22 +20,21 @@ namespace Turbo
 		{
 			TRACE_ZONE_SCOPED()
 
-			mAllocation = static_cast<byte*>(Memory::AlignedMalloc(4, size));
+			mAllocation = static_cast<byte*>(Memory::Malloc(size));
 
 			mTip = mAllocation + size;
 			mTop = mAllocation;
 		}
 
-		~FArenaAllocator() { FPlatform::AlignedFree(mAllocation); }
+		~FArenaAllocator() { FPlatform::Free(mAllocation); }
 
-		void* Allocate(TurboSize size, TurboSize alignment = 8)
+		void* Allocate(TurboSize size)
 		{
 			TURBO_CHECK(mAllocation != nullptr && mTop != nullptr && mTip != nullptr)
-			TURBO_CHECK((alignment & (alignment - 1)) == 0)
 			TURBO_CHECK(size > 0)
 
 			// Align new top
-			byte* result = Memory::Align(mTop, alignment);
+			byte* result = Memory::Align(mTop, 16);
 			byte* newTop = result + size;
 			TURBO_CHECK_MSG(newTop <= mTip, "Stack allocator overflow")
 

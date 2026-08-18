@@ -1,13 +1,11 @@
 #include "Windows/SceneOutlinerWindow.h"
 
-#include <queue>
-
-#include "EditorLayer.h"
-#include "imgui.h"
 #include "Core/Engine.h"
+#include "EditorLayer.h"
 #include "Extensions/ImGui/ImGuiExtensions.h"
-#include "Layers/Layer.h"
+#include "imgui.h"
 #include "World/EntityUtils.h"
+#include "World/SceneGraph.h"
 #include "World/World.h"
 
 namespace Turbo

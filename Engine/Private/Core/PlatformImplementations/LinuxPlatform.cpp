@@ -82,6 +82,11 @@ namespace Turbo
       return malloc(size);
 	}
 
+	void* FLinuxPlatform::Realloc(void *memory, TurboSize newSize)
+	{
+      return realloc(memory, newSize);
+	}
+
 	void FLinuxPlatform::Free(void *memory)
 	{
       free(memory);
@@ -89,6 +94,12 @@ namespace Turbo
 
 	void* FLinuxPlatform::AlignedMalloc(size_t alignment, size_t size)
 	{
+   	TURBO_CHECK(glm::isPowerOfTwo(size))
+      if (alignment <= 16)
+      {
+         return Malloc(size);
+      }
+
       return aligned_alloc(alignment, size);
 	}
 

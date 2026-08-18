@@ -1,15 +1,15 @@
 #include "World/GLTFSceneLoader.h"
 
+#include "Assets/AssetManager.h"
 #include "Assets/EngineResources.h"
 #include "Assets/GLTFHelpers.h"
 #include "Assets/MaterialManager.h"
-#include "World/MeshComponent.h"
-#include "World/World.h"
-
 #include "fastgltf/core.hpp"
-#include "fastgltf/tools.hpp"
 #include "Graphics/GPUDevice.h"
+#include "World/MeshComponent.h"
+#include "World/SceneGraph.h"
 #include "World/ShadingComponents.h"
+#include "World/World.h"
 
 namespace
 {

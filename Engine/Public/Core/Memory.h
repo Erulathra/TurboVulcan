@@ -1,6 +1,9 @@
 #pragma once
 
+#include "CommonMacros.h"
+#include "CommonTypeDefs.h"
 #include "Core/Platform.h"
+#include "glm/ext/scalar_integer.hpp"
 #include <bit>
 #include <cstddef>
 #include <cstring>
@@ -32,8 +35,19 @@ namespace Turbo::Memory
 
 	/* System allocation aliases */
 
+	inline void* Malloc(size_t size)
+	{
+      return FPlatform::Malloc(size);
+	}
+
+	inline void Free(void* memory)
+	{
+	   return FPlatform::Free(memory);
+	}
+
 	inline void* AlignedMalloc(size_t alignment, size_t size)
 	{
+      TURBO_CHECK(glm::isPowerOfTwo(alignment))
       return FPlatform::AlignedMalloc(alignment, size);
 	}
 
@@ -44,27 +58,56 @@ namespace Turbo::Memory
 
 	/* Allocators helpers */
 
-	template <typename Type, typename AllocatorType>
-	Type* Allocate(AllocatorType& allocator, TurboSize num)
+	template <typename AllocatorType>
+	void* Allocate(AllocatorType* allocator, TurboSize numBytes)
 	{
 		if constexpr (AllocatorType::kStaticAllocator)
 		{
-   		return (Type*)AllocatorType::Allocate(sizeof(Type) * num, alignof(Type));
+			return AllocatorType::Allocate(numBytes);
 		}
 		else
 		{
-         return (Type*)allocator.Allocate(sizeof(Type) * num, alignof(Type));
+			TURBO_CHECK(allocator)
+			return allocator->Allocate(numBytes);
 		}
 	}
 
 	template <typename Type, typename AllocatorType>
-	Type* Allocate(AllocatorType& allocator)
+	Type* Allocate(AllocatorType* allocator, TurboSize num)
+	{
+		if constexpr (AllocatorType::kStaticAllocator)
+		{
+   		return (Type*)AllocatorType::Allocate(sizeof(Type) * num);
+		}
+		else
+		{
+         TURBO_CHECK(allocator)
+         return (Type*)allocator->Allocate(sizeof(Type) * num);
+		}
+	}
+
+	template <typename Type, typename AllocatorType>
+	Type* Realloc(AllocatorType* allocator, Type* ptr, TurboSize num)
+	{
+		if constexpr (AllocatorType::kStaticAllocator)
+		{
+			return (Type*)AllocatorType::Realloc(ptr, sizeof(Type) * num);
+		}
+		else
+		{
+			TURBO_CHECK(allocator)
+			return (Type*)allocator->Realloc(sizeof(Type) * num);
+		}
+	}
+
+	template <typename Type, typename AllocatorType>
+	Type* Allocate(AllocatorType* allocator)
 	{
 	   return Allocate<Type>(allocator, 1);
 	}
 
 	template <typename Type, typename AllocatorType>
-	Type* AllocateZeroed(AllocatorType& allocator, TurboSize num)
+	Type* AllocateZeroed(AllocatorType* allocator, TurboSize num)
 	{
 	   Type* allocation = Allocate<Type>(allocator, num);
 		MemZero(allocation, num * sizeof(Type));
@@ -72,13 +115,13 @@ namespace Turbo::Memory
 	}
 
 	template <typename Type, typename AllocatorType>
-	Type* AllocateZeroed(AllocatorType& allocator)
+	Type* AllocateZeroed(AllocatorType* allocator)
 	{
 	   return AllocateZeroed<Type>(allocator, 1);
 	}
 
 	template <typename Type, typename AllocatorType>
-	Type* AllocateDefaulted(AllocatorType& allocator, TurboSize num)
+	Type* AllocateDefaulted(AllocatorType* allocator, TurboSize num)
 	{
 	   Type* allocation = Allocate<Type>(allocator, num);
 
@@ -91,11 +134,26 @@ namespace Turbo::Memory
 	}
 
 	template <typename Type, typename AllocatorType>
-	Type* AllocateDefaulted(AllocatorType& allocator)
+	Type* AllocateDefaulted(AllocatorType* allocator)
 	{
       Type* allocation = Allocate<Type>(allocator);
       *allocation = Type{};
 
 	   return allocation;
 	}
+
+	template <typename AllocatorType>
+	void* Free(AllocatorType* allocator, void* ptr)
+	{
+		if constexpr (AllocatorType::kStaticAllocator)
+		{
+			return AllocatorType::Free(ptr);
+		}
+		else
+		{
+			TURBO_CHECK(allocator)
+			return allocator->Free(ptr);
+		}
+	}
+
 }

@@ -1,19 +1,19 @@
 #pragma once
 
-#include "Assets/AssetManager.h"
-#include "World/SceneGraph.h"
+#include "Core/DataStructures/Array.h"
 
 namespace Turbo
 {
 	class FCamera;
 	struct FMesh;
+	struct FTexture;
 
 	struct FSpawnedByLevelTag {};
 
 	struct FRuntimeLevel
 	{
-		std::vector<THandle<FMesh>> mLoadedMeshes;
-		std::vector<THandle<FTexture>> mLoadedTextures;
+		TArray<THandle<FMesh>> mLoadedMeshes;
+		TArray<THandle<FTexture>> mLoadedTextures;
 	};
 
 	class FWorld

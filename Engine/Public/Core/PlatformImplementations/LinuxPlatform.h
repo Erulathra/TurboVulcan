@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CommonTypeDefs.h"
 #if PLATFORM_LINUX
 
 #include "Core/PlatformImplementations/GenericPlatform.h"
@@ -12,9 +13,11 @@ namespace Turbo
 		static void Sleep(double seconds);
 		static std::optional<std::string> GetEnviromentalVariable(std::string_view variableName);
 
-		static void* Malloc(size_t size);
+		static void* Malloc(TurboSize size);
+		static void* Realloc(void* memory, TurboSize newSize);
 		static void Free(void* memory);
-		static void* AlignedMalloc(size_t alignment, size_t size);
+
+		static void* AlignedMalloc(TurboSize alignment, TurboSize size);
 		static void AlignedFree(void* memory);
 	};
 } // namespace Turbo

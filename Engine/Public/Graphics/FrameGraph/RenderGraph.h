@@ -141,13 +141,13 @@ namespace Turbo
 		void Reset();
 
 		/* Stack allocation Interface */
-		[[nodiscard]] void* Allocate(TurboSize numBytes) { return mAllocator.Allocate(numBytes); }
+		[[nodiscard]] void* Allocate(TurboSize numBytes) { return Memory::Allocate(&mAllocator, numBytes); }
 
 		template <typename PODType>
-		[[nodiscard]] PODType* AllocatePOD() { return Memory::Allocate<PODType>(mAllocator); }
+		[[nodiscard]] PODType* AllocatePOD() { return Memory::Allocate<PODType>(&mAllocator); }
 
 		template <typename PODType>
-		[[nodiscard]] PODType* AllocatePOD(TurboSize num) { return Memory::Allocate<PODType>(mAllocator, num); }
+		[[nodiscard]] PODType* AllocatePOD(TurboSize num) { return Memory::Allocate<PODType>(&mAllocator, num); }
 
 		/* Other */
 		[[nodiscard]] vk::Format GetTextureFormat(FRGResourceHandle resourceHandle) const;

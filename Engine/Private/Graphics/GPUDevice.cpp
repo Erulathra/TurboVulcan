@@ -1442,7 +1442,7 @@ namespace Turbo
 					writeDescriptorSet.descriptorType = vk::DescriptorType::eAccelerationStructureKHR;
 					writeDescriptorSet.dstBinding = BindlessResourcesBindings::kTLAS;
 
-					auto* asWrite = Memory::AllocateDefaulted<vk::WriteDescriptorSetAccelerationStructureKHR>(mPerFrameArena);
+					auto* asWrite = Memory::AllocateDefaulted<vk::WriteDescriptorSetAccelerationStructureKHR>(&mPerFrameArena);
                asWrite->accelerationStructureCount = 1;
                asWrite->pAccelerationStructures = &asToBind->mVkAccelerationStructure;
 

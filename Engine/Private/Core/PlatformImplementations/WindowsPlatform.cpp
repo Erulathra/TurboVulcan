@@ -39,6 +39,11 @@ namespace Turbo
       return malloc(size);
 	}
 
+	void* FWindowsPlatform::Realloc(void* memory, size_t size)
+	{
+      return realloc(memory, size);
+	}
+
 	void FWindowsPlatform::Free(void *memory)
 	{
       free(memory);
@@ -46,6 +51,7 @@ namespace Turbo
 
 	void* FWindowsPlatform::AlignedMalloc(size_t alignment, size_t size)
 	{
+   	TURBO_CHECK(glm::isPowerOfTwo(size))
       return _aligned_malloc(size, alignment);
 	}
 

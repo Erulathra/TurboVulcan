@@ -1,8 +1,8 @@
-// raddbg 0.9.27 project file
+// raddbg 0.9.28 project file
 
 target:
 {
-  executable: "cmake-build-debug-development/Editor/TurboVulkan_Editor.exe"
+  executable: "cmake-build-debug-development/Editor/TurboVulkan_Editor"
   working_directory: "cmake-build-debug-development/Editor"
   label: "Editor (Debug Development)"
   enabled: 1
