@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CommonTypeDefs.h"
 #include "Graphics/CommandBuffer.h"
 #include "Resources.h"
 #include "Graphics/GraphicsCore.h"
@@ -321,7 +322,7 @@ namespace Turbo
 		vk::Format mDepthAttachmentFormat = vk::Format::eUndefined;
 	};
 
-	constexpr cstring GetShaderEntryPointName(vk::ShaderStageFlagBits stage)
+	constexpr ConstString GetShaderEntryPointName(vk::ShaderStageFlagBits stage)
 	{
 		switch (stage)
 		{

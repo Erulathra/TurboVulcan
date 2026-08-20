@@ -120,7 +120,7 @@ namespace Turbo
 
 	namespace VulkanEnum
 	{
-		inline cstring GetShaderStageName(vk::ShaderStageFlagBits shaderStage)
+		inline ConstString GetShaderStageName(vk::ShaderStageFlagBits shaderStage)
 		{
 			switch (shaderStage)
 			{
@@ -168,7 +168,7 @@ namespace Turbo
 			return 0;
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			static_assert(false, "Default GetTypePostFix is not implemented.");
 			return "";
@@ -184,7 +184,7 @@ namespace Turbo
 			return reinterpret_cast<uint64>(nativeHandle);
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			return "_Image";
 		}
@@ -199,7 +199,7 @@ namespace Turbo
 			return reinterpret_cast<uint64>(nativeHandle);
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			return "_ImageView";
 		}
@@ -214,7 +214,7 @@ namespace Turbo
 			return reinterpret_cast<uint64>(nativeHandle);
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			return "_ShaderModule";
 		}
@@ -229,7 +229,7 @@ namespace Turbo
 			return reinterpret_cast<uint64>(nativeHandle);
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			return "_DescriptorPool";
 		}
@@ -244,7 +244,7 @@ namespace Turbo
 			return reinterpret_cast<uint64>(nativeHandle);
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			return "_CommandBuffer";
 		}
@@ -259,7 +259,7 @@ namespace Turbo
 			return reinterpret_cast<uint64>(nativeHandle);
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			return "_Buffer";
 		}
@@ -274,7 +274,7 @@ namespace Turbo
 			return reinterpret_cast<uint64>(nativeHandle);
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			return "_Pipeline";
 		}
@@ -289,7 +289,7 @@ namespace Turbo
 			return reinterpret_cast<uint64>(nativeHandle);
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			return "_Sampler";
 		}
@@ -304,7 +304,7 @@ namespace Turbo
 			return reinterpret_cast<uint64>(nativeHandle);
 		}
 
-		static cstring GetTypePostFix()
+		static ConstString GetTypePostFix()
 		{
 			return "_AccelerationStructure";
 		}
@@ -328,4 +328,3 @@ namespace Turbo
 	template <typename T>
 	concept PushConstant = sizeof(T) < kMaxPushConstantSize;
 }
-

@@ -664,7 +664,7 @@ namespace Turbo
 						});
 					}
 
-					static const cstring kRenderBuckets = "Render Buckets";
+					static const ConstString kRenderBuckets = "Render Buckets";
 					TRACE_PLOT_CONFIGURE(kRenderBuckets, EPlotFormat::Number, true, true, 0xFFFF00)
 					TRACE_PLOT(kRenderBuckets, static_cast<int64>(drawIndirectBuckets.size()))
 				}

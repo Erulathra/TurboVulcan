@@ -170,7 +170,7 @@ namespace Turbo
 
 		/** Resource helpers */
 	public:
-		void UploadTextureUsingStagingBuffer(THandle<FTexture> handle, std::span<const byte> data);
+		void UploadTextureUsingStagingBuffer(THandle<FTexture> handle, std::span<const u8> data);
 
 		/** Resource helpers end */
 
@@ -194,7 +194,7 @@ namespace Turbo
 
 		/** Initialization methods */
 	private:
-		vkb::Instance CreateVkInstance(const std::vector<cstring>& requiredExtensions);
+		vkb::Instance CreateVkInstance(const std::vector<ConstString>& requiredExtensions);
 		vkb::PhysicalDevice SelectPhysicalDevice(const vkb::Instance& builtInstance);
 		vkb::Device CreateDevice(const vkb::PhysicalDevice& physicalDevice);
 		vkb::Swapchain CreateSwapchain();

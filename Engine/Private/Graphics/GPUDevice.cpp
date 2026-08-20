@@ -82,7 +82,7 @@ namespace Turbo
 		window.InitForVulkan();
 		window.Init();
 
-		std::vector<cstring> instanceRequiredExtensions = window.GetVulkanRequiredExtensions();
+		std::vector<ConstString> instanceRequiredExtensions = window.GetVulkanRequiredExtensions();
 
 		VULKAN_HPP_DEFAULT_DISPATCHER.init();
 		const vkb::Instance builtInstance = CreateVkInstance(instanceRequiredExtensions);
@@ -862,10 +862,10 @@ namespace Turbo
 		frameData.mDestroyQueue.OnDestroy().Add(std::move(delegate));
 	}
 
-	vkb::Instance FGPUDevice::CreateVkInstance(const std::vector<cstring>& requiredExtensions)
+	vkb::Instance FGPUDevice::CreateVkInstance(const std::vector<ConstString>& requiredExtensions)
 	{
 		// Copy by design
-		std::vector<cstring> enableExtensions = requiredExtensions;
+		std::vector<ConstString> enableExtensions = requiredExtensions;
 
 #if WITH_DEBUG_RENDERING_FEATURES
 		enableExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -1883,7 +1883,7 @@ namespace Turbo
 		SetResourceName(pipeline->mVkPipeline, builder.mName);
 	}
 
-	void FGPUDevice::UploadTextureUsingStagingBuffer(THandle<FTexture> handle, std::span<const byte> data)
+	void FGPUDevice::UploadTextureUsingStagingBuffer(THandle<FTexture> handle, std::span<const u8> data)
 	{
 		// Create staging buffer
 		const FBufferBuilder stagingBufferBuilder = FBufferBuilder::CreateStagingBuffer(data.size());

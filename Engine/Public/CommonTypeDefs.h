@@ -1,6 +1,6 @@
 #pragma once
 
-// integer types
+// NOTE(SS): Deprecated aliases
 using int8 = std::int8_t;
 using uint8 = std::uint8_t;
 
@@ -20,15 +20,24 @@ using uint64 = std::uint64_t;
 
 using TurboSize = uint64;
 
-using fp16 = _Float16;
+// NOTE(SS): New aliases
+using i8 = int8_t;
+using u8 = uint8_t;
+using i16 = uint16_t;
+using u16 = uint16_t;
+using i32 = uint32_t;
+using u32 = uint32_t;
+using i64 = uint64_t;
+using u64 = uint64_t;
+
+using TSize = uint64;
+
 using fp32 = float;
 using fp64 = double;
 
+using ConstString = const char*;
 
-using cstring = const char*;
-
-constexpr std::byte operator""_B(unsigned long long x) { return static_cast<std::byte>(x); }
-
+// Deprecated
 namespace Turbo
 {
 	template <typename T>

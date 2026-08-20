@@ -26,7 +26,7 @@ namespace Turbo
 		[[nodiscard]] bool IsNone() const;
 
 		[[nodiscard]] std::string_view ToString() const;
-		[[nodiscard]] cstring ToCString() const;
+		[[nodiscard]] ConstString ToCString() const;
 
 	private:
 		static void TryRegisterName(FName& outName, std::string_view sourceString);

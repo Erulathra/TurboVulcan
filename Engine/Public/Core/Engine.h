@@ -1,11 +1,7 @@
 #pragma once
+
 #include "Input/Input.h"
 #include "Window.h"
-
-namespace enki
-{
-	class TaskScheduler;
-}
 
 namespace Turbo
 {
@@ -34,9 +30,8 @@ namespace Turbo
 		Finalizing
 	};
 
-	class FEngine
+	struct FEngine
 	{
-	private:
 		explicit FEngine();
 
 		/** Services */

@@ -7,7 +7,7 @@
 namespace StringUtils
 {
 	constexpr std::string_view kEmptyStringView = ""sv;
-	constexpr cstring kEmptyCString = "";
+	constexpr ConstString kEmptyCString = "";
 
 	inline std::vector<std::string_view> SplitString(const std::string_view input, char delimiter)
 	{

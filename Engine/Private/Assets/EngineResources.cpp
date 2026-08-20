@@ -85,22 +85,22 @@ namespace Turbo
 
 			textureBuilder.SetName(FName("Engine::White"));
 			gWhiteTexture = gpu.CreateTexture(textureBuilder);
-			constexpr byte whiteBytes[]{0xff_B, 0xff_B, 0xff_B, 0xff_B};
+			constexpr u8 whiteBytes[]{0xff, 0xff, 0xff, 0xff};
 			gpu.UploadTextureUsingStagingBuffer(gWhiteTexture, whiteBytes);
 
 			textureBuilder.SetName(FName("Engine::Black"));
 			gBlackTexture = gpu.CreateTexture(textureBuilder);
-			constexpr byte blackBytes[]{0x0_B, 0x0_B, 0x0_B, 0xff_B};
+			constexpr u8 blackBytes[]{0x0, 0x0, 0x0, 0xff};
 			gpu.UploadTextureUsingStagingBuffer(gBlackTexture, blackBytes);
 
 			textureBuilder.SetName(FName("Engine::ORMPlaceholder"));
 			gORMPlaceholderTexture = gpu.CreateTexture(textureBuilder);
-			constexpr byte ormBytes[]{0xFF_B, 0xFF_B, 0xFF_B, 0xFF_B};
+			constexpr u8 ormBytes[]{0xFF, 0xFF, 0xFF, 0xFF};
 			gpu.UploadTextureUsingStagingBuffer(gORMPlaceholderTexture, ormBytes);
 
 			textureBuilder.SetName(FName("Engine::FlatNormalMap"));
 			gFlatNormalMapTexture = gpu.CreateTexture(textureBuilder);
-			constexpr byte flatNormalBytes[]{0x80_B, 0x80_B, 0xFF_B, 0xFF_B};
+			constexpr u8 flatNormalBytes[]{0x80, 0x80, 0xFF, 0xFF};
 			gpu.UploadTextureUsingStagingBuffer(gFlatNormalMapTexture, flatNormalBytes);
 		}
 

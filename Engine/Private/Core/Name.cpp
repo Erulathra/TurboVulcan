@@ -58,7 +58,7 @@ namespace Turbo {
 		return *mStringPtr;
 	}
 
-	cstring FName::ToCString() const
+	ConstString FName::ToCString() const
 	{
 		return mStringPtr->c_str();
 	}
