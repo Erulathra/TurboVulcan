@@ -35,8 +35,7 @@ namespace Turbo
 	{
 		vk::Fence mCommandBufferExecutedFence = nullptr;
 		vk::Semaphore mImageAcquiredSemaphore = nullptr;
-
-		std::array<vk::CommandPool, kMaxRenderingThreads> mVkCommandPools;
+		vk::CommandPool mVkCommandPool;
 
 		TUniquePtr<FCommandBuffer> mMainCommandBuffer;
 
@@ -79,7 +78,6 @@ namespace Turbo
 		[[nodiscard]] u32 GetFrameInFlightId() const { return mBufferedFrameId; }
 		[[nodiscard]] u32 GetNumRenderedFrames() const { return mRenderedFrames; }
 		[[nodiscard]] u32 GetNumBufferedFrames() const { return kMaxFramesInFlight; }
-		[[nodiscard]] u32 GetNumRenderingThreads() const { return mNumRenderingThreads; }
 
 		void RequestSwapChainResize() { mbRequestedSwapchainResize = true; }
 
@@ -325,7 +323,6 @@ namespace Turbo
 		/** Swapchain end */
 
 		/** Frame handing */
-		u32 mNumRenderingThreads = 1;
 		std::array<FBufferedFrameData, kMaxFramesInFlight> mFrameDatas;
 
 		/** Note that this is an index of buffered frame */

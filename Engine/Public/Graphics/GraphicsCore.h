@@ -12,8 +12,6 @@ namespace Turbo
 	inline constexpr u32 kMaxSwapChainImages = 5;
 	inline constexpr u32 kMaxFramesInFlight = 2;
 
-	inline constexpr u32 kMaxRenderingThreads = 16;
-
 	inline constexpr u8 kMaxDescriptorSetLayouts = 2;
 	inline constexpr u32 kMaxDescriptorSets = 2;
 

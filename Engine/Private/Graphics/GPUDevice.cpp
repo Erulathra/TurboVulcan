@@ -11,7 +11,6 @@
 #include "Graphics/ResourceBuilders.h"
 #include "Graphics/Resources.h"
 #include "ProfilingMacros.h"
-#include "TaskScheduler.h"
 #include "TurboLog.h"
 #include "VkBootstrap.h"
 
@@ -74,9 +73,6 @@ namespace Turbo
 	{
 		TURBO_LOG(LogGPUDevice, Info, "Initializing GPU Device.");
 
-		const enki::TaskScheduler& taskScheduler = entt::locator<enki::TaskScheduler>::value();
-		mNumRenderingThreads = glm::min(kMaxRenderingThreads, taskScheduler.GetNumTaskThreads());
-		TURBO_LOG(LogGPUDevice, Info, "Num rendering threads: {}", mNumRenderingThreads);
 
 		FWindow& window = entt::locator<FWindow>::value();
 		window.InitForVulkan();
@@ -1143,13 +1139,9 @@ namespace Turbo
 			CHECK_VULKAN_RESULT(frameData.mCommandBufferExecutedFence, mVkDevice.createFence(fenceCreateInfo));
 			CHECK_VULKAN_RESULT(frameData.mImageAcquiredSemaphore, mVkDevice.createSemaphore(semaphoreCreateInfo));
 
-			for (u32 threadId = 0; threadId < mNumRenderingThreads; ++threadId)
-			{
-				frameData.mVkCommandPools[threadId] = CreateCommandPool(mVkGraphicsQueueFamilyIndex);
-			}
-
+			frameData.mVkCommandPool = CreateCommandPool(mVkGraphicsQueueFamilyIndex);
 			frameData.mMainCommandBuffer = CreateCommandBuffer({
-				.mVkCommandPool = frameData.mVkCommandPools[0],
+				.mVkCommandPool = frameData.mVkCommandPool,
 				.mName = FName(fmt::format("Frame{}", frameDataId))
 			});
 		}
@@ -1293,11 +1285,7 @@ namespace Turbo
 		}
 
 		CHECK_VULKAN_HPP(mVkDevice.resetFences({renderCompleteFence}));
-
-		for (u32 threadId = 0; threadId < mNumRenderingThreads; ++threadId)
-		{
-			CHECK_VULKAN_HPP(mVkDevice.resetCommandPool(frameData.mVkCommandPools[threadId]));
-		}
+		CHECK_VULKAN_HPP(mVkDevice.resetCommandPool(frameData.mVkCommandPool));
 
 		frameData.mMainCommandBuffer->Begin();
 
@@ -1352,8 +1340,7 @@ namespace Turbo
 
 	vk::CommandPool FGPUDevice::GetCommandPool() const
 	{
-		const enki::TaskScheduler& taskScheduler = entt::locator<enki::TaskScheduler>::value();
-		return mFrameDatas[mBufferedFrameId].mVkCommandPools[taskScheduler.GetThreadNum()];
+		return mFrameDatas[mBufferedFrameId].mVkCommandPool;
 	}
 
 	FCommandBuffer& FGPUDevice::GetMainCommandBuffer() const
@@ -1556,11 +1543,8 @@ namespace Turbo
 				frameData.mImageAcquiredSemaphore = nullptr;
 			}
 
-			for (int renderThreadId = 0; renderThreadId < mNumRenderingThreads; ++renderThreadId)
-			{
-				CHECK_VULKAN_HPP(mVkDevice.resetCommandPool(frameData.mVkCommandPools[renderThreadId]));
-				mVkDevice.destroyCommandPool(frameData.mVkCommandPools[renderThreadId]);
-			}
+			CHECK_VULKAN_HPP(mVkDevice.resetCommandPool(frameData.mVkCommandPool));
+			mVkDevice.destroyCommandPool(frameData.mVkCommandPool);
 		}
 
 		FlushDestroyQueues();

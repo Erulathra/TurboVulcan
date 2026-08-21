@@ -10,7 +10,6 @@ CPMAddPackage(GITHUB_REPOSITORY "g-truc/glm" GIT_TAG "8f6213d" OPTIONS "GLM_ENAB
 CPMAddPackage(GITHUB_REPOSITORY "charles-lunarg/vk-bootstrap" GIT_TAG "v1.4.350")
 CPMAddPackage(GITHUB_REPOSITORY "YaaZ/VulkanMemoryAllocator-Hpp" GIT_TAG "v3.3.0+3")
 CPMAddPackage(GITHUB_REPOSITORY "spnda/dds_image" GIT_TAG "6af8726")
-CPMAddPackage(GITHUB_REPOSITORY "dougbinks/enkiTS" GIT_TAG "0289cf6")
 CPMAddPackage(GITHUB_REPOSITORY "wolfpld/tracy" GIT_TAG "v0.12.2" OPTIONS "TRACY_ON_DEMAND ON")
 CPMAddPackage(GITHUB_REPOSITORY "spnda/fastgltf" GIT_TAG "v0.9.0")
 CPMAddPackage(GITHUB_REPOSITORY "skypjack/entt" GIT_TAG "v3.16.0")

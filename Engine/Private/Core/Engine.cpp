@@ -5,7 +5,6 @@
 #include "Core/EnviromentalVariables.h"
 #include "Core/Platform.h"
 #include "Graphics/FrameGraph/RenderGraph.h"
-#include "TaskScheduler.h"
 #include "Assets/AssetManager.h"
 #include "Assets/EngineResources.h"
 #include "Assets/MaterialManager.h"
@@ -78,12 +77,6 @@ namespace Turbo
 		FCoreTimer& coreTimer = entt::locator<FCoreTimer>::value();
 		coreTimer.Init();
 
-		// Additional thread for io tasks
-		enki::TaskSchedulerConfig taskSchedulerConfig;
-
-		entt::locator<enki::TaskScheduler>::emplace();
-		enki::TaskScheduler& taskScheduler = entt::locator<enki::TaskScheduler>::value();
-		taskScheduler.Initialize(taskSchedulerConfig);
 
 		entt::locator<FGPUDevice>::reset(new FGPUDevice());
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
@@ -299,9 +292,6 @@ namespace Turbo
 	{
 		TURBO_LOG(LogEngine, Info, "Begin exit sequence.");
 
-		entt::locator<enki::TaskScheduler>::value().WaitforAllAndShutdown();
-		entt::locator<enki::TaskScheduler>::reset();
-
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 		gpu.WaitIdle();
 		gpu.FlushDestroyQueues();
@@ -335,8 +325,6 @@ namespace Turbo
 
 		entt::locator<FWindow>::reset();
 		entt::locator<FGPUDevice>::reset();
-
-		entt::locator<enki::TaskScheduler>::reset();
 
 		/* Free engine */
 		DEV_FREE(gEngine);
