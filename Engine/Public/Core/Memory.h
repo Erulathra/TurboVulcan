@@ -6,6 +6,7 @@
 #include "glm/ext/scalar_integer.hpp"
 #include <bit>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 
 namespace Turbo::Memory
@@ -14,11 +15,18 @@ namespace Turbo::Memory
 	constexpr size_t kMebi = 1 << 20;
 	constexpr size_t kGibi = 1 << 30;
 
-	template <typename T>
+	template<typename T>
 	requires std::is_integral_v<T> || std::is_pointer_v<T>
-	constexpr T Align(T value, uintptr_t alignment)
+	constexpr T Align4(T value)
 	{
-		return reinterpret_cast<T>((reinterpret_cast<uintptr_t>(value) + alignment - 1) & ~(alignment - 1));
+      return (T)(((iPtr)value + 3) & ~3);
+	}
+
+	template<typename T>
+	requires std::is_integral_v<T> || std::is_pointer_v<T>
+	constexpr T Align16(T value)
+	{
+      return (T)(((iPtr)value + 15) & ~15);
 	}
 
 	/* memory operations aliases */

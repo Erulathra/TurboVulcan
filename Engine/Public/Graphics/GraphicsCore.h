@@ -1,6 +1,7 @@
 #pragma once
 
 /** Constants */
+#include "vulkan/vulkan_core.h"
 namespace Turbo
 {
 	inline constexpr uint16 kInvalidSetIndex = std::numeric_limits<uint16>::max();
@@ -18,7 +19,7 @@ namespace Turbo
 
 	inline constexpr uint32 kMaxPushConstantSize = 256;
 
-	inline constexpr uint32 kVulkanVersion = MAKE_VERSION(1, 3, 0);
+	inline constexpr uint32 kVulkanVersion = VK_MAKE_VERSION(1, 3, 0);
 
 	inline constexpr uint32 kDefaultTimeout = 1000000000; // 1 second
 	inline constexpr uint32 kMaxTimeout = std::numeric_limits<uint32>::max();

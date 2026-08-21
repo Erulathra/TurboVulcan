@@ -132,8 +132,7 @@ namespace Turbo
 			return vk::SampleCountFlagBits::e4;
 		case EMSAASamples::Eight:
 			return vk::SampleCountFlagBits::e8;
-		default:
-			TURBO_UNINPLEMENTED()
+		InvalidDefaultCase;
 		}
 
 		return vk::SampleCountFlagBits::e1;

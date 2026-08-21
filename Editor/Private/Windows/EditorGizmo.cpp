@@ -12,12 +12,12 @@ namespace Turbo
 {
 	namespace Icons
 	{
-		const static std::string World = TEXT("");
-		const static std::string Local = TEXT("");
+		const static std::string World = "";
+		const static std::string Local = "";
 
-		const static std::string Translate = TEXT("󰵉");
-		const static std::string Rotate = TEXT("");
-		const static std::string Scale = TEXT("󰘖");
+		const static std::string Translate = "󰵉";
+		const static std::string Rotate = "";
+		const static std::string Scale = "󰘖";
 	}
 
 	namespace Actions
@@ -131,8 +131,7 @@ namespace Turbo
 				case EGizmoOperation::Scale:
 					gizmoOperation = ImGuizmo::OPERATION::SCALE;
 					break;
-				default:
-					TURBO_UNINPLEMENTED();
+				InvalidDefaultCase;
 				}
 
 				switch (mGizmoSpace)
@@ -143,8 +142,7 @@ namespace Turbo
 					case EGizmoSpace::World:
 						gizmoMode = ImGuizmo::MODE::WORLD;
 						break;
-					default:
-						TURBO_UNINPLEMENTED();
+				InvalidDefaultCase;
 				}
 
 				const bool bTransformDirty = ImGuizmo::Manipulate(

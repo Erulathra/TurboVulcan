@@ -134,11 +134,8 @@ namespace Turbo
 			return vk::ImageLayout::eTransferDstOptimal;
 		case ETextureLayout::PresentSrc:
 			return vk::ImageLayout::ePresentSrcKHR;
-		default: ;
+		InvalidDefaultCase;
 		}
-
-		TURBO_UNINPLEMENTED();
-		return vk::ImageLayout::eUndefined;
 	}
 
 	constexpr ETextureLayout FromVkImageLayout(vk::ImageLayout layout)
@@ -161,11 +158,8 @@ namespace Turbo
 			return ETextureLayout::TransferDst;
 		case vk::ImageLayout::ePresentSrcKHR:
 			return ETextureLayout::PresentSrc;
-		default: ;
+		InvalidDefaultCase;
 		}
-
-		TURBO_UNINPLEMENTED();
-		return ETextureLayout::Undefined;
 	}
 
 	enum class EResourceAccess

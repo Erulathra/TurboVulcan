@@ -330,8 +330,7 @@ namespace Turbo
 			return vk::AccessFlagBits2::eMemoryRead;
 		case EResourceAccess::ReadWrite:
 			return vk::AccessFlagBits2::eMemoryWrite | vk::AccessFlagBits2::eMemoryRead;
-		default:
-			TURBO_UNINPLEMENTED()
+		InvalidDefaultCase;
 		}
 
 		std::unreachable();
@@ -351,8 +350,7 @@ namespace Turbo
 			return vk::PipelineStageFlagBits2::eComputeShader;
 		case EPassType::Transfer:
 			return vk::PipelineStageFlagBits2::eTransfer;
-		default:
-			TURBO_UNINPLEMENTED()
+		InvalidDefaultCase;
 		}
 
 		std::unreachable();
@@ -370,8 +368,7 @@ namespace Turbo
 			return vk::PipelineStageFlagBits2::eComputeShader;
 		case EPassType::Transfer:
 			return vk::PipelineStageFlagBits2::eTransfer;
-		default:
-			TURBO_UNINPLEMENTED()
+		InvalidDefaultCase;
 		}
 
 		std::unreachable();
@@ -519,8 +516,7 @@ namespace Turbo
 				case EPassType::Transfer:
 					newBarrier.mNewLayout = ETextureLayout::TransferDst;
 					break;
-				default:
-					TURBO_UNINPLEMENTED()
+				InvalidDefaultCase;
 				}
 
 				FResourceState& currentData = resourceData.at(write);

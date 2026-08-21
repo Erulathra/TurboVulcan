@@ -34,7 +34,7 @@ namespace Turbo
 			TURBO_CHECK(size > 0)
 
 			// Align new top
-			byte* result = Memory::Align(mTop, 16);
+			byte* result = Memory::Align16(mTop);
 			byte* newTop = result + size;
 			TURBO_CHECK_MSG(newTop <= mTip, "Stack allocator overflow")
 

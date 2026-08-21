@@ -190,12 +190,12 @@ namespace Turbo
 		const THandle<FBuffer> handle = mBufferPool.Acquire();
 		TURBO_CHECK(handle)
 
-#if TURBO_BUILD_DEVELOPMENT
-		if ((builder.mBufferFlags & EBufferFlags::UniformBuffer) != EBufferFlags::None)
+		#if WITH_ASSERTIONS
+		if ((builder.mBufferFlags & EBufferFlags::UniformBuffer) == EBufferFlags::UniformBuffer)
 		{
-			TURBO_ENSURE(builder.mSize < kMaxUniformBufferSize);
+   		TURBO_CHECK(builder.mSize < kMaxUniformBufferSize);
 		}
-#endif
+		#endif // WITH_ASSERTIONS
 
 		FBuffer* buffer = AccessBuffer(handle);
 		buffer->mDeviceSize = builder.mSize;
@@ -874,7 +874,6 @@ namespace Turbo
 		vkb::InstanceBuilder instanceBuilder;
 		instanceBuilder
 			.set_app_name("TurboEngine")
-			.set_app_version(TURBO_VERSION())
 			.enable_extensions(enableExtensions)
 #if WITH_VALIDATION_LAYERS
 			.request_validation_layers(true)
@@ -1981,9 +1980,7 @@ namespace Turbo
 		case Turbo::EAccelerationStructureType::TLAS:
    		mTLASPool.Release(THandle<FTLAS>(destroyer.mHandle));
 			break;
-		default:
-			TURBO_UNINPLEMENTED()
-			break;
+		InvalidDefaultCase;
 		}
 	}
 

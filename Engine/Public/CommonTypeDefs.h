@@ -30,12 +30,16 @@ using u32 = uint32_t;
 using i64 = uint64_t;
 using u64 = uint64_t;
 
+using iPtr = uintptr_t;
+
 using TSize = uint64;
 
 using fp32 = float;
 using fp64 = double;
 
 using ConstString = const char*;
+
+#define INDEX_NONE (-1)
 
 // Deprecated
 namespace Turbo

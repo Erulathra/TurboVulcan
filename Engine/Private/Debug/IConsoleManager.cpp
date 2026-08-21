@@ -102,8 +102,7 @@ namespace Turbo
 				}
 				break;
 			}
-		default:
-			TURBO_UNINPLEMENTED()
+		InvalidDefaultCase;
 		}
 
 		return false;
@@ -176,8 +175,7 @@ namespace Turbo
 		case EConsoleVariableType::Float:
 			result = std::to_string(GetFloat());
 			break;
-		default:
-			TURBO_UNINPLEMENTED()
+		InvalidDefaultCase;
 		}
 
 		return result;

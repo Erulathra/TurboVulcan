@@ -23,11 +23,8 @@ namespace Turbo
 			return "Spot";
 		case ELightType::Directional:
 			return "Directional";
-		default: ;
+		InvalidDefaultCase;
 		}
-
-		TURBO_UNINPLEMENTED()
-		return "None";
 	}
 
 	// Update Light encoding code

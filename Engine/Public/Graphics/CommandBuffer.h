@@ -200,8 +200,7 @@ namespace Turbo
 			return vk::AttachmentLoadOp::eClear;
 		case ELoadOp::DontCare:
 			return vk::AttachmentLoadOp::eDontCare;
-		default:
-			TURBO_UNINPLEMENTED()
+		InvalidDefaultCase;
 		}
 
 		return vk::AttachmentLoadOp::eNone;
@@ -215,8 +214,7 @@ namespace Turbo
 			return vk::AttachmentStoreOp::eStore;
 		case EStoreOp::DontCare:
 			return vk::AttachmentStoreOp::eDontCare;
-		default:
-			TURBO_UNINPLEMENTED();
+		InvalidDefaultCase;
 		}
 
 		return vk::AttachmentStoreOp::eNone;
@@ -234,8 +232,7 @@ namespace Turbo
 			return vk::ClearValue{{1.f, 1.f, 1.f, 0.f}};
 		case EClearColor::OpaqueWhite:
 			return vk::ClearValue{{1.f, 1.f, 1.f, 1.f}};
-		default:
-			TURBO_UNINPLEMENTED();
+		InvalidDefaultCase;
 		}
 
 		return {};
@@ -249,8 +246,7 @@ namespace Turbo
 			return vk::ClearValue{0.f};
 		case EClearColor::One:
 			return vk::ClearValue{1.f};
-		default:
-			TURBO_UNINPLEMENTED();
+		InvalidDefaultCase;
 		}
 
 		return {};
@@ -269,9 +265,7 @@ namespace Turbo
 			return vk::ResolveModeFlagBits::eMin;
 		case EResolveMode::Max:
 			return vk::ResolveModeFlagBits::eMax;
-
-		default:
-			TURBO_UNINPLEMENTED();
+		InvalidDefaultCase;
 		}
 
 		return vk::ResolveModeFlagBits::eNone;
