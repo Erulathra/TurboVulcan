@@ -5,7 +5,7 @@
 
 i32 main(int argc, char* argv[])
 {
-    Turbo::FEngine::Init(argc, argv);
+    Turbo::InitEngine(argc, argv);
 
     Turbo::FLayersStack& layerStack = entt::locator<Turbo::FLayersStack>::value();
     layerStack.PushLayer<Turbo::FGameViewportLayer>();

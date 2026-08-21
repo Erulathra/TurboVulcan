@@ -61,7 +61,7 @@ namespace Turbo
 	{
 		RegisterEvents();
 
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		world->mRegistry.on_construct<FMainViewport>().connect<&FEditorFreeCameraUtils::OnConstructMainViewPort>();
 		world->mRegistry.on_destroy<FMainViewport>().connect<&FEditorFreeCameraUtils::OnDestroyMainViewPort>();
 
@@ -107,7 +107,7 @@ namespace Turbo
 
 	void FEditorFreeCameraUtils::Tick(fp64 deltaTime)
 	{
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		auto view = world->mRegistry.view<FEditorFreeCameraInput>();
 
 		for (const entt::entity entity : view)
@@ -146,7 +146,7 @@ namespace Turbo
 
 	bool FEditorFreeCameraUtils::HandleEnableAction(FActionEvent& actionEvent, bool bViewportFocused)
 	{
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		auto view = world->mRegistry.view<FEditorFreeCameraInput>();
 
 		if (actionEvent.mName == FreeCamera::kEnable.mName)
@@ -173,7 +173,7 @@ namespace Turbo
 
 	bool FEditorFreeCameraUtils::HandleMovementAction(FActionEvent& actionEvent)
 	{
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		auto view = world->mRegistry.view<FEditorFreeCameraInput>();
 
 		for (const entt::entity cameraEntity : view)
@@ -202,7 +202,7 @@ namespace Turbo
 	{
 		glm::float2 deltaRotation = glm::float2{0.f};
 
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		auto view = world->mRegistry.view<FEditorFreeCameraInput>();
 
 		bool bNavigationEnabled = true;
@@ -230,7 +230,7 @@ namespace Turbo
 
 		if (glm::length2(deltaRotation) > TURBO_SMALL_NUMBER)
 		{
-			FCameraUtils::UpdateFreeCameraRotation(gEngine->GetWorld()->mRegistry, deltaRotation);
+			FCameraUtils::UpdateFreeCameraRotation(gEngine->mWorld->mRegistry, deltaRotation);
 			actionEvent.Handle();
 			return true;
 		}
@@ -242,7 +242,7 @@ namespace Turbo
 	{
 		bool bNavigationEnabled = true;
 
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		auto view = world->mRegistry.view<FEditorFreeCameraInput>();
 		for (const entt::entity cameraEntity : view)
 		{

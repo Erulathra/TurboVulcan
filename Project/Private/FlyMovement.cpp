@@ -77,14 +77,14 @@ namespace Turbo
 			inputSystem.RegisterBinding(binding);
 		}
 
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		world->mRegistry.on_construct<FMainViewport>().connect<&FMainViewportHandler::OnConstructMainViewport>();
 		world->mRegistry.on_destroy<FMainViewport>().connect<&FMainViewportHandler::OnDestroyMainViewport>();
 	}
 
 	void FFlyMovementSystem::Disable()
 	{
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		world->mRegistry.on_construct<FMainViewport>().disconnect<&FMainViewportHandler::OnConstructMainViewport>();
 		world->mRegistry.on_destroy<FMainViewport>().disconnect<&FMainViewportHandler::OnDestroyMainViewport>();
 	}
@@ -96,7 +96,7 @@ namespace Turbo
 
 	void FFlyMovementSystem::Tick(fp64 deltaTime)
 	{
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		auto view = world->mRegistry.view<FFlyMovementComp>();
 
 		for (const entt::entity entity : view)
@@ -121,7 +121,7 @@ namespace Turbo
 
 	bool FFlyMovementSystem::HandleMovement(FActionEvent& actionEvent)
 	{
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		auto view = world->mRegistry.view<FFlyMovementComp>();
 
 		for (const entt::entity entity : view)
@@ -161,7 +161,7 @@ namespace Turbo
 
 		if (glm::length2(deltaRotation) > TURBO_SMALL_NUMBER)
 		{
-			FCameraUtils::UpdateFreeCameraRotation(gEngine->GetWorld()->mRegistry, deltaRotation);
+			FCameraUtils::UpdateFreeCameraRotation(gEngine->mWorld->mRegistry, deltaRotation);
 			return true;
 		}
 

@@ -37,6 +37,6 @@ namespace Turbo
 		u64 mTickIndex = 0;
 
 	public:
-		friend class FEngine;
+		friend class Engine;
 	};
 } // Turbo

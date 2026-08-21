@@ -16,14 +16,14 @@ namespace Turbo
 		TArray<THandle<FTexture>> mLoadedTextures;
 	};
 
-	class FWorld
+	struct World
 	{
-	public:
+	   /* Properties */
+   	entt::registry mRegistry;
+   	FRuntimeLevel mRuntimeLevel;
+
+      /* Level loading */
 		void OpenLevel(FName path);
 		void UnloadLevel();
-
-	public:
-		entt::registry mRegistry;
-		FRuntimeLevel mRuntimeLevel;
 	};
 } // Turbo

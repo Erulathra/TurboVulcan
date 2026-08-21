@@ -13,7 +13,7 @@ namespace Turbo
 
 	void FRenderingTestLayer::Start()
 	{
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		world->OpenLevel(FName("Content/External/main_sponza/compressed/NewSponza_Main_glTF_003.gltf"));
 
 		auto& registry = world->mRegistry;
@@ -70,7 +70,7 @@ namespace Turbo
 
 		std::string selectionString = "None";
 
-		entt::registry& registry = gEngine->GetWorld()->mRegistry;
+		entt::registry& registry = gEngine->mWorld->mRegistry;
 		const FEntityLabel* selectionName = registry.try_get<FEntityLabel>(selection);
 		if (selectionName)
 		{

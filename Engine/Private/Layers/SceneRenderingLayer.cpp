@@ -66,7 +66,7 @@ namespace Turbo
 		return GetStaticLayerName<FSceneRenderingLayer>();
 	}
 
-	void FSceneRenderingLayer::UpdateViewData(FWorld* world, FViewData& viewData)
+	void FSceneRenderingLayer::UpdateViewData(World* world, FViewData& viewData)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -104,7 +104,7 @@ namespace Turbo
 
 	void FSceneRenderingLayer::CreateIndirectRenderBuffers(
 		FRenderGraphBuilder& graphBuilder,
-		FWorld* world,
+		World* world,
 		FSceneView* sceneView,
 		std::vector<FDrawIndirectBucket>& outBuckets
 	)
@@ -279,7 +279,7 @@ namespace Turbo
 		}
 	}
 
-	void FSceneRenderingLayer::CreateSceneTLAS(FRenderGraphBuilder& graphBuilder, FWorld* world, FSceneView* sceneView)
+	void FSceneRenderingLayer::CreateSceneTLAS(FRenderGraphBuilder& graphBuilder, World* world, FSceneView* sceneView)
 	{
       TRACE_ZONE_SCOPED()
 
@@ -376,7 +376,7 @@ namespace Turbo
 
 	void FSceneRenderingLayer::Render(FRenderGraphBuilder& graphBuilder)
 	{
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		SceneGraph::UpdateWorldTransforms(world->mRegistry);
 		FCameraUtils::UpdateDirtyCameras(world->mRegistry);
 		FCameraUtils::UpdateCameraFrustum(world->mRegistry);
@@ -399,7 +399,7 @@ namespace Turbo
 	{
 		TRACE_ZONE_SCOPED_N("Render Scene")
 
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 
 		// Create and upload view data
 		sceneView->mViewData = graphBuilder.AllocatePOD<FViewData>();
@@ -681,7 +681,7 @@ namespace Turbo
 
 		// Tone Mapping
 		{
-			FWorld* world = gEngine->GetWorld();
+			World* world = gEngine->mWorld;
 			FPostProcessSettings settings = {};
 
 			if (const auto settingsView = world->mRegistry.view<FPostProcessSettings>();

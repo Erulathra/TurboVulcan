@@ -112,7 +112,7 @@ namespace Turbo
 		// bool bFullscreen
 
 	public:
-		friend class FEngine;
+		friend class Engine;
 	};
 
 

@@ -305,7 +305,7 @@ namespace Turbo
 
 		if (meshLoadSettings.mbLevelAsset)
 		{
-			gEngine->GetWorld()->mRuntimeLevel.mLoadedMeshes.Push(meshHandle);
+			gEngine->mWorld->mRuntimeLevel.mLoadedMeshes.Push(meshHandle);
 		}
 
 		mAssetCache[assetHash] = meshHandle;
@@ -394,7 +394,7 @@ namespace Turbo
 
 			if (loadingSettings.mbLevelAsset)
 			{
-				gEngine->GetWorld()->mRuntimeLevel.mLoadedTextures.Push(result);
+				gEngine->mWorld->mRuntimeLevel.mLoadedTextures.Push(result);
 			}
 		}
 

@@ -39,7 +39,7 @@ namespace Turbo
 
 	void FEditorGizmo::Draw()
 	{
-		entt::registry& registry = gEngine->GetWorld()->mRegistry;
+		entt::registry& registry = gEngine->mWorld->mRegistry;
 		const entt::entity selection = entt::locator<FEditorSelection>::value().GetSelection();
 
 		if (registry.valid(selection) == false || registry.all_of<FTransform>(selection) == false)

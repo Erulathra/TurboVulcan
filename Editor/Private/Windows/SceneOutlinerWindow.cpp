@@ -36,7 +36,7 @@ namespace Turbo
 
 	void FSceneOutlinerWindow::DrawTree()
 	{
-		entt::registry& registry = gEngine->GetWorld()->mRegistry;
+		entt::registry& registry = gEngine->mWorld->mRegistry;
 
 		ImGui::BeginTable("##EntityList", 1, ImGuiTableFlags_RowBg);
 
@@ -119,7 +119,7 @@ namespace Turbo
 
 	void FSceneOutlinerWindow::DrawList(ImGuiTextFilter& filter)
 	{
-		entt::registry& registry = gEngine->GetWorld()->mRegistry;
+		entt::registry& registry = gEngine->mWorld->mRegistry;
 
 		ImGui::BeginTable("##EntityList", 1, ImGuiTableFlags_RowBg);
 

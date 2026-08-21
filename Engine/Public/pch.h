@@ -57,6 +57,8 @@
 
 // Internal headers
 #include "CommonTypeDefs.h"
+#include "Turbo.h"
+
 #include "Core/Platform.h"
 #include "CommonMacros.h"
 #include "TurboLog.h"

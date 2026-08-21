@@ -46,7 +46,7 @@ namespace Turbo
 		std::unordered_map<FName /** keyName **/, bool> mLastKeyValues;
 
 	public:
-		friend class FEngine;
+		friend class Engine;
 		friend class FWindow;
 	};
 } // Turbo

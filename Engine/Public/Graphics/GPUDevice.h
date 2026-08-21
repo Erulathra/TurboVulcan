@@ -370,7 +370,7 @@ namespace Turbo
 		DELETE_COPY(FGPUDevice);
 
 	public:
-		friend class FEngine;
+		friend class Engine;
 	};
 
 

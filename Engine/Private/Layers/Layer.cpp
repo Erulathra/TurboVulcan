@@ -10,7 +10,7 @@ namespace Turbo
 
 	void FLayersStack::PushLayer_Impl(const TSharedPtr<ILayer>& newLayer)
 	{
-		TURBO_CHECK(gEngine->GetEngineState() <= EEngineState::Initializing)
+		TURBO_CHECK(gEngine->mEngineState <= EEngineState::Initializing)
 		TURBO_CHECK(newLayer)
 
 		TURBO_CHECK(GetLayer(newLayer->GetName()) == nullptr)

@@ -67,16 +67,16 @@ namespace Turbo
 		void RenderPostProcess(FRenderGraphBuilder& graphBuilder, FSceneView* SceneView);
 
 	private:
-		static void UpdateViewData(FWorld* world, FViewData& viewData);
+		static void UpdateViewData(World* world, FViewData& viewData);
 
 		static void CreateIndirectRenderBuffers(
 			FRenderGraphBuilder& graphBuilder,
-			FWorld* world,
+			World* world,
 			FSceneView* sceneView,
 			std::vector<FDrawIndirectBucket>& outBuckets
 		);
 
-		static void CreateSceneTLAS(FRenderGraphBuilder& graphBuilder, FWorld* world, FSceneView* sceneView);
+		static void CreateSceneTLAS(FRenderGraphBuilder& graphBuilder, World* world, FSceneView* sceneView);
 
 	private:
 		THandle<FPipeline> mFrustumCullingPipeline = {};

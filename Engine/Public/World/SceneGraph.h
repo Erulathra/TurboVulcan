@@ -7,7 +7,7 @@
 
 namespace Turbo
 {
-	class FWorld;
+	class World;
 }
 
 namespace Turbo

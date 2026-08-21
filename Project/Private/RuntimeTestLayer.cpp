@@ -28,7 +28,7 @@ namespace Turbo
 		FWindow& window = entt::locator<FWindow>::value();
 		window.ShowCursor(false);
 
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		world->OpenLevel(FName("Content/External/main_sponza/SponzaCompressed.gltf"));
 
 		entt::registry& registry = world->mRegistry;

@@ -81,7 +81,5 @@ namespace Turbo
 
 		entt::dense_map<u32, FHandle> mAssetCache;
 
-	public:
-		friend class FEngine;
 	};
 } // Turbo

@@ -36,7 +36,7 @@ namespace Turbo
 
 	void FPropertyEditorWindow::Draw()
 	{
-		entt::registry& registry = gEngine->GetWorld()->mRegistry;
+		entt::registry& registry = gEngine->mWorld->mRegistry;
 		const entt::entity selection = entt::locator<FEditorSelection>::value().GetSelection();
 		const FPropertyEditorSystem* propertyEditorSystem = FPropertyEditorSystem::Get();
 

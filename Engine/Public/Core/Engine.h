@@ -5,7 +5,7 @@
 
 namespace Turbo
 {
-	class FWorld;
+	class World;
 	class FAssetManager;
 	class FGPUDevice;
 	class FCoreTimer;
@@ -30,49 +30,31 @@ namespace Turbo
 		Finalizing
 	};
 
-	struct FEngine
+	struct Engine
 	{
-		explicit FEngine();
+   	World* mWorld;
 
-		/** Services */
-	public:
-		[[nodiscard]] FWorld* GetWorld() const { return mWorld.get(); }
+      bool mbExitRequested;
+      EExitCode mExitCode;
 
-	private:
-		TSharedPtr<FWorld> mWorld;
+      EEngineState mEngineState;
 
-		/** Services end */
-
-	public:
-		~FEngine();
-
-	public:
-		static FEngine* Init(i32 argc, char* argv[]);
+      /* Start up */
 		void RegisterEngineLayers();
-
 		i32 Start();
+
+		/* Shutdown */
+		void RequestExit(EExitCode InExitCode = EExitCode::Success);
 		void End();
 
-		void RequestExit(EExitCode InExitCode = EExitCode::Success);
-
-	public:
-		[[nodiscard]] EEngineState GetEngineState() { return mEngineState; }
-
-	public:
+		/* Working engine */
+		void GameThreadLoop();
 		EEventReply PushEvent(FEventBase& event);
 
-	private:
-		void GameThreadLoop();
-		void GameThreadTick();
-
+		/* EventHandling */
+		// NOTE(SS): That probably we need to refactor
 		void OnEvent(FEventBase& event);
-
-	private:
-		bool mbExitRequested = false;
-		EExitCode mExitCode = EExitCode::Success;
-
-		EEngineState mEngineState = EEngineState::Undefined;
 	};
 
-	inline TUniquePtr<FEngine> gEngine;
+	extern void InitEngine(i32 argc, char* argv[]);
 } // namespace Turbo

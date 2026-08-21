@@ -75,7 +75,7 @@ namespace Turbo
 		gpu.WaitIdle();
 		gpu.SetMainViewportSize(newSize);
 
-		FWorld* world = gEngine->GetWorld();
+		World* world = gEngine->mWorld;
 		world->mRegistry.view<FCamera>().each([&](entt::entity entity, FCamera& camera)
 		{
 			camera.mAspectRatio = static_cast<fp32>(newSize.x) / static_cast<fp32>(newSize.y);

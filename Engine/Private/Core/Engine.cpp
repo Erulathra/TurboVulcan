@@ -24,6 +24,7 @@
 #include "Layers/ImGUILayer.h"
 #include "Layers/Layer.h"
 #include "Layers/SceneRenderingLayer.h"
+#include "Turbo.h"
 #include "TurboLog.h"
 #include "World/World.h"
 #include "entt/locator/locator.hpp"
@@ -36,48 +37,40 @@ namespace Turbo
 		"The gBuffer resolution scale. This factor multiplies viewport resolution."
 	);
 
-	FEngine::FEngine()
-		: mbExitRequested(false)
+	void InitEngine(i32 argc, char* argv[])
 	{
+   	FileSystem::InitDirectories();
+   	InitLogger();
+
+   	TURBO_LOG(LogEngine, Info, "Parsing commandline arguments.")
+   	FCommandLineArgs::Parse(argc, argv);
+
+   	Random::SetRandomSeed();
+
+   	TURBO_LOG(LogEngine, Info, "Creating engine instance.")
+
+   	gEngine = (Engine*)DEV_MALLOC(sizeof(Engine));
+
+   	entt::locator<FLayersStack>::emplace();
+
+   #if TURBO_BUILD_SHIPPING == false
+         // Add command-line support
+   	const static bool bWaitForDebugger = FCommandLineArgs::HasFlag("WaitForAttach");
+   	if (bWaitForDebugger)
+   	{
+   		TURBO_LOG(LogEngine, Info, "Waiting for debugger.")
+   		while (FPlatform::IsDebuggerPresent() == false)
+   		{
+   			FPlatform::Sleep(0.1f);
+   		}
+
+   		TURBO_LOG(LogEngine, Info, "Debugger Attached")
+   		TURBO_DEBUG_BREAK();
+   	}
+   #endif // TURBO_BUILD_SHIPPING == false
 	}
 
-	FEngine::~FEngine() = default;
-
-	FEngine* FEngine::Init(i32 argc, char* argv[])
-	{
-		FileSystem::InitDirectories();
-		InitLogger();
-
-		TURBO_LOG(LogEngine, Info, "Parsing commandline arguments.")
-		FCommandLineArgs::Parse(argc, argv);
-
-		Random::SetRandomSeed();
-
-		TURBO_LOG(LogEngine, Info, "Creating engine instance.")
-		gEngine = TUniquePtr<FEngine>(new FEngine());
-
-		entt::locator<FLayersStack>::emplace();
-
-#if TURBO_BUILD_SHIPPING == false
-      // Add command-line support
-		const static bool bWaitForDebugger = FCommandLineArgs::HasFlag("WaitForAttach");
-		if (bWaitForDebugger)
-		{
-			TURBO_LOG(LogEngine, Info, "Waiting for debugger.")
-			while (FPlatform::IsDebuggerPresent() == false)
-			{
-				FPlatform::Sleep(0.1f);
-			}
-
-			TURBO_LOG(LogEngine, Info, "Debugger Attached")
-			TURBO_DEBUG_BREAK();
-		}
-#endif // TURBO_BUILD_SHIPPING == false
-
-		return gEngine.get();
-	}
-
-	i32 FEngine::Start()
+	i32 Engine::Start()
 	{
 		mEngineState = EEngineState::Initializing;
 
@@ -129,17 +122,19 @@ namespace Turbo
 		IInputSystem& inputSystem = entt::locator<IInputSystem>::value();
 		inputSystem.Init();
 
-		// TODO: this is a bad place to initialize the world.
-		mWorld = std::make_unique<FWorld>();
+		// TODO(SS): this is a bad place to initialize the world.
+		mWorld = (World*)DEV_MALLOC(sizeof(World));
+		new(mWorld) World();
+
 		SceneGraph::InitSceneGraph(mWorld->mRegistry);
 
 		for (const TSharedPtr<ILayer>& layer : entt::locator<FLayersStack>::value())
 		{
-            TRACE_ZONE_SCOPED_FORMAT(LayerStart, "Layer Start - {}", layer->GetName())
+			TRACE_ZONE_SCOPED_FORMAT(LayerStart, "Layer Start - {}", layer->GetName())
 			layer->Start();
 		}
 
-      window.SetWindowIcon("Content/Textures/Icons/T_TurboVulkan.png");
+		window.SetWindowIcon("Content/Textures/Icons/T_TurboVulkan.png");
 		window.ShowWindow(true);
 
 		mEngineState = EEngineState::Running;
@@ -152,7 +147,7 @@ namespace Turbo
 		return static_cast<i32>(mExitCode);
 	}
 
-	EEventReply FEngine::PushEvent(FEventBase& event)
+	EEventReply Engine::PushEvent(FEventBase& event)
 	{
 		OnEvent(event);
 
@@ -169,122 +164,118 @@ namespace Turbo
 		return event.mEventReply;
 	}
 
-	void FEngine::GameThreadLoop()
+	void Engine::GameThreadLoop()
 	{
 		FWindow& window = entt::locator<FWindow>::value();
 		while (!mbExitRequested)
 		{
-			GameThreadTick();
+			TRACE_ZONE_SCOPED_N("GameThreadTick")
+
+			FCoreTimer& coreTimer = entt::locator<FCoreTimer>::value();
+			coreTimer.Tick();
+			const fp64 deltaTime = coreTimer.GetDeltaTime();
+
+			FLayersStack& layerStack = entt::locator<FLayersStack>::value();
+			{
+				TRACE_ZONE_SCOPED_N("Services: Begin Tick")
+				for (const TSharedPtr<ILayer>& layer : layerStack)
+				{
+					if (layer->ShouldTick())
+					{
+						TRACE_ZONE_SCOPED_FORMAT(BeginTick, "Begin Tick - {}", layer->GetName())
+						layer->BeginTick(deltaTime);
+					}
+				}
+			}
+
+			{
+				TRACE_ZONE_SCOPED_N("Services: End Tick")
+				for (const TSharedPtr<ILayer>& layerIt : std::ranges::reverse_view(layerStack))
+				{
+					if (ILayer* layer = layerIt.get(); layer->ShouldTick())
+					{
+						TRACE_ZONE_SCOPED_FORMAT(EndTick, "End Tick - {}", layer->GetName())
+						layer->EndTick(deltaTime);
+					}
+				}
+			}
+
+			FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
+			FRenderGraphBuilder& graphBuilder = entt::locator<FRenderGraphBuilder>::value();
+
+			if (gpu.BeginFrame())
+			{
+				FCommandBuffer& cmd = gpu.GetMainCommandBuffer();
+				graphBuilder.Reset();
+
+				FGeometryBuffer& geometryBuffer = entt::locator<FGeometryBuffer>::value();
+
+				TURBO_CHECK(gpu.GetMainViewportSize() != glm::uint2(0))
+				const glm::int2 gbufferResolution
+					= glm::floor(glm::float2(gpu.GetMainViewportSize()) * CVarResolutionScale.Get());
+				geometryBuffer.Init(graphBuilder, gbufferResolution);
+
+				const THandle<FTexture> presentHandle = gpu.GetPresentImage();
+				FRGResourceHandle presentTexture = graphBuilder.RegisterExternalTexture(
+					presentHandle, ETextureLayout::Undefined, ETextureLayout::PresentSrc
+				);
+
+				{
+					TRACE_ZONE_SCOPED_N("Services: Post begin frame")
+					for (const TSharedPtr<ILayer>& layer : layerStack)
+					{
+						if (layer->ShouldRender())
+						{
+							TRACE_ZONE_SCOPED_FORMAT(PostBeginFrame, "Post begin frame - {}", layer->GetName())
+							layer->PostBeginFrame(graphBuilder);
+						}
+					}
+				}
+
+				{
+					FSceneRenderingLayer* sceneRenderingLayer = layerStack.GetLayerChecked<FSceneRenderingLayer>();
+					sceneRenderingLayer->Render(graphBuilder);
+				}
+
+				{
+					TRACE_ZONE_SCOPED_N("Services: End frame")
+					for (const TSharedPtr<ILayer>& layer : layerStack)
+					{
+						if (layer->ShouldRender())
+						{
+							TRACE_ZONE_SCOPED_FORMAT(PostPresentingFrame, "End frame - {}", layer->GetName())
+							layer->EndFrame(graphBuilder, presentTexture);
+						}
+					}
+				}
+
+				{
+					TRACE_ZONE_SCOPED_N("Services: Begin presenting frame")
+					for (const TSharedPtr<ILayer>& layer : layerStack)
+					{
+						if (layer->ShouldRender())
+						{
+							TRACE_ZONE_SCOPED_FORMAT(
+								PostPresentingFrame, "Begin presenting frame - {}", layer->GetName()
+							)
+							layer->BeginPresentingFrame(graphBuilder, presentTexture);
+						}
+					}
+				}
+
+				graphBuilder.Compile();
+				graphBuilder.Execute(gpu, cmd);
+
+				gpu.PresentFrame();
+			}
+
+			TRACE_MARK_FRAME();
 			window.PollWindowEventsAndErrors();
 		}
 	}
 
-	void FEngine::GameThreadTick()
-	{
-		TRACE_ZONE_SCOPED_N("GameThreadTick")
 
-		FCoreTimer& coreTimer = entt::locator<FCoreTimer>::value();
-		coreTimer.Tick();
-		const fp64 deltaTime = coreTimer.GetDeltaTime();
-
-		FLayersStack& layerStack = entt::locator<FLayersStack>::value();
-		{
-			TRACE_ZONE_SCOPED_N("Services: Begin Tick")
-			for (const TSharedPtr<ILayer>& layer : layerStack)
-			{
-				if (layer->ShouldTick())
-				{
-					TRACE_ZONE_SCOPED_FORMAT(BeginTick, "Begin Tick - {}", layer->GetName())
-					layer->BeginTick(deltaTime);
-				}
-			}
-		}
-
-		{
-			TRACE_ZONE_SCOPED_N("Services: End Tick")
-			for (const TSharedPtr<ILayer>& layerIt : std::ranges::reverse_view(layerStack))
-			{
-				if (ILayer* layer = layerIt.get();
-					layer->ShouldTick())
-				{
-					TRACE_ZONE_SCOPED_FORMAT(EndTick, "End Tick - {}", layer->GetName())
-					layer->EndTick(deltaTime);
-				}
-			}
-		}
-
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		FRenderGraphBuilder& graphBuilder = entt::locator<FRenderGraphBuilder>::value();
-
-		if (gpu.BeginFrame())
-		{
-			FCommandBuffer& cmd = gpu.GetMainCommandBuffer();
-			graphBuilder.Reset();
-
-			FGeometryBuffer& geometryBuffer = entt::locator<FGeometryBuffer>::value();
-
-			TURBO_CHECK(gpu.GetMainViewportSize() != glm::uint2(0))
-			const glm::int2 gbufferResolution = glm::floor(glm::float2(gpu.GetMainViewportSize()) * CVarResolutionScale.Get());
-			geometryBuffer.Init(graphBuilder, gbufferResolution);
-
-			const THandle<FTexture> presentHandle = gpu.GetPresentImage();
-			FRGResourceHandle presentTexture = graphBuilder.RegisterExternalTexture(
-				presentHandle,
-				ETextureLayout::Undefined,
-				ETextureLayout::PresentSrc
-			);
-
-			{
-				TRACE_ZONE_SCOPED_N("Services: Post begin frame")
-				for (const TSharedPtr<ILayer>& layer : layerStack)
-				{
-					if (layer->ShouldRender())
-					{
-                        TRACE_ZONE_SCOPED_FORMAT(PostBeginFrame, "Post begin frame - {}", layer->GetName())
-						layer->PostBeginFrame(graphBuilder);
-					}
-				}
-			}
-
-			{
-				FSceneRenderingLayer* sceneRenderingLayer = layerStack.GetLayerChecked<FSceneRenderingLayer>();
-				sceneRenderingLayer->Render(graphBuilder);
-			}
-
-			{
-				TRACE_ZONE_SCOPED_N("Services: End frame")
-				for (const TSharedPtr<ILayer>& layer : layerStack)
-				{
-					if (layer->ShouldRender())
-					{
-						TRACE_ZONE_SCOPED_FORMAT(PostPresentingFrame, "End frame - {}", layer->GetName())
-						layer->EndFrame(graphBuilder, presentTexture);
-					}
-				}
-			}
-
-			{
-				TRACE_ZONE_SCOPED_N("Services: Begin presenting frame")
-				for (const TSharedPtr<ILayer>& layer : layerStack)
-				{
-					if (layer->ShouldRender())
-					{
-                        TRACE_ZONE_SCOPED_FORMAT(PostPresentingFrame, "Begin presenting frame - {}", layer->GetName())
-						layer->BeginPresentingFrame(graphBuilder, presentTexture);
-					}
-				}
-			}
-
-			graphBuilder.Compile();
-			graphBuilder.Execute(gpu, cmd);
-
-			gpu.PresentFrame();
-		}
-
-		TRACE_MARK_FRAME();
-	}
-
-	void FEngine::OnEvent(FEventBase& event)
+	void Engine::OnEvent(FEventBase& event)
 	{
 		FEventDispatcher::Dispatch<FResizeWindowEvent>(
 			event, [](const FResizeWindowEvent& resizeWindowEvent)
@@ -296,7 +287,7 @@ namespace Turbo
 		});
 	}
 
-	void FEngine::RegisterEngineLayers()
+	void Engine::RegisterEngineLayers()
 	{
 		FLayersStack& layerStack = entt::locator<FLayersStack>::value();
 		layerStack.PushLayer<FSceneRenderingLayer>();
@@ -304,7 +295,7 @@ namespace Turbo
 		layerStack.PushLayer<FConsoleFrontendLayer>();
 	}
 
-	void FEngine::End()
+	void Engine::End()
 	{
 		TURBO_LOG(LogEngine, Info, "Begin exit sequence.");
 
@@ -322,6 +313,7 @@ namespace Turbo
 		}
 
 		mWorld->UnloadLevel();
+		DEV_FREE(mWorld);
 
 		EngineResources::DestroyEngineResources();
 
@@ -345,9 +337,12 @@ namespace Turbo
 		entt::locator<FGPUDevice>::reset();
 
 		entt::locator<enki::TaskScheduler>::reset();
+
+		/* Free engine */
+		DEV_FREE(gEngine);
 	}
 
-	void FEngine::RequestExit(EExitCode InExitCode)
+	void Engine::RequestExit(EExitCode InExitCode)
 	{
 		mbExitRequested = true;
 		mExitCode = InExitCode;

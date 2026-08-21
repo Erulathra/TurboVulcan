@@ -8,7 +8,7 @@ using namespace entt::literals;
 
 namespace Turbo
 {
-	void FWorld::OpenLevel(FName path)
+	void World::OpenLevel(FName path)
 	{
       TRACE_ZONE_SCOPED_FORMAT(OpenLevel, "Open Level ({})", path.ToString())
 
@@ -19,7 +19,7 @@ namespace Turbo
 		}
 	}
 
-	void FWorld::UnloadLevel()
+	void World::UnloadLevel()
 	{
 		const auto spawnedByLevelView = mRegistry.view<FSpawnedByLevelTag>();
 		mRegistry.destroy(spawnedByLevelView.begin(), spawnedByLevelView.end());

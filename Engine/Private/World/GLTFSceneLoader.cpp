@@ -35,7 +35,7 @@ namespace Turbo
 		u32 mNumSubmeshes = 0;
 	};
 
-	void FGLTFSceneLoader::LoadGLTFScene(FWorld& world, FName path)
+	void FGLTFSceneLoader::LoadGLTFScene(World& world, FName path)
 	{
 		TURBO_LOG(LogGLTFSceneLoader, Info, "Loading {} scene using gltf scene loader.", path)
 		const std::filesystem::path baseAssetPath = std::filesystem::path(path.ToString()).parent_path();

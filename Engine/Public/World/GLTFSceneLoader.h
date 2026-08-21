@@ -4,10 +4,10 @@ DECLARE_LOG_CATEGORY(LogGLTFSceneLoader, Display, Display)
 
 namespace Turbo
 {
-	class FWorld;
+	class World;
 
 	struct FGLTFSceneLoader
 	{
-		static void LoadGLTFScene(FWorld& world, FName path);
+		static void LoadGLTFScene(World& world, FName path);
 	};
 } // Turbo
