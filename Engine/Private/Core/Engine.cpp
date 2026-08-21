@@ -14,7 +14,6 @@
 #include "Core/WindowEvents.h"
 #include "Core/Input/FSDLInputSystem.h"
 #include "Core/Input/Input.h"
-#include "Core/Math/Random.h"
 #include "Debug/IConsoleManager.h"
 #include "Graphics/Debug.h"
 #include "Graphics/GeometryBuffer.h"
@@ -44,8 +43,6 @@ namespace Turbo
    	TURBO_LOG(LogEngine, Info, "Parsing commandline arguments.")
    	FCommandLineArgs::Parse(argc, argv);
 
-   	Random::SetRandomSeed();
-
    	TURBO_LOG(LogEngine, Info, "Creating engine instance.")
 
    	gEngine = (Engine*)DEV_MALLOC(sizeof(Engine));
@@ -53,7 +50,6 @@ namespace Turbo
    	entt::locator<FLayersStack>::emplace();
 
    #if TURBO_BUILD_SHIPPING == false
-         // Add command-line support
    	const static bool bWaitForDebugger = FCommandLineArgs::HasFlag("WaitForAttach");
    	if (bWaitForDebugger)
    	{
