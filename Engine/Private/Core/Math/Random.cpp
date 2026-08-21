@@ -6,7 +6,7 @@
 
 namespace Turbo
 {
-	uint32 gSeed = 0;
+	u32 gSeed = 0;
 
 	void Random::SetRandomSeed()
 	{
@@ -14,12 +14,12 @@ namespace Turbo
 		gSeed = randomDevice();
 	}
 
-	void Random::SetSeed(uint32 seed)
+	void Random::SetSeed(u32 seed)
 	{
 		gSeed = seed;
 	}
 
-	uint32 Random::RandomInt()
+	u32 Random::RandomInt()
 	{
 		std::mt19937 mt(gSeed);
 		gSeed = mt();
@@ -27,26 +27,26 @@ namespace Turbo
 		return gSeed;
 	}
 
-	float Random::RandomFloat()
+	fp32 Random::RandomFloat()
 	{
-		return static_cast<float>(RandomInt()) / static_cast<float>(std::numeric_limits<uint32>::max());
+		return static_cast<fp32>(RandomInt()) / static_cast<fp32>(std::numeric_limits<u32>::max());
 	}
 
-	int32 Random::RandomRange(int32 min, int32 max)
+	i32 Random::RandomRange(i32 min, i32 max)
 	{
 		TURBO_CHECK(min < max);
 
-		return (static_cast<int32>(RandomInt()) % (max - min)) + min;
+		return (static_cast<i32>(RandomInt()) % (max - min)) + min;
 	}
 
-	float Random::RandomRange(float min, float max)
+	fp32 Random::RandomRange(fp32 min, fp32 max)
 	{
 		TURBO_CHECK(min < max);
 
 		return RandomFloat() * (max - min) + min;
 	}
 
-	glm::float3 Random::RandomColor(float saturation, float value)
+	glm::float3 Random::RandomColor(fp32 saturation, fp32 value)
 	{
 		return glm::rgbColor(glm::float3(RandomFloat() * 360.f, saturation, value));
 	}

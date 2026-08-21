@@ -2,7 +2,7 @@
 
 namespace Turbo
 {
-	FPlane::FPlane(const glm::float3 normal, const float distance)
+	FPlane::FPlane(const glm::float3 normal, const fp32 distance)
 		: mNormal(normal)
 		, mDistance(distance)
 	{

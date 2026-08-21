@@ -5,8 +5,8 @@ namespace Turbo
 	struct FHandle
 	{
 		// Aliases
-		using IndexType = uint32;
-		using GenType = uint16;
+		using IndexType = u32;
+		using GenType = u16;
 
 		// Constants
 		static constexpr IndexType kIndexMask = 0xFFFFF;
@@ -15,7 +15,7 @@ namespace Turbo
 		static constexpr IndexType kMaxIndex = kIndexMask;
 		static constexpr IndexType kMaxGeneration = kGenerationMask;
 
-		static constexpr uint8 kIndexMaskLength = std::popcount(kIndexMask);
+		static constexpr u8 kIndexMaskLength = std::popcount(kIndexMask);
 		static constexpr IndexType kNilIndex = 0;
 
 		// Just to make sure that index masks are coherent
@@ -67,12 +67,12 @@ namespace std
 	template <>
 	struct hash<Turbo::FHandle>
 	{
-		size_t operator()(Turbo::FHandle handle) const noexcept { return std::hash<uint32>{}(handle.mIndexAndGen); }
+		size_t operator()(Turbo::FHandle handle) const noexcept { return std::hash<u32>{}(handle.mIndexAndGen); }
 	};
 
 	template <typename T>
 	struct hash<Turbo::THandle<T>>
 	{
-		size_t operator()(Turbo::THandle<T> handle) const noexcept { return std::hash<uint32>{}(handle.mIndexAndGen); }
+		size_t operator()(Turbo::THandle<T> handle) const noexcept { return std::hash<u32>{}(handle.mIndexAndGen); }
 	};
 } // namespace std

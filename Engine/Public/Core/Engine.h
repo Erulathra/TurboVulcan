@@ -12,9 +12,9 @@ namespace Turbo
 	class FVulkanRHI;
 	class CommandLineArgsParser;
 
-	enum class EWindowEvent : uint32_t;
+	enum class EWindowEvent : u32;
 
-	enum class EExitCode : int32_t
+	enum class EExitCode : i32
 	{
 		Success = 0,
 		WindowCreationError,
@@ -22,7 +22,7 @@ namespace Turbo
 		DeviceNotSupported
 	};
 
-	enum class EEngineState : int32_t
+	enum class EEngineState : i32
 	{
 		Undefined = 0,
 		Initializing,
@@ -47,10 +47,10 @@ namespace Turbo
 		~FEngine();
 
 	public:
-		static FEngine* Init(int32 argc, char* argv[]);
+		static FEngine* Init(i32 argc, char* argv[]);
 		void RegisterEngineLayers();
 
-		int32_t Start();
+		i32 Start();
 		void End();
 
 		void RequestExit(EExitCode InExitCode = EExitCode::Success);

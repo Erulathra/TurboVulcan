@@ -4,14 +4,14 @@
 
 namespace Turbo
 {
-	enum class EGizmoOperation : uint8
+	enum class EGizmoOperation : u8
 	{
 		Translate,
 		Rotate,
 		Scale
 	};
 
-	enum class EGizmoSpace : uint8
+	enum class EGizmoSpace : u8
 	{
 		Local,
 		World

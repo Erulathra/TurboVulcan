@@ -5,8 +5,8 @@
 namespace Turbo {
 	namespace VulkanInitializers
 	{
-		[[nodiscard]] vk::CommandPoolCreateInfo CommandPoolCreateInfo(uint32 queueFamilyIndex, vk::CommandPoolCreateFlags flags = {});
-		[[nodiscard]] vk::CommandBufferAllocateInfo BufferAllocateInfo(const vk::CommandPool& commandPool, uint32 bufferCount = 1);
+		[[nodiscard]] vk::CommandPoolCreateInfo CommandPoolCreateInfo(u32 queueFamilyIndex, vk::CommandPoolCreateFlags flags = {});
+		[[nodiscard]] vk::CommandBufferAllocateInfo BufferAllocateInfo(const vk::CommandPool& commandPool, u32 bufferCount = 1);
 
 		[[nodiscard]] vk::FenceCreateInfo FenceCreateInfo(vk::FenceCreateFlags flags = {});
 		[[nodiscard]] vk::SemaphoreCreateInfo SemaphoreCreateInfo(vk::SemaphoreCreateFlags flags = {});
@@ -17,7 +17,7 @@ namespace Turbo {
 		[[nodiscard]] vk::CommandBufferSubmitInfo CommandBufferSubmitInfo(vk::CommandBuffer commandBuffer);
 		[[nodiscard]] vk::SubmitInfo2 SubmitInfo(const vk::CommandBufferSubmitInfo& commandBuffer, const vk::SemaphoreSubmitInfo* signalSemaphore, const vk::SemaphoreSubmitInfo* waitSemaphore);
 
-		[[nodiscard]] vk::PresentInfoKHR PresentInfo(const vk::SwapchainKHR& swapChain, const vk::Semaphore& waitSemaphore, const uint32& imageIndex);
+		[[nodiscard]] vk::PresentInfoKHR PresentInfo(const vk::SwapchainKHR& swapChain, const vk::Semaphore& waitSemaphore, const u32& imageIndex);
 
 		[[nodiscard]] vk::ImageCreateInfo Image2DCreateInfo(vk::Format format, vk::ImageUsageFlags usageFlags, vk::Extent2D extent, bool bCpuReadback = false);
 		[[nodiscard]] vk::ImageViewCreateInfo ImageView2DCreateInfo(vk::Format format, const vk::Image& image, vk::ImageAspectFlags imageAspect);

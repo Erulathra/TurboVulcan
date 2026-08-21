@@ -10,17 +10,17 @@ namespace Turbo
 	{
    	static constexpr bool kStaticAllocator = false;
 
-		byte* mAllocation = nullptr;
-		byte* mTop = nullptr;
-		byte* mTip = nullptr;
+		ByteType* mAllocation = nullptr;
+		ByteType* mTop = nullptr;
+		ByteType* mTip = nullptr;
 
 	public:
 
-		explicit FArenaAllocator(TurboSize size)
+		explicit FArenaAllocator(SizeType size)
 		{
 			TRACE_ZONE_SCOPED()
 
-			mAllocation = static_cast<byte*>(Memory::Malloc(size));
+			mAllocation = static_cast<ByteType*>(Memory::Malloc(size));
 
 			mTip = mAllocation + size;
 			mTop = mAllocation;
@@ -28,14 +28,14 @@ namespace Turbo
 
 		~FArenaAllocator() { FPlatform::Free(mAllocation); }
 
-		void* Allocate(TurboSize size)
+		void* Allocate(SizeType size)
 		{
 			TURBO_CHECK(mAllocation != nullptr && mTop != nullptr && mTip != nullptr)
 			TURBO_CHECK(size > 0)
 
 			// Align new top
-			byte* result = Memory::Align16(mTop);
-			byte* newTop = result + size;
+			ByteType* result = Memory::Align16(mTop);
+			ByteType* newTop = result + size;
 			TURBO_CHECK_MSG(newTop <= mTip, "Stack allocator overflow")
 
 			mTop = newTop;
@@ -43,9 +43,9 @@ namespace Turbo
 			return result;
 		}
 
-		bool Contains(void* ptr, TurboSize size = 0) const
+		bool Contains(void* ptr, SizeType size = 0) const
 		{
-			return ptr >= mAllocation && static_cast<byte*>(ptr) + size <= mTop;
+			return ptr >= mAllocation && static_cast<ByteType*>(ptr) + size <= mTop;
 		}
 
 		void Clear() { mTop = mAllocation; }

@@ -39,7 +39,7 @@ namespace Turbo
 		if (auto foundIt = mLayerLookUp.find(layerName);
 			foundIt != mLayerLookUp.end())
 		{
-			const uint32 layerIndex = foundIt->second;
+			const u32 layerIndex = foundIt->second;
 			return mLayers[layerIndex].get();
 		}
 

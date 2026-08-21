@@ -26,13 +26,13 @@ namespace
 
 namespace Turbo
 {
-	constexpr uint32 kMaxSubMeshesPerMesh = 32;
+	constexpr u32 kMaxSubMeshesPerMesh = 32;
 
 	struct FSceneMeshNodeData
 	{
 		std::array<THandle<FMesh>, kMaxSubMeshesPerMesh> mSubMeshes;
 		std::array<THandle<FMaterial::Instance>, kMaxSubMeshesPerMesh> mMaterials;
-		uint32 mNumSubmeshes = 0;
+		u32 mNumSubmeshes = 0;
 	};
 
 	void FGLTFSceneLoader::LoadGLTFScene(FWorld& world, FName path)
@@ -63,7 +63,7 @@ namespace Turbo
 		// Load Textures
 		std::vector<THandle<FTexture>> loadedTextures;
 		loadedTextures.reserve(gltfAsset->textures.size());
-		for (uint32 textureId = 0; textureId < gltfAsset->textures.size(); ++textureId)
+		for (u32 textureId = 0; textureId < gltfAsset->textures.size(); ++textureId)
 		{
 			const fastgltf::Texture& gltfTexture = gltfAsset->textures[textureId];
 			if (gltfTexture.imageIndex.has_value())
@@ -154,7 +154,7 @@ namespace Turbo
 		// Load all meshes and submeshes
 		std::vector<FSceneMeshNodeData> meshes;
 		meshes.reserve(gltfAsset->meshes.size());
-		for (uint32 meshId = 0; meshId < gltfAsset->meshes.size(); ++meshId)
+		for (u32 meshId = 0; meshId < gltfAsset->meshes.size(); ++meshId)
 		{
 			const fastgltf::Mesh& gltfMesh = gltfAsset->meshes[meshId];
 			FSceneMeshNodeData& meshData = meshes.emplace_back();
@@ -162,7 +162,7 @@ namespace Turbo
 			meshData.mNumSubmeshes = gltfMesh.primitives.size();
 			TURBO_CHECK(meshData.mNumSubmeshes < kMaxSubMeshesPerMesh)
 
-			for (uint32 subMeshId = 0; subMeshId < meshData.mNumSubmeshes; ++subMeshId)
+			for (u32 subMeshId = 0; subMeshId < meshData.mNumSubmeshes; ++subMeshId)
 			{
 				FMeshLoadSettings meshLoadSettings = {
 					.mMeshIndex = meshId,
@@ -229,7 +229,7 @@ namespace Turbo
 				}
 				else
 				{
-					for (uint32 subMeshId = 0; subMeshId < meshNodeData.mNumSubmeshes; ++subMeshId)
+					for (u32 subMeshId = 0; subMeshId < meshNodeData.mNumSubmeshes; ++subMeshId)
 					{
 						// todo: remove this when translucent and masked materials will be ready
 						if (meshNodeData.mMaterials[subMeshId].IsValid() == false)

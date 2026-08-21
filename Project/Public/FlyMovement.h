@@ -16,7 +16,7 @@ namespace Turbo
 		static void Disable();
 
 		static void HandleEvent(FEventBase& Event);
-		static void Tick(double deltaTime);
+		static void Tick(fp64 deltaTime);
 
 		// Input Actions
 		static void HandleAction(FActionEvent& actionEvent);

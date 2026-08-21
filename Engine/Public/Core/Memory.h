@@ -6,14 +6,13 @@
 #include "glm/ext/scalar_integer.hpp"
 #include <bit>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
 
 namespace Turbo::Memory
 {
-   constexpr size_t kKibi = 1 << 10;
-	constexpr size_t kMebi = 1 << 20;
-	constexpr size_t kGibi = 1 << 30;
+   constexpr SizeType kKibi = 1 << 10;
+	constexpr SizeType kMebi = 1 << 20;
+	constexpr SizeType kGibi = 1 << 30;
 
 	template<typename T>
 	requires std::is_integral_v<T> || std::is_pointer_v<T>
@@ -31,9 +30,9 @@ namespace Turbo::Memory
 
 	/* memory operations aliases */
 
-	inline void MemSet(void* dst, uint32 bits, size_t count)
+	inline void MemSet(void* dst, u32 bits, size_t count)
 	{
-	   std::memset(dst, std::bit_cast<int32>(bits), count);
+	   std::memset(dst, std::bit_cast<i32>(bits), count);
 	}
 
 	inline void MemZero(void* dst, size_t numBytes)
@@ -53,7 +52,7 @@ namespace Turbo::Memory
 	   return FPlatform::Free(memory);
 	}
 
-	inline void* AlignedMalloc(size_t alignment, size_t size)
+	inline void* AlignedMalloc(SizeType alignment, SizeType size)
 	{
       TURBO_CHECK(glm::isPowerOfTwo(alignment))
       return FPlatform::AlignedMalloc(alignment, size);
@@ -67,7 +66,7 @@ namespace Turbo::Memory
 	/* Allocators helpers */
 
 	template <typename AllocatorType>
-	void* Allocate(AllocatorType* allocator, TurboSize numBytes)
+	void* Allocate(AllocatorType* allocator, SizeType numBytes)
 	{
 		if constexpr (AllocatorType::kStaticAllocator)
 		{
@@ -81,7 +80,7 @@ namespace Turbo::Memory
 	}
 
 	template <typename Type, typename AllocatorType>
-	Type* Allocate(AllocatorType* allocator, TurboSize num)
+	Type* Allocate(AllocatorType* allocator, SizeType num)
 	{
 		if constexpr (AllocatorType::kStaticAllocator)
 		{
@@ -95,7 +94,7 @@ namespace Turbo::Memory
 	}
 
 	template <typename Type, typename AllocatorType>
-	Type* Realloc(AllocatorType* allocator, Type* ptr, TurboSize num)
+	Type* Realloc(AllocatorType* allocator, Type* ptr, SizeType num)
 	{
 		if constexpr (AllocatorType::kStaticAllocator)
 		{
@@ -115,7 +114,7 @@ namespace Turbo::Memory
 	}
 
 	template <typename Type, typename AllocatorType>
-	Type* AllocateZeroed(AllocatorType* allocator, TurboSize num)
+	Type* AllocateZeroed(AllocatorType* allocator, SizeType num)
 	{
 	   Type* allocation = Allocate<Type>(allocator, num);
 		MemZero(allocation, num * sizeof(Type));
@@ -129,11 +128,11 @@ namespace Turbo::Memory
 	}
 
 	template <typename Type, typename AllocatorType>
-	Type* AllocateDefaulted(AllocatorType* allocator, TurboSize num)
+	Type* AllocateDefaulted(AllocatorType* allocator, SizeType num)
 	{
 	   Type* allocation = Allocate<Type>(allocator, num);
 
-		for (uint32 i = 0; i < num; i++)
+		for (u32 i = 0; i < num; i++)
 		{
 		   allocation[i] = Type{};
 		}

@@ -13,7 +13,7 @@ namespace Turbo
 	   return ::IsDebuggerPresent();
 	}
 
-	void FWindowsPlatform::Sleep(double seconds)
+	void FWindowsPlatform::Sleep(fp64 seconds)
 	{
 		::Sleep(static_cast<DWORD>(seconds * 1000.f));
 	}

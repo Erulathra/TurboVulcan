@@ -2,7 +2,7 @@
 
 namespace Turbo
 {
-	enum class EBufferFlags : uint8
+	enum class EBufferFlags : u8
 	{
 		None = 0,
 
@@ -19,9 +19,9 @@ namespace Turbo
 		AccelerationStructureStorage = 1 << 6,
 		AccelerationStructureInput = 1 << 7,
 	};
-	DEFINE_ENUM_OPERATORS(EBufferFlags, uint8)
+	DEFINE_ENUM_OPERATORS(EBufferFlags, u8)
 
-	enum class ETextureType : uint8
+	enum class ETextureType : u8
 	{
 		Texture1D,
 		Texture2D,
@@ -30,7 +30,7 @@ namespace Turbo
 		Num
 	};
 
-	enum class ETextureFlags : uint8
+	enum class ETextureFlags : u8
 	{
 		Invalid = 0,
 
@@ -40,9 +40,9 @@ namespace Turbo
 
 		TransientAttachment = 1 << 3,
 	};
-	DEFINE_ENUM_OPERATORS(ETextureFlags, uint8)
+	DEFINE_ENUM_OPERATORS(ETextureFlags, u8)
 
-	enum class EMSAASamples : uint8
+	enum class EMSAASamples : u8
 	{
 		One = 1,
 		Two = 2,
@@ -50,7 +50,7 @@ namespace Turbo
 		Eight = 8,
 	};
 
-	enum class EQueueType : uint8
+	enum class EQueueType : u8
 	{
 		Graphics,
 		Compute,
@@ -59,7 +59,7 @@ namespace Turbo
 		Num
 	};
 
-	enum class EFilter : uint8
+	enum class EFilter : u8
 	{
 		Nearest,
 		Linear,

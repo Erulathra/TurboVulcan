@@ -17,12 +17,12 @@ namespace Turbo
 		return arg.length() > 2 && arg[0] == '-' && arg[1] == '-';
 	}
 
-	void FCommandLineArgs::Parse(const uint32 argc, char* argv[])
+	void FCommandLineArgs::Parse(const u32 argc, char* argv[])
 	{
 		// Working dir is always at 0
 		mWorkingDir = std::filesystem::path(argv[0]);
 
-		uint32 argIndex = 1;
+		u32 argIndex = 1;
 		while (argIndex < argc)
 		{
 			const std::string_view arg = std::string_view(argv[argIndex]);
@@ -80,7 +80,7 @@ namespace Turbo
       return {};
    }
 
-   std::optional<int32> FCommandLineArgs::ParseInt(std::string_view argumentName)
+   std::optional<i32> FCommandLineArgs::ParseInt(std::string_view argumentName)
    {
       if (std::optional<std::string_view> stringValue = ParseString(argumentName);
          stringValue.has_value())
@@ -91,7 +91,7 @@ namespace Turbo
       return {};
    }
 
-   std::optional<float> FCommandLineArgs::ParseFloat(std::string_view argumentName)
+   std::optional<fp32> FCommandLineArgs::ParseFloat(std::string_view argumentName)
    {
       if (std::optional<std::string_view> stringValue = ParseString(argumentName);
          stringValue.has_value())

@@ -72,7 +72,7 @@ namespace Turbo
 		);
 	}
 
-	void FRuntimeTestLayer::BeginTick(double deltaTime)
+	void FRuntimeTestLayer::BeginTick(fp64 deltaTime)
 	{
 		FFlyMovementSystem::Tick(deltaTime);
 

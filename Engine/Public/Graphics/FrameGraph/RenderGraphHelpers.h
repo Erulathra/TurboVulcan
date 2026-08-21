@@ -11,9 +11,9 @@ namespace Turbo
 
 	struct FRGPassHandle
 	{
-		[[nodiscard]] bool IsValid() const { return mIndex != std::numeric_limits<uint16>::max(); }
+		[[nodiscard]] bool IsValid() const { return mIndex != std::numeric_limits<u16>::max(); }
 
-		uint32 mIndex = std::numeric_limits<uint16>::max();
+		u32 mIndex = std::numeric_limits<u16>::max();
 
 		friend bool operator==(const FRGPassHandle& lhs, const FRGPassHandle& rhs)
 		{
@@ -26,7 +26,7 @@ namespace Turbo
 		}
 	};
 
-	enum class ERGResourceType : uint8
+	enum class ERGResourceType : u8
 	{
 		Invalid,
 		Texture,
@@ -36,21 +36,21 @@ namespace Turbo
 	struct FRGResourceHandle
 	{
    	/* Constants */
-		static constexpr uint32 kTypeMask = 0xE0000000;
-		static constexpr uint32 kExternalMax = 0x10000000;
-		static constexpr uint32 kIndexMask = 0x0FFFFFFF;
-		static constexpr uint32 kInvalidHandle = 0xFFFFFFFF;
+		static constexpr u32 kTypeMask = 0xE0000000;
+		static constexpr u32 kExternalMax = 0x10000000;
+		static constexpr u32 kIndexMask = 0x0FFFFFFF;
+		static constexpr u32 kInvalidHandle = 0xFFFFFFFF;
 
 		static_assert(kTypeMask | kExternalMax | kIndexMask == 0xFFFFFFFF);
 
 		/* Data */
-		uint32 mHandle = kInvalidHandle;
+		u32 mHandle = kInvalidHandle;
 
 		/* Interface */
 		FRGResourceHandle() = default;
-		FRGResourceHandle(ERGResourceType type, uint32 index, bool bExternal = false)
+		FRGResourceHandle(ERGResourceType type, u32 index, bool bExternal = false)
 		{
-			mHandle = static_cast<uint32>(type) << std::countr_zero(kTypeMask)
+			mHandle = static_cast<u32>(type) << std::countr_zero(kTypeMask)
 				| (bExternal ? 1u : 0u) << std::countr_zero(kExternalMax)
 				| index << std::countr_zero(kIndexMask);
 		}
@@ -62,7 +62,7 @@ namespace Turbo
 		}
 
 		[[nodiscard]] bool IsExternal() const { return (mHandle & kExternalMax) != 0; }
-		[[nodiscard]] uint32 GetIndex() const { return (mHandle & kIndexMask) >> std::countr_zero(kIndexMask); }
+		[[nodiscard]] u32 GetIndex() const { return (mHandle & kIndexMask) >> std::countr_zero(kIndexMask); }
 
 		/* Operators */
 		friend bool operator==(const FRGResourceHandle& lhs, const FRGResourceHandle& rhs)
@@ -85,7 +85,7 @@ struct std::hash<Turbo::FRGResourceHandle>
 {
 	size_t operator()(Turbo::FRGResourceHandle handle) const noexcept
 	{
-		return static_cast<uint64>(handle.mHandle) << 32;
+		return static_cast<u64>(handle.mHandle) << 32;
 	}
 };
 
@@ -172,9 +172,9 @@ namespace Turbo
 
 	struct FRGTextureInfo
 	{
-		uint16 mWidth = 1;
-		uint16 mHeight = 1;
-		uint16 mDepth = 1;
+		u16 mWidth = 1;
+		u16 mHeight = 1;
+		u16 mDepth = 1;
 
 		vk::Format mFormat = vk::Format::eUndefined;
 		ETextureFlags mFlags = ETextureFlags::Invalid;
@@ -237,8 +237,8 @@ namespace Turbo
 
 	struct FRGResourceLifetime
 	{
-		uint16 mFirstPass = UINT16_MAX;
-		uint16 mLastPass = 0;
+		u16 mFirstPass = U16_MAX;
+		u16 mLastPass = 0;
 	};
 
 	struct FRGBufferUpload

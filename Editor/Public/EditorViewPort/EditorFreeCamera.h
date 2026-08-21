@@ -13,7 +13,7 @@ namespace Turbo
 		static void Init();
 		static void RegisterEvents();
 		static void HandleEvent(FEventBase& Event, bool bViewportFocused);
-		static void Tick(double deltaTime);
+		static void Tick(fp64 deltaTime);
 
 	private:
 		static void OnConstructMainViewPort(entt::registry& registry, const entt::entity& entity);

@@ -167,7 +167,7 @@ namespace Turbo
 		mVkCommandBuffer.copyBuffer2(vkCopyBufferInfo);
 	}
 
-	void FCommandBuffer::CopyBufferToTexture(THandle<FBuffer> src, THandle<FTexture> dst, uint32 mipIndex, vk::DeviceSize bufferOffset)
+	void FCommandBuffer::CopyBufferToTexture(THandle<FBuffer> src, THandle<FTexture> dst, u32 mipIndex, vk::DeviceSize bufferOffset)
 	{
 		const FBuffer* srcBuffer = mGpu->AccessBuffer(src);
 		const FTexture* dstTexture = mGpu->AccessTexture(dst);
@@ -197,7 +197,7 @@ namespace Turbo
 		mVkCommandBuffer.copyBufferToImage2(copyBufferToImageInfo);
 	}
 
-	void FCommandBuffer::FillBuffer(THandle<FBuffer> dst, FDeviceSize offset, FDeviceSize size, uint32 value)
+	void FCommandBuffer::FillBuffer(THandle<FBuffer> dst, FDeviceSize offset, FDeviceSize size, u32 value)
 	{
 		TURBO_CHECK(offset % 4 == 0 && size % 4 == 0)
 		const FBuffer* dstBuffer = mGpu->AccessBuffer(dst);
@@ -205,7 +205,7 @@ namespace Turbo
 		mVkCommandBuffer.fillBuffer(dstBuffer->mVkBuffer, offset, size, value);
 	}
 
-	void FCommandBuffer::BindDescriptorSet(THandle<FDescriptorSet> descriptorSetHandle, uint32 setIndex)
+	void FCommandBuffer::BindDescriptorSet(THandle<FDescriptorSet> descriptorSetHandle, u32 setIndex)
 	{
 		const FDescriptorSet* descriptorSet = mGpu->AccessDescriptorSet(descriptorSetHandle);
 		const FPipeline* currentPipeline = mGpu->AccessPipeline(mCurrentPipeline);
@@ -253,7 +253,7 @@ namespace Turbo
 
 		glm::ivec2 attachmentSize;
 
-		for (uint32 attachmentIndex = 0; attachmentIndex < renderingAttachments.mNumColorAttachments; ++attachmentIndex)
+		for (u32 attachmentIndex = 0; attachmentIndex < renderingAttachments.mNumColorAttachments; ++attachmentIndex)
 		{
 			const FAttachment& attachment = renderingAttachments.mColorAttachments[attachmentIndex];
 
@@ -330,12 +330,12 @@ namespace Turbo
 	void FCommandBuffer::SetViewport(const FViewport& viewport)
 	{
 		vk::Viewport vkViewport = {};
-		vkViewport.x = static_cast<float>(viewport.Rect.Position.x);
+		vkViewport.x = static_cast<fp32>(viewport.Rect.Position.x);
 		// Flip viewport
-		vkViewport.y = static_cast<float>(viewport.Rect.Size.y) - static_cast<float>(viewport.Rect.Position.y);
-		vkViewport.width = static_cast<float>(viewport.Rect.Size.x);
+		vkViewport.y = static_cast<fp32>(viewport.Rect.Size.y) - static_cast<fp32>(viewport.Rect.Position.y);
+		vkViewport.width = static_cast<fp32>(viewport.Rect.Size.x);
 		// Flip viewport
-		vkViewport.height = -static_cast<float>(viewport.Rect.Size.y);
+		vkViewport.height = -static_cast<fp32>(viewport.Rect.Size.y);
 		vkViewport.minDepth = viewport.MinDepth;
 		vkViewport.maxDepth = viewport.MaxDepth;
 
@@ -351,12 +351,12 @@ namespace Turbo
 		mVkCommandBuffer.setScissor(0, 1, &vkScissor);
 	}
 
-	void FCommandBuffer::Draw(uint32 vertexCount, uint32 instanceCount, uint32 firstVertex, uint32 firstInstance)
+	void FCommandBuffer::Draw(u32 vertexCount, u32 instanceCount, u32 firstVertex, u32 firstInstance)
 	{
 		mVkCommandBuffer.draw(vertexCount, instanceCount, firstVertex, firstInstance);
 	}
 
-	void FCommandBuffer::DrawIndexed(uint32 indexCount, uint32 instanceCount, uint32 firstIndex, int32 vertexOffset, uint32 firstInstance)
+	void FCommandBuffer::DrawIndexed(u32 indexCount, u32 instanceCount, u32 firstIndex, i32 vertexOffset, u32 firstInstance)
 	{
 		mVkCommandBuffer.drawIndexed(indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 	}
@@ -420,7 +420,7 @@ namespace Turbo
 	{
 		vk::DebugUtilsLabelEXT labelInfo = {};
 		labelInfo.pLabelName = label.data();
-		labelInfo.color = std::array<float, 4>({color.r, color.g, color.b, color.a});
+		labelInfo.color = std::array<fp32, 4>({color.r, color.g, color.b, color.a});
 
 		mVkCommandBuffer.beginDebugUtilsLabelEXT(&labelInfo);
 	}
@@ -451,7 +451,7 @@ namespace Turbo
 		return result;
 	}
 
-	void FCommandBuffer::PushConstants_Internal(void* pushConstants, uint32 size)
+	void FCommandBuffer::PushConstants_Internal(void* pushConstants, u32 size)
 	{
 		const FPipeline* currentPipeline = mGpu->AccessPipeline(mCurrentPipeline);
 		TURBO_CHECK(currentPipeline)

@@ -14,7 +14,7 @@ namespace Turbo
       return FindOrGetEnvVariable(variableName).has_value();
 	}
 
-	std::optional<int32> FEnviromentalVariables::GetInt(std::string_view variableName)
+	std::optional<i32> FEnviromentalVariables::GetInt(std::string_view variableName)
 	{
 	   if (const std::optional<std::string> foundVariable = FindOrGetEnvVariable(variableName);
 			foundVariable.has_value())

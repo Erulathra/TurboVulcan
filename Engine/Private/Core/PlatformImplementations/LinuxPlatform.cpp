@@ -1,3 +1,4 @@
+#include "CommonTypeDefs.h"
 #include <cstdlib>
 #if PLATFORM_LINUX
 
@@ -16,7 +17,7 @@
 
 namespace Turbo
 {
-   constexpr uint64 kSecondsToNanoSeconds = 1000000000ull;
+   constexpr u64 kSecondsToNanoSeconds = 1000000000ull;
 
 	bool FLinuxPlatform::IsDebuggerPresent()
 	{
@@ -29,7 +30,7 @@ namespace Turbo
 			return false;
 		}
 
-		uint32 bufferSize = 256;
+		u32 bufferSize = 256;
 		std::string buffer;
 		buffer.resize(bufferSize);
 
@@ -41,7 +42,7 @@ namespace Turbo
 
 		if (foundIndex != std::string::npos)
 		{
-			for (uint32 charIndex = foundIndex + TracerPidStr.size(); charIndex <= buffer.size(); ++charIndex)
+			for (u32 charIndex = foundIndex + TracerPidStr.size(); charIndex <= buffer.size(); ++charIndex)
 			{
 				const char character = buffer[charIndex];
 				if (std::isdigit(character) != 0)
@@ -55,12 +56,12 @@ namespace Turbo
 #endif // else TURBO_BUILD_SHIPPING
 	}
 
-	void FLinuxPlatform::Sleep(double seconds)
+	void FLinuxPlatform::Sleep(fp64 seconds)
 	{
 		timespec remaining = {};
 		timespec spec = {
-			.tv_sec = static_cast<int64>(std::floor(seconds)),
-			.tv_nsec = static_cast<int64>((seconds - std::floor(seconds)) * kSecondsToNanoSeconds),
+			.tv_sec = static_cast<i64>(std::floor(seconds)),
+			.tv_nsec = static_cast<i64>((seconds - std::floor(seconds)) * kSecondsToNanoSeconds),
 		};
 
 		nanosleep(&spec, &remaining);
@@ -82,7 +83,7 @@ namespace Turbo
       return malloc(size);
 	}
 
-	void* FLinuxPlatform::Realloc(void *memory, TurboSize newSize)
+	void* FLinuxPlatform::Realloc(void *memory, SizeType newSize)
 	{
       return realloc(memory, newSize);
 	}

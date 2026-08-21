@@ -30,7 +30,7 @@
 
 namespace Turbo
 {
-	TAutoConsoleVariable<float> CVarResolutionScale(
+	TAutoConsoleVariable<fp32> CVarResolutionScale(
 		"r.resolutionScale",
 		1.f,
 		"The gBuffer resolution scale. This factor multiplies viewport resolution."
@@ -43,7 +43,7 @@ namespace Turbo
 
 	FEngine::~FEngine() = default;
 
-	FEngine* FEngine::Init(int32 argc, char* argv[])
+	FEngine* FEngine::Init(i32 argc, char* argv[])
 	{
 		FileSystem::InitDirectories();
 		InitLogger();
@@ -77,7 +77,7 @@ namespace Turbo
 		return gEngine.get();
 	}
 
-	int32_t FEngine::Start()
+	i32 FEngine::Start()
 	{
 		mEngineState = EEngineState::Initializing;
 
@@ -149,7 +149,7 @@ namespace Turbo
 		mEngineState = EEngineState::Finalizing;
 		End();
 
-		return static_cast<int32_t>(mExitCode);
+		return static_cast<i32>(mExitCode);
 	}
 
 	EEventReply FEngine::PushEvent(FEventBase& event)
@@ -185,7 +185,7 @@ namespace Turbo
 
 		FCoreTimer& coreTimer = entt::locator<FCoreTimer>::value();
 		coreTimer.Tick();
-		const double deltaTime = coreTimer.GetDeltaTime();
+		const fp64 deltaTime = coreTimer.GetDeltaTime();
 
 		FLayersStack& layerStack = entt::locator<FLayersStack>::value();
 		{

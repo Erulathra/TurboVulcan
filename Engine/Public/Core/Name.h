@@ -2,7 +2,7 @@
 
 namespace Turbo
 {
-	using FNameId = uint64;
+	using FNameId = u64;
 
 	class FName
 	{

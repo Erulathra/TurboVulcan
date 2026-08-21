@@ -205,12 +205,12 @@ namespace Turbo
 		{
 			const fastgltf::Accessor& indicesAccessor = loadedAsset.accessors[glftSubMesh.indicesAccessor.value()];
 
-			std::vector<uint32> indices;
+			std::vector<u32> indices;
 			indices.reserve(indicesAccessor.count);
 			mesh->mVertexCount = indicesAccessor.count;
 			meshData.mVertexCount = indicesAccessor.count;
 
-			fastgltf::iterateAccessor<uint32>(loadedAsset, indicesAccessor, [&](uint32 index)
+			fastgltf::iterateAccessor<u32>(loadedAsset, indicesAccessor, [&](u32 index)
 			{
 				indices.push_back(index);
 			});
@@ -218,7 +218,7 @@ namespace Turbo
 			FBufferBuilder bufferBuilder = {};
 			bufferBuilder.Init(
 				EBufferFlags::IndexBuffer | EBufferFlags::AccelerationStructureInput,
-				indices.size() * sizeof(uint32)
+				indices.size() * sizeof(u32)
 			);
 			bufferBuilder.SetData(indices.data());
 			bufferBuilder.SetName(FName(fmt::format("{}_INDICES", loadedAsset.meshes.front().name)));
@@ -424,7 +424,7 @@ namespace Turbo
 		THandle<FTexture> result = {};
 		TURBO_LOG(LogTextureLoading, Info, "Loading {} loader.", path.ToString());
 
-		std::vector<byte> meshBytes;
+		std::vector<ByteType> meshBytes;
 		if (FileSystem::LoadAssetData(path, meshBytes) == false)
 		{
 			TURBO_LOG(LogTextureLoading, Error, "Cannot load {} file.", path.ToString());
@@ -432,7 +432,7 @@ namespace Turbo
 		}
 
 		dds::Image image;
-		if (const dds::ReadResult readResult = dds::readImage(reinterpret_cast<uint8*>(meshBytes.data()), meshBytes.size(), &image);
+		if (const dds::ReadResult readResult = dds::readImage(reinterpret_cast<u8*>(meshBytes.data()), meshBytes.size(), &image);
 			readResult != dds::ReadResult::Success)
 		{
 			TURBO_LOG(LogTextureLoading, Error, "Error {} during loading {}", magic_enum::enum_name(readResult), path.ToString());
@@ -501,8 +501,8 @@ namespace Turbo
 		result = gpu.CreateTexture(textureBuilder);
 
 		// Calculate all mips size
-		uint32 numDataBytes = 0;
-		for (const dds::span<uint8>& mipMap : image.mipmaps)
+		u32 numDataBytes = 0;
+		for (const dds::span<u8>& mipMap : image.mipmaps)
 		{
 			numDataBytes += mipMap.size_bytes();
 		}
@@ -514,10 +514,10 @@ namespace Turbo
 		void* stagingMappedAddress = gpu.AccessBuffer(stagingBuffer)->mMappedAddress;
 
 		// Copy data to buffer;
-		uint32 dataOffset = 0;
-		for (const dds::span<uint8>& mipMap : image.mipmaps)
+		u32 dataOffset = 0;
+		for (const dds::span<u8>& mipMap : image.mipmaps)
 		{
-			byte* mipDataStart = static_cast<byte*>(stagingMappedAddress) + dataOffset;
+			ByteType* mipDataStart = static_cast<ByteType*>(stagingMappedAddress) + dataOffset;
 			std::memcpy(mipDataStart, mipMap.data(), mipMap.size_bytes());
 
 			dataOffset += mipMap.size_bytes();
@@ -529,12 +529,12 @@ namespace Turbo
 				{
 					cmd.TransitionImage(result, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
 
-					uint32 bufferOffset = 0;
-					for (uint32 mipIndex = 0; mipIndex < image.numMips; ++mipIndex)
+					u32 bufferOffset = 0;
+					for (u32 mipIndex = 0; mipIndex < image.numMips; ++mipIndex)
 					{
 						cmd.CopyBufferToTexture(stagingBuffer, result, mipIndex, bufferOffset);
 
-						const uint32 numMipBytes = image.mipmaps[mipIndex].size_bytes();
+						const u32 numMipBytes = image.mipmaps[mipIndex].size_bytes();
 						bufferOffset += numMipBytes;
 					}
 

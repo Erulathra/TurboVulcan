@@ -176,7 +176,7 @@ namespace Turbo
 		mBindlessResourcesToUpdate.reserve(kTexturePoolSize);
 
 #if 0
-		for (uint32 textureBindId = 0; textureBindId < kTexturePoolSize; ++textureBindId)
+		for (u32 textureBindId = 0; textureBindId < kTexturePoolSize; ++textureBindId)
 		{
 			mBindlessResourcesToUpdate.emplace_back(EResourceType::Texture, textureBindId, EngineResources::GetBlackTexture());
 		}
@@ -268,7 +268,7 @@ namespace Turbo
 
 		if (bCreateMapped)
 		{
-			buffer->mMappedAddress = static_cast<byte*>(allocationInfo.pMappedData);
+			buffer->mMappedAddress = static_cast<ByteType*>(allocationInfo.pMappedData);
 		}
 
 		const vk::MemoryPropertyFlags& allocationMemoryProperties = mVmaAllocator.getAllocationMemoryProperties(buffer->mAllocation);
@@ -381,7 +381,7 @@ namespace Turbo
 		poolSizes.reserve(builder.mPoolSizes.size());
 		for (auto [type, ratio] : builder.mPoolSizes)
 		{
-			poolSizes.emplace_back(type, static_cast<uint32>(ratio * builder.mMaxSets));
+			poolSizes.emplace_back(type, static_cast<u32>(ratio * builder.mMaxSets));
 		}
 
 		vk::DescriptorPoolCreateInfo createInfo = {};
@@ -410,7 +410,7 @@ namespace Turbo
       vk::DescriptorBindingFlags bindingFlags[kMaxDescriptorsPerSet];
       vk::DescriptorSetLayoutBinding vkBindings[kMaxDescriptorsPerSet];
 
-		for (uint32 bindingId = 0; bindingId < builder.mNumBindings; ++bindingId)
+		for (u32 bindingId = 0; bindingId < builder.mNumBindings; ++bindingId)
 		{
 			const FBinding& builderBinding = builder.mBindings[bindingId];
 			bindingFlags[bindingId] = builderBinding.mFlags;
@@ -473,7 +473,7 @@ namespace Turbo
 		std::vector<vk::DescriptorBufferInfo> bufferInfos;
 		bufferInfos.reserve(kMaxDescriptorsPerSet);
 
-		uint32 numWrites = 0;
+		u32 numWrites = 0;
 
 		return handle;
 	}
@@ -511,7 +511,7 @@ namespace Turbo
 		std::unordered_set<vk::ShaderStageFlagBits> processedStages;
 
 		IShaderCompiler& shaderCompiler = IShaderCompiler::Get();
-		for (uint32 shaderStageId = 0; shaderStageId < builder.mStagesCount; ++shaderStageId)
+		for (u32 shaderStageId = 0; shaderStageId < builder.mStagesCount; ++shaderStageId)
 		{
 			const FShaderStage& shaderStage = builder.mStages[shaderStageId];
 
@@ -817,7 +817,7 @@ namespace Turbo
 		destroyer.mHandle = handle;
 		destroyer.mNumActiveShaders = shaderState->mNumActiveShaders;
 
-		for (uint32 shaderId = 0; shaderId < shaderState->mNumActiveShaders; ++shaderId)
+		for (u32 shaderId = 0; shaderId < shaderState->mNumActiveShaders; ++shaderId)
 		{
 			destroyer.mModules[shaderId] = shaderState->mShaderStageCrateInfo[shaderId].module;
 		}
@@ -998,7 +998,7 @@ namespace Turbo
 
 		mVkDevice = buildDeviceResult.value();
 
-		auto GetQueue = [&](vkb::QueueType queueType, vk::Queue& OutQueue, uint32& OutFamilyIndex)
+		auto GetQueue = [&](vkb::QueueType queueType, vk::Queue& OutQueue, u32& OutFamilyIndex)
 		{
 			vkb::Result<VkQueue> getQueueResult = buildDeviceResult->get_dedicated_queue(queueType);
 			if (getQueueResult.has_value() == false)
@@ -1008,7 +1008,7 @@ namespace Turbo
 			TURBO_CHECK_MSG(getQueueResult, "{} Queue query failed. Reason: {}", magic_enum::enum_name(queueType), getQueueResult.error().message())
 			OutQueue = getQueueResult.value();
 
-			vkb::Result<uint32> getQueueIndexResult = buildDeviceResult->get_dedicated_queue_index(queueType);
+			vkb::Result<u32> getQueueIndexResult = buildDeviceResult->get_dedicated_queue_index(queueType);
 			if (getQueueIndexResult.has_value() == false)
 			{
 				getQueueIndexResult = buildDeviceResult->get_queue_index(queueType);
@@ -1021,7 +1021,7 @@ namespace Turbo
 		GetQueue(vkb::QueueType::compute, mVkComputeQueue, mVkComputeQueueFamilyIndex);
 		GetQueue(vkb::QueueType::transfer, mVkTransferQueue, mVkTransferQueueFamilyIndex);
 
-		const uint32 presentQueueFamily = buildDeviceResult->get_queue_index(vkb::QueueType::present).value();
+		const u32 presentQueueFamily = buildDeviceResult->get_queue_index(vkb::QueueType::present).value();
 
 		TURBO_CHECK_MSG(
 			mVkGraphicsQueueFamilyIndex == presentQueueFamily,
@@ -1036,7 +1036,7 @@ namespace Turbo
 	std::array<FName, kMaxSwapChainImages> CreateSwapChainTexturesNames()
 	{
 		std::array<FName, kMaxSwapChainImages> result;
-		for (uint32 textureId = 0; textureId < result.size(); ++textureId)
+		for (u32 textureId = 0; textureId < result.size(); ++textureId)
 		{
 			result[textureId] = FName(fmt::format("SwapchainTexture_{}", textureId));
 		}
@@ -1083,7 +1083,7 @@ namespace Turbo
 		mNumSwapChainImages = builtSwapchain.image_count;
 		TURBO_CHECK(mNumSwapChainImages <= kMaxSwapChainImages);
 
-		for (uint32 imageId = 0; imageId < mNumSwapChainImages; ++imageId)
+		for (u32 imageId = 0; imageId < mNumSwapChainImages; ++imageId)
 		{
 			THandle<FTexture> handle = mTexturePool.Acquire();
 			FTexture* texture = mTexturePool.Get(handle);
@@ -1136,14 +1136,14 @@ namespace Turbo
 		const vk::FenceCreateInfo fenceCreateInfo = VulkanInitializers::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled);
 		const vk::SemaphoreCreateInfo semaphoreCreateInfo = VulkanInitializers::SemaphoreCreateInfo();
 
-		for (uint32 frameDataId = 0; frameDataId < mFrameDatas.size(); ++frameDataId)
+		for (u32 frameDataId = 0; frameDataId < mFrameDatas.size(); ++frameDataId)
 		{
 			FBufferedFrameData& frameData = mFrameDatas[frameDataId];
 
 			CHECK_VULKAN_RESULT(frameData.mCommandBufferExecutedFence, mVkDevice.createFence(fenceCreateInfo));
 			CHECK_VULKAN_RESULT(frameData.mImageAcquiredSemaphore, mVkDevice.createSemaphore(semaphoreCreateInfo));
 
-			for (uint32 threadId = 0; threadId < mNumRenderingThreads; ++threadId)
+			for (u32 threadId = 0; threadId < mNumRenderingThreads; ++threadId)
 			{
 				frameData.mVkCommandPools[threadId] = CreateCommandPool(mVkGraphicsQueueFamilyIndex);
 			}
@@ -1155,7 +1155,7 @@ namespace Turbo
 		}
 	}
 
-	vk::CommandPool FGPUDevice::CreateCommandPool(uint32 queueFamilyIndex, vk::CommandPoolCreateFlags createFlags)
+	vk::CommandPool FGPUDevice::CreateCommandPool(u32 queueFamilyIndex, vk::CommandPoolCreateFlags createFlags)
 	{
 		vk::CommandPoolCreateInfo createInfo = {};
 		createInfo.setQueueFamilyIndex(queueFamilyIndex);
@@ -1294,7 +1294,7 @@ namespace Turbo
 
 		CHECK_VULKAN_HPP(mVkDevice.resetFences({renderCompleteFence}));
 
-		for (uint32 threadId = 0; threadId < mNumRenderingThreads; ++threadId)
+		for (u32 threadId = 0; threadId < mNumRenderingThreads; ++threadId)
 		{
 			CHECK_VULKAN_HPP(mVkDevice.resetCommandPool(frameData.mVkCommandPools[threadId]));
 		}
@@ -1521,7 +1521,7 @@ namespace Turbo
 	{
 		mVkDevice.destroySwapchainKHR(mVkSwapchain);
 
-		for (uint32 imageId = 0; imageId < mNumSwapChainImages; ++imageId)
+		for (u32 imageId = 0; imageId < mNumSwapChainImages; ++imageId)
 		{
 			FTexture* texture = AccessTexture(mSwapChainTextures[imageId]);
 			mVkDevice.destroyImageView(texture->mVkImageView);
@@ -1530,7 +1530,7 @@ namespace Turbo
 			mVkDevice.destroySemaphore(mSubmitSemaphores[imageId]);
 		}
 
-		for (uint32 imageId = 0; imageId < kMaxSwapChainImages; ++imageId)
+		for (u32 imageId = 0; imageId < kMaxSwapChainImages; ++imageId)
 		{
 			mSwapChainTextures[imageId].Reset();
 		}
@@ -1719,7 +1719,7 @@ namespace Turbo
 		vkLayouts[0] = bindlessSetLayout->mVkLayout;
 
 		// Bind rest of the descriptor set layouts
-		for (uint32 layoutId = 1; layoutId < builder.mNumActiveLayouts; ++layoutId)
+		for (u32 layoutId = 1; layoutId < builder.mNumActiveLayouts; ++layoutId)
 		{
          FDescriptorSetLayout* layout = AccessDescriptorSetLayout(builder.mDescriptorSetLayouts[layoutId]);
          TURBO_CHECK(layout)
@@ -1769,7 +1769,7 @@ namespace Turbo
 			std::array<vk::PipelineColorBlendAttachmentState, 8> colorBlendAttachments;
 			if (builder.mBlendStateBuilder.mActiveStates > 0)
 			{
-				for (uint32 stateId = 0; stateId < builder.mBlendStateBuilder.mActiveStates; ++stateId)
+				for (u32 stateId = 0; stateId < builder.mBlendStateBuilder.mActiveStates; ++stateId)
 				{
 					const FBlendState& blendState = builder.mBlendStateBuilder.mBlendStates[stateId];
 					vk::PipelineColorBlendAttachmentState& attachment = colorBlendAttachments[stateId];
@@ -1951,7 +1951,7 @@ namespace Turbo
 
 	void FGPUDevice::DestroyShaderStateImmediate(const FShaderStateDestroyer& destroyer)
 	{
-		for (uint32 shaderId = 0; shaderId < destroyer.mNumActiveShaders; ++shaderId)
+		for (u32 shaderId = 0; shaderId < destroyer.mNumActiveShaders; ++shaderId)
 		{
 			mVkDevice.destroyShaderModule(destroyer.mModules[shaderId]);
 		}

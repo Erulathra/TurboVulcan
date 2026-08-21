@@ -45,9 +45,9 @@ namespace Turbo
 			return v >= vk::Format::eD16Unorm && v <= vk::Format::eD32SfloatS8Uint;
 		}
 
-		constexpr uint32 CalculateImageSize(glm::int2 size, vk::Format format)
+		constexpr u32 CalculateImageSize(glm::int2 size, vk::Format format)
 		{
-			const uint32 numPixels = size.x * size.y;
+			const u32 numPixels = size.x * size.y;
 
 			if (format > vk::Format::eR8Unorm && format <= vk::Format::eR8Srgb)
 			{
@@ -162,7 +162,7 @@ namespace Turbo
 	template <typename HandleType>
 	struct HandleTraits
 	{
-		static uint64 CastToU64Handle(HandleType handle)
+		static u64 CastToU64Handle(HandleType handle)
 		{
 			static_assert(false, "Default CastToU64Handle is not implemented.");
 			return 0;
@@ -178,10 +178,10 @@ namespace Turbo
 	template <>
 	struct HandleTraits<vk::Image>
 	{
-		static uint64 CastToU64Handle(vk::Image handle)
+		static u64 CastToU64Handle(vk::Image handle)
 		{
 			VkImage nativeHandle = handle;
-			return reinterpret_cast<uint64>(nativeHandle);
+			return reinterpret_cast<u64>(nativeHandle);
 		}
 
 		static ConstString GetTypePostFix()
@@ -193,10 +193,10 @@ namespace Turbo
 	template <>
 	struct HandleTraits<vk::ImageView>
 	{
-		static uint64 CastToU64Handle(vk::ImageView handle)
+		static u64 CastToU64Handle(vk::ImageView handle)
 		{
 			VkImageView nativeHandle = handle;
-			return reinterpret_cast<uint64>(nativeHandle);
+			return reinterpret_cast<u64>(nativeHandle);
 		}
 
 		static ConstString GetTypePostFix()
@@ -208,10 +208,10 @@ namespace Turbo
 	template <>
 	struct HandleTraits<vk::ShaderModule>
 	{
-		static uint64 CastToU64Handle(vk::ShaderModule handle)
+		static u64 CastToU64Handle(vk::ShaderModule handle)
 		{
 			VkShaderModule nativeHandle = handle;
-			return reinterpret_cast<uint64>(nativeHandle);
+			return reinterpret_cast<u64>(nativeHandle);
 		}
 
 		static ConstString GetTypePostFix()
@@ -223,10 +223,10 @@ namespace Turbo
 	template <>
 	struct HandleTraits<vk::DescriptorPool>
 	{
-		static uint64 CastToU64Handle(vk::DescriptorPool handle)
+		static u64 CastToU64Handle(vk::DescriptorPool handle)
 		{
 			VkDescriptorPool nativeHandle = handle;
-			return reinterpret_cast<uint64>(nativeHandle);
+			return reinterpret_cast<u64>(nativeHandle);
 		}
 
 		static ConstString GetTypePostFix()
@@ -238,10 +238,10 @@ namespace Turbo
 	template <>
 	struct HandleTraits<vk::CommandBuffer>
 	{
-		static uint64 CastToU64Handle(vk::CommandBuffer handle)
+		static u64 CastToU64Handle(vk::CommandBuffer handle)
 		{
 			VkCommandBuffer nativeHandle = handle;
-			return reinterpret_cast<uint64>(nativeHandle);
+			return reinterpret_cast<u64>(nativeHandle);
 		}
 
 		static ConstString GetTypePostFix()
@@ -253,10 +253,10 @@ namespace Turbo
 	template <>
 	struct HandleTraits<vk::Buffer>
 	{
-		static uint64 CastToU64Handle(vk::Buffer handle)
+		static u64 CastToU64Handle(vk::Buffer handle)
 		{
 			VkBuffer nativeHandle = handle;
-			return reinterpret_cast<uint64>(nativeHandle);
+			return reinterpret_cast<u64>(nativeHandle);
 		}
 
 		static ConstString GetTypePostFix()
@@ -268,10 +268,10 @@ namespace Turbo
 	template <>
 	struct HandleTraits<vk::Pipeline>
 	{
-		static uint64 CastToU64Handle(vk::Pipeline handle)
+		static u64 CastToU64Handle(vk::Pipeline handle)
 		{
 			VkPipeline nativeHandle = handle;
-			return reinterpret_cast<uint64>(nativeHandle);
+			return reinterpret_cast<u64>(nativeHandle);
 		}
 
 		static ConstString GetTypePostFix()
@@ -283,10 +283,10 @@ namespace Turbo
 	template <>
 	struct HandleTraits<vk::Sampler>
 	{
-		static uint64 CastToU64Handle(vk::Sampler handle)
+		static u64 CastToU64Handle(vk::Sampler handle)
 		{
 			VkSampler nativeHandle = handle;
-			return reinterpret_cast<uint64>(nativeHandle);
+			return reinterpret_cast<u64>(nativeHandle);
 		}
 
 		static ConstString GetTypePostFix()
@@ -298,10 +298,10 @@ namespace Turbo
 	template <>
 	struct HandleTraits<vk::AccelerationStructureKHR>
 	{
-		static uint64 CastToU64Handle(vk::AccelerationStructureKHR handle)
+		static u64 CastToU64Handle(vk::AccelerationStructureKHR handle)
 		{
 			VkAccelerationStructureKHR nativeHandle = handle;
-			return reinterpret_cast<uint64>(nativeHandle);
+			return reinterpret_cast<u64>(nativeHandle);
 		}
 
 		static ConstString GetTypePostFix()
@@ -316,7 +316,7 @@ namespace Turbo
 
 		operator vk::AccessFlags() const
 		{
-			return static_cast<vk::AccessFlags>(static_cast<uint64>(mAccessFlags));
+			return static_cast<vk::AccessFlags>(static_cast<u64>(mAccessFlags));
 		}
 
 		operator vk::AccessFlags2() const

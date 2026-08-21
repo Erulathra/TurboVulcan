@@ -32,8 +32,8 @@ namespace Turbo
 		virtual void Start() override;
 		virtual void Shutdown() override;
 
-		virtual void BeginTick(double deltaTime) override;
-		virtual void EndTick(double deltaTime) override;
+		virtual void BeginTick(fp64 deltaTime) override;
+		virtual void EndTick(fp64 deltaTime) override;
 		virtual bool ShouldTick() override;
 
 		virtual void EndFrame(FRenderGraphBuilder& graphBuilder, FRGResourceHandle presentTexture) override;

@@ -55,7 +55,7 @@ namespace Turbo
 		FRGResourceHandle srcBuffer,
 		FDeviceSize offset,
 		FDeviceSize size,
-		uint32 value
+		u32 value
 	)
 	{
 		const FName passName(fmt::format(

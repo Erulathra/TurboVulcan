@@ -150,7 +150,7 @@ namespace Turbo
 		return instanceHandle;
 	}
 
-	void FMaterialManager::UpdateMaterialInstance(FCommandBuffer& cmd, THandle<FMaterial::Instance> instanceHandle, std::span<byte> data)
+	void FMaterialManager::UpdateMaterialInstance(FCommandBuffer& cmd, THandle<FMaterial::Instance> instanceHandle, std::span<ByteType> data)
 	{
 		TRACE_ZONE_SCOPED();
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
@@ -163,7 +163,7 @@ namespace Turbo
 		TURBO_CHECK(data.size() == material->mPerInstanceDataSize)
 
 		const FBuffer* instancesDataBuffer = gpu.AccessBuffer(material->mDataBuffer);
-		byte* targetInstanceAddress = instancesDataBuffer->mMappedAddress + CalculateInstanceByteOffset(*material, instance->mUniformBufferIndex);
+		ByteType* targetInstanceAddress = instancesDataBuffer->mMappedAddress + CalculateInstanceByteOffset(*material, instance->mUniformBufferIndex);
 		std::memcpy(targetInstanceAddress, data.data(), data.size());
 
 		cmd.BufferBarrier(
@@ -190,7 +190,7 @@ namespace Turbo
 		return kNullDeviceAddress;
 	}
 
-	void FMaterialManager::UpdateMaterialData(FCommandBuffer& cmd, THandle<FMaterial> handle, std::span<byte> data)
+	void FMaterialManager::UpdateMaterialData(FCommandBuffer& cmd, THandle<FMaterial> handle, std::span<ByteType> data)
 	{
 		TRACE_ZONE_SCOPED();
 
@@ -224,7 +224,7 @@ namespace Turbo
 		return kNullDeviceAddress;
 	}
 
-	size_t FMaterialManager::CalculateInstanceByteOffset(const FMaterial& material, uint32 instanceIndex)
+	SizeType FMaterialManager::CalculateInstanceByteOffset(const FMaterial& material, u32 instanceIndex)
 	{
 		return material.mMaterialDataSize + instanceIndex * material.mPerInstanceDataSize;
 	}

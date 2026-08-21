@@ -12,14 +12,14 @@ namespace Turbo
 
 	struct FMaterial final
 	{
-		using FUniformBufferIndex = uint32;
+		using FUniformBufferIndex = u32;
 		static constexpr FUniformBufferIndex kInvalidUniformBufferIndex = std::numeric_limits<FUniformBufferIndex>::max();
 
 		struct Instance final
 		{
 			THandle<FMaterial> material = {};
 			THandle<FMaterial::Instance> mHandle = {};
-			uint32 mUniformBufferIndex = kInvalidUniformBufferIndex;
+			u32 mUniformBufferIndex = kInvalidUniformBufferIndex;
 
 			[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
 			explicit constexpr operator bool() const { return IsValid(); }
@@ -49,9 +49,9 @@ namespace Turbo
 		THandle<FPipeline> mGraphicsPipeline = {};
 		THandle<FPipeline> mDepthOnlyPipeline = {};
 		THandle<FBuffer> mDataBuffer = {};
-		uint32 mPerInstanceDataSize = 0;
-		uint32 mMaterialDataSize = 0;
-		uint32 mMaxInstances = 0;
+		u32 mPerInstanceDataSize = 0;
+		u32 mMaterialDataSize = 0;
+		u32 mMaxInstances = 0;
 
 		THandle<FMaterial> mHandle;
 		FName mName = {};
@@ -94,16 +94,16 @@ namespace Turbo
 
 		template<typename PerInstanceData>
 		void UpdateMaterialInstance(FCommandBuffer& cmd, THandle<FMaterial::Instance> instanceHandle, PerInstanceData* data);
-		void UpdateMaterialInstance(FCommandBuffer& cmd, THandle<FMaterial::Instance> instanceHandle, std::span<byte> data);
+		void UpdateMaterialInstance(FCommandBuffer& cmd, THandle<FMaterial::Instance> instanceHandle, std::span<ByteType> data);
 		[[nodiscard]] FDeviceAddress GetMaterialInstanceAddress(const FGPUDevice& gpu, THandle<FMaterial::Instance> instanceHandle) const;
 
 		template<typename MaterialData>
 		void UpdateMaterialData(FCommandBuffer& cmd, THandle<FMaterial> handle, MaterialData* data);
-		auto UpdateMaterialData(FCommandBuffer& cmd, THandle<FMaterial> handle, std::span<byte> data) -> void;
+		auto UpdateMaterialData(FCommandBuffer& cmd, THandle<FMaterial> handle, std::span<ByteType> data) -> void;
 		[[nodiscard]] FDeviceAddress GetMaterialDataAddress(const FGPUDevice& gpu, THandle<FMaterial> handle) const;
 
 	public:
-		[[nodiscard]] static size_t CalculateInstanceByteOffset(const FMaterial& material, uint32 instanceIndex);
+		[[nodiscard]] static size_t CalculateInstanceByteOffset(const FMaterial& material, u32 instanceIndex);
 
 	public:
 		[[nodiscard]] FMaterial* AccessMaterial(THandle<FMaterial> handle) { return mMaterialPool.Get(handle); }
@@ -123,7 +123,7 @@ namespace Turbo
 		using FMaterialToMaterialInstanceMap = entt::dense_map<THandle<FMaterial>, FMaterialInstanceArray>;
 		FMaterialToMaterialInstanceMap mMaterialToMaterialInstanceMap;
 
-		using FAvailableIndexes = std::vector<uint32>;
+		using FAvailableIndexes = std::vector<u32>;
 		using FMaterialToAvailableIndexes = entt::dense_map<THandle<FMaterial>, FAvailableIndexes>;
 		FMaterialToAvailableIndexes mMaterialToAvailableIndexesMap;
 
@@ -133,12 +133,12 @@ namespace Turbo
 	template <typename PerInstanceData>
 	void FMaterialManager::UpdateMaterialInstance(FCommandBuffer& cmd, THandle<FMaterial::Instance> instanceHandle, PerInstanceData* data)
 	{
-		UpdateMaterialInstance(cmd, instanceHandle, std::span<byte>(reinterpret_cast<byte*>(data), sizeof(PerInstanceData)));
+		UpdateMaterialInstance(cmd, instanceHandle, std::span<ByteType>(reinterpret_cast<ByteType*>(data), sizeof(PerInstanceData)));
 	}
 
 	template <typename MaterialData>
 	void FMaterialManager::UpdateMaterialData(FCommandBuffer& cmd, THandle<FMaterial> handle, MaterialData* data)
 	{
-		UpdateMaterialData(cmd, handle, std::span<byte>(reinterpret_cast<byte*>(data), sizeof(MaterialData)));
+		UpdateMaterialData(cmd, handle, std::span<ByteType>(reinterpret_cast<ByteType*>(data), sizeof(MaterialData)));
 	}
 } // Turbo

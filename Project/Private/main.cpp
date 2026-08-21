@@ -3,7 +3,7 @@
 #include "Layers/Layer.h"
 #include "Rendering/GameViewportLayer.h"
 
-int32_t main(int argc, char* argv[])
+i32 main(int argc, char* argv[])
 {
     Turbo::FEngine::Init(argc, argv);
 

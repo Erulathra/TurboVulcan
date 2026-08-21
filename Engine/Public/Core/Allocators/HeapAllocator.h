@@ -15,7 +15,7 @@ namespace Turbo
          return FPlatform::Malloc(size);
 		}
 
-		static void* Realloc(void* data, TurboSize newSize)
+		static void* Realloc(void* data, SizeType newSize)
 		{
 		   return FPlatform::Realloc(data, newSize);
 		}

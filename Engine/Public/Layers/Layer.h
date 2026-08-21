@@ -23,8 +23,8 @@ namespace Turbo
 
 		virtual void OnEvent(FEventBase& event) {}
 
-		virtual void BeginTick(double deltaTime) {};
-		virtual void EndTick(double deltaTime) {};
+		virtual void BeginTick(fp64 deltaTime) {};
+		virtual void EndTick(fp64 deltaTime) {};
 
 		virtual void PostBeginFrame(FRenderGraphBuilder& graphBuilder) {};
 		virtual void EndFrame(FRenderGraphBuilder& graphBuilder, FRGResourceHandle presentTexture) {};
@@ -43,7 +43,7 @@ namespace Turbo
 	FName GetStaticLayerName() = delete;
 
 	using FLayersCollection = std::vector<TSharedPtr<ILayer>>;
-	using FLayerLookUp = entt::dense_map<FName, uint32>;
+	using FLayerLookUp = entt::dense_map<FName, u32>;
 
 	class FLayersStack final
 	{

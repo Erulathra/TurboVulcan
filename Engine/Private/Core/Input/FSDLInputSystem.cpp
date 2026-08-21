@@ -24,7 +24,7 @@ namespace Turbo
 		SDLWindow.RemoveMouseWheelEvent();
 	}
 
-	float FSDLInputSystem::GetAxisValue(const FKey& key)
+	fp32 FSDLInputSystem::GetAxisValue(const FKey& key)
 	{
 		if (!key.mbAxis)
 		{
@@ -40,7 +40,7 @@ namespace Turbo
 		return 0.f;
 	}
 
-	float FSDLInputSystem::GetActionValue(FName actionName)
+	fp32 FSDLInputSystem::GetActionValue(FName actionName)
 	{
 		if (const auto actionKeyIt = mActionBindings.find(actionName);
 			actionKeyIt != mActionBindings.end())
@@ -69,7 +69,7 @@ namespace Turbo
 
 	bool FSDLInputSystem::IsActionPressed(FName actionName)
 	{
-		constexpr float kAnalogActivationValue = 0.25f;
+		constexpr fp32 kAnalogActivationValue = 0.25f;
 
 		if (const auto actionKeyIt = mActionBindings.find(actionName);
 			actionKeyIt != mActionBindings.end())
@@ -179,13 +179,13 @@ namespace Turbo
 
 	void FSDLInputSystem::HandleSDLMouseWheelEvent(const SDL_MouseWheelEvent& mouseWheelEvent)
 	{
-		const float DirectionSign = mouseWheelEvent.direction == SDL_MOUSEWHEEL_FLIPPED ? -1.f : 1.f;
+		const fp32 DirectionSign = mouseWheelEvent.direction == SDL_MOUSEWHEEL_FLIPPED ? -1.f : 1.f;
 
 		if (glm::abs(mouseWheelEvent.integer_x) > 0)
 		{
 			FAxisEvent newAxisEvent;
 			newAxisEvent.mKey = EKeys::MouseScrollX;
-			newAxisEvent.mValue = static_cast<float>(mouseWheelEvent.integer_x) * DirectionSign;
+			newAxisEvent.mValue = static_cast<fp32>(mouseWheelEvent.integer_x) * DirectionSign;
 			HandleAxisEvent(newAxisEvent);
 		}
 
@@ -193,7 +193,7 @@ namespace Turbo
 		{
 			FAxisEvent newAxisEvent;
 			newAxisEvent.mKey = EKeys::MouseScrollY;
-			newAxisEvent.mValue = static_cast<float>(mouseWheelEvent.integer_y) * DirectionSign;
+			newAxisEvent.mValue = static_cast<fp32>(mouseWheelEvent.integer_y) * DirectionSign;
 			HandleAxisEvent(newAxisEvent);
 		}
 	}
@@ -412,7 +412,7 @@ namespace Turbo
 		}
 	}
 
-	FKey FSDLInputSystem::ConvertSDLMouseButton(uint8 mouseButtonIndex)
+	FKey FSDLInputSystem::ConvertSDLMouseButton(u8 mouseButtonIndex)
 	{
 		switch (mouseButtonIndex)
 		{

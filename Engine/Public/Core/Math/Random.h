@@ -5,14 +5,14 @@ namespace Turbo
 	namespace Random
 	{
 		void SetRandomSeed();
-		void SetSeed(uint32 seed);
+		void SetSeed(u32 seed);
 
-		uint32 RandomInt();
-		float RandomFloat();
+		u32 RandomInt();
+		fp32 RandomFloat();
 
-		int32 RandomRange(int32 min, int32 max);
-		float RandomRange(float min = 0.f, float max = 1.f);
+		i32 RandomRange(i32 min, i32 max);
+		fp32 RandomRange(fp32 min = 0.f, fp32 max = 1.f);
 
-		glm::float3 RandomColor(float saturation = 1.f, float value = 1.f);
+		glm::float3 RandomColor(fp32 saturation = 1.f, fp32 value = 1.f);
 	} // Random
 } // Turbo

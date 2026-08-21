@@ -277,7 +277,7 @@ namespace Turbo
 	class FDelegateHandle
 	{
 	public:
-		using FDelegateID = uint32;
+		using FDelegateID = u32;
 		static constexpr FDelegateID INVALID_ID = 0;
 	public:
 		constexpr FDelegateHandle() noexcept
@@ -479,7 +479,7 @@ namespace Turbo
 		//Otherwise pPtr is used together with a separate dynamic allocation
 		union
 		{
-			uint8 mBuffer[MaxStackSize];
+			u8 mBuffer[MaxStackSize];
 			void* mPtr;
 		};
 
@@ -740,7 +740,7 @@ namespace Turbo
 		}
 	};
 
-	enum class EDelegateExecutionOrder : uint8
+	enum class EDelegateExecutionOrder : u8
 	{
 		Undefined = 0,
 		Sequential = 1,
@@ -1025,7 +1025,7 @@ namespace Turbo
 		}
 
 		std::vector<FDelegateHandlerPair> mEvents;
-		uint32 mLocks;
+		u32 mLocks;
 	};
 
 } // Turbo

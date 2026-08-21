@@ -13,8 +13,8 @@ namespace StringUtils
 	{
 		std::vector<std::string_view> result;
 
-		uint32 currentStartIndex = 0;
-		for (int32 characterIndex = currentStartIndex; characterIndex < input.size(); ++characterIndex)
+		u32 currentStartIndex = 0;
+		for (i32 characterIndex = currentStartIndex; characterIndex < input.size(); ++characterIndex)
 		{
 			if (input[characterIndex] == delimiter)
 			{
@@ -89,11 +89,11 @@ namespace StringUtils
 		return result;
 	}
 
-	inline std::optional<int32> ParseInt(const std::string_view stringView)
+	inline std::optional<i32> ParseInt(const std::string_view stringView)
 	{
-		std::optional<int32> result;
+		std::optional<i32> result;
 
-		int32 outInt;
+		i32 outInt;
 		const std::from_chars_result parsingResult = std::from_chars(stringView.data(), stringView.data() + stringView.size(), outInt);
 		if (parsingResult.ec != std::errc::invalid_argument && parsingResult.ec != std::errc::result_out_of_range)
 		{
@@ -103,11 +103,11 @@ namespace StringUtils
 		return result;
 	};
 
-	inline std::optional<float> ParseFloat(const std::string_view stringView)
+	inline std::optional<fp32> ParseFloat(const std::string_view stringView)
 	{
-		std::optional<float> result;
+		std::optional<fp32> result;
 
-		float outFloat;
+		fp32 outFloat;
 		const std::from_chars_result parsingResult = std::from_chars(stringView.data(), stringView.data() + stringView.size(), outFloat);
 		if (parsingResult.ec != std::errc::invalid_argument && parsingResult.ec != std::errc::result_out_of_range)
 		{
@@ -117,11 +117,11 @@ namespace StringUtils
 		return result;
 	};
 
-	inline std::optional<uint32> ParseHex32(const std::string_view stringView)
+	inline std::optional<u32> ParseHex32(const std::string_view stringView)
 	{
-   	std::optional<int32> result;
+   	std::optional<i32> result;
 
-   	int32 outInt;
+   	i32 outInt;
    	const std::from_chars_result parsingResult = std::from_chars(stringView.data(), stringView.data() + stringView.size(), outInt, 16);
    	if (parsingResult.ec != std::errc::invalid_argument && parsingResult.ec != std::errc::result_out_of_range)
    	{

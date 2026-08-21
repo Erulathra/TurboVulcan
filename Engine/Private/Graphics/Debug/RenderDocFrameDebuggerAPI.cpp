@@ -17,7 +17,7 @@ namespace Turbo
 
 	bool FRenderDocFrameDebuggerAPI::Init()
 	{
-		uint32 result = 0;
+		u32 result = 0;
 
 #if PLATFORM_WINDOWS
 		if(HMODULE moduleHandle = GetModuleHandleA("renderdoc.dll"))

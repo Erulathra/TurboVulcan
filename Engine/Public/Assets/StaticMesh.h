@@ -13,10 +13,10 @@ namespace Turbo
 
 	struct FBounds
 	{
-		glm::float3 mMin = glm::float3(std::numeric_limits<float>::max());
-		float mRadius = std::numeric_limits<float>::lowest();
-		glm::float3 mMax = glm::float3(std::numeric_limits<float>::lowest());
-		float mRadiusSquared = std::numeric_limits<float>::lowest();
+		glm::float3 mMin = glm::float3(std::numeric_limits<fp32>::max());
+		fp32 mRadius = std::numeric_limits<fp32>::lowest();
+		glm::float3 mMax = glm::float3(std::numeric_limits<fp32>::lowest());
+		fp32 mRadiusSquared = std::numeric_limits<fp32>::lowest();
 	};
 
 	struct FMesh final
@@ -33,7 +33,7 @@ namespace Turbo
 
 		FBounds mBounds;
 
-		uint32 mVertexCount = 0;
+		u32 mVertexCount = 0;
 
 		THandle<FMesh> mHandle;
 		FName mName;
@@ -51,8 +51,8 @@ namespace Turbo
 		FDeviceAddress mTangentBuffer = kNullDeviceAddress;
 		FDeviceAddress mUVBuffer = kNullDeviceAddress;
 
-		uint32 mVertexCount = 0;
-		uint32 mIndex = 0;
+		u32 mVertexCount = 0;
+		u32 mIndex = 0;
 	};
 
 } // Turbo

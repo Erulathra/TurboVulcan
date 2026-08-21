@@ -14,7 +14,7 @@ namespace Turbo
 
 		void HandleEvent(FEventBase& event);
 
-		void Tick(float deltaTime);
+		void Tick(fp32 deltaTime);
 		void Draw();
 		void ResizeViewport(const glm::uint2& newSize);
 

@@ -2,15 +2,15 @@
 
 namespace Turbo
 {
-	using FAssetHash = uint32;
+	using FAssetHash = u32;
 
 	// Replace with something more robust
-	constexpr uint32 kMaxMeshes = 1024;
+	constexpr u32 kMaxMeshes = 1024;
 
 	struct FMeshLoadSettings
 	{
-		uint32 mMeshIndex = 0;
-		uint32 mSubMeshIndex = 0;
+		u32 mMeshIndex = 0;
+		u32 mSubMeshIndex = 0;
 		bool mbLevelAsset = true;
 	};
 

@@ -37,7 +37,7 @@ namespace Turbo
 		}
 	}
 
-	void FEditorViewportWindow::Tick(float deltaTime)
+	void FEditorViewportWindow::Tick(fp32 deltaTime)
 	{
 		FEditorFreeCameraUtils::Tick(deltaTime);
 	}
@@ -56,7 +56,7 @@ namespace Turbo
 		}
 
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		const uint32 bufferedFrameId = gpu.GetFrameInFlightId();
+		const u32 bufferedFrameId = gpu.GetFrameInFlightId();
 		if (bufferedFrameId < mRenderedTextures.size())
 		{
 			ImGui::Texture(mRenderedTextures[bufferedFrameId]);
@@ -78,7 +78,7 @@ namespace Turbo
 		FWorld* world = gEngine->GetWorld();
 		world->mRegistry.view<FCamera>().each([&](entt::entity entity, FCamera& camera)
 		{
-			camera.mAspectRatio = static_cast<float>(newSize.x) / static_cast<float>(newSize.y);
+			camera.mAspectRatio = static_cast<fp32>(newSize.x) / static_cast<fp32>(newSize.y);
 			world->mRegistry.get_or_emplace<FProjectionDirty>(entity);
 		});
 
@@ -90,9 +90,9 @@ namespace Turbo
 		mRenderedTextures.clear();
 
 		// Create new ones
-		const uint32 numBufferedFrames = gpu.GetNumBufferedFrames();
+		const u32 numBufferedFrames = gpu.GetNumBufferedFrames();
 		mRenderedTextures.reserve(numBufferedFrames);
-		for (uint32 frameId = 0; frameId < numBufferedFrames; ++frameId)
+		for (u32 frameId = 0; frameId < numBufferedFrames; ++frameId)
 		{
 			FTextureBuilder builder = {};
 			builder

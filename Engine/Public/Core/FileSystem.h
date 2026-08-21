@@ -21,13 +21,13 @@ namespace Turbo
 
 		/** Use this to load asset data. It allows us to replace implementation
 		 * to use zip pack instead of files in the future */
-		bool LoadAssetData(FName filePath, std::vector<byte>& outData);
-		bool LoadData(std::string_view path, std::vector<byte>& outData);
+		bool LoadAssetData(FName filePath, std::vector<ByteType>& outData);
+		bool LoadData(std::string_view path, std::vector<ByteType>& outData);
 
 		bool CreateDirectory(std::string_view path);
 		void InitDirectories();
 
-		uint64 GetFileWriteTimeStamp(FName filePath);
-		uint64 GetFileWriteTimeStamp(std::string_view filePath);
+		u64 GetFileWriteTimeStamp(FName filePath);
+		u64 GetFileWriteTimeStamp(std::string_view filePath);
 	};
 } // Turbo

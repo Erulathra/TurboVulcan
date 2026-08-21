@@ -225,7 +225,7 @@ namespace Turbo
 		ImGui_ImplVulkan_Shutdown();
 	}
 
-	void FImGuiLayer::BeginTick(double deltaTime)
+	void FImGuiLayer::BeginTick(fp64 deltaTime)
 	{
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplSDL3_NewFrame();
@@ -234,7 +234,7 @@ namespace Turbo
 		ImGui::DockSpaceOverViewport(ImGui::GetID(kViewportDockspaceName), ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 	}
 
-	void FImGuiLayer::EndTick(double deltaTime)
+	void FImGuiLayer::EndTick(fp64 deltaTime)
 	{
 		ImGui::Render();
 	}

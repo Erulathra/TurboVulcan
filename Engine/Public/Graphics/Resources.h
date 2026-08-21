@@ -13,7 +13,7 @@ namespace Turbo
 {
 	struct FPipelineBuilder;
 
-	enum class EResourceType : uint8
+	enum class EResourceType : u8
 	{
 		Texture,
 		RWTexture,
@@ -25,16 +25,16 @@ namespace Turbo
 
 	namespace BindlessResourcesBindings
 	{
-		constexpr uint32 kSampledImage = 0;
-		constexpr uint32 kStorageImage = 1;
-		constexpr uint32 kSampler = 2;
-		constexpr uint32 kTLAS = 3;
+		constexpr u32 kSampledImage = 0;
+		constexpr u32 kStorageImage = 1;
+		constexpr u32 kSampler = 2;
+		constexpr u32 kTLAS = 3;
 	}
 
 	struct FBindlessResourceUpdateRequest
 	{
 		EResourceType mType = EResourceType::None;
-		uint32 mBindingIndex = std::numeric_limits<uint32>::max();
+		u32 mBindingIndex = std::numeric_limits<u32>::max();
 		FHandle mHandle = FHandle();
 	};
 
@@ -46,7 +46,7 @@ namespace Turbo
 
 		FDeviceSize mDeviceSize = {};
 		FDeviceAddress mDeviceAddress = {};
-		byte* mMappedAddress = nullptr;
+		ByteType* mMappedAddress = nullptr;
 
 		vma::Allocation mAllocation = nullptr;
 		EBufferFlags mBufferFlags = EBufferFlags::None;
@@ -85,7 +85,7 @@ namespace Turbo
 		THandle<FSampler> mHandle;
 		FName mName = {};
 
-		uint32 _PAD;
+		u32 _PAD;
 
 		[[nodiscard]] constexpr bool IsValid() const { return mHandle.IsValid(); }
 		explicit constexpr operator bool() const {return IsValid();}
@@ -107,16 +107,16 @@ namespace Turbo
 		vk::Image mVkImage = nullptr;
 		vk::ImageView mVkImageView = nullptr;
 		vma::Allocation mImageAllocation = nullptr;
-		uint32 mBindIndex = std::numeric_limits<uint32>::max();
+		u32 mBindIndex = std::numeric_limits<u32>::max();
 
 		ETextureFlags mFlags = ETextureFlags::Invalid;
 
 		vk::Format mFormat = vk::Format::eUndefined;
 
-		uint16 mWidth = 1;
-		uint16 mHeight = 1;
-		uint16 mDepth = 1;
-		uint8 mNumMips = 1;
+		u16 mWidth = 1;
+		u16 mHeight = 1;
+		u16 mDepth = 1;
+		u8 mNumMips = 1;
 
 		THandle<FTexture> mHandle = {};
 		FName mName = {};
@@ -146,7 +146,7 @@ namespace Turbo
 	{
 		std::array<vk::PipelineShaderStageCreateInfo, kMaxShaderStages> mShaderStageCrateInfo;
 
-		uint32 mNumActiveShaders = 0;
+		u32 mNumActiveShaders = 0;
 		bool mbGraphicsPipeline = true;
 
 		THandle<FShaderState> mHandle;
@@ -165,7 +165,7 @@ namespace Turbo
 
 	private:
 		std::array<vk::ShaderModule, kMaxShaderStages> mModules;
-		uint32 mNumActiveShaders = 0;
+		u32 mNumActiveShaders = 0;
 
 		THandle<FShaderState> mHandle;
 	};
@@ -173,8 +173,8 @@ namespace Turbo
 	struct FBinding
 	{
 		vk::DescriptorType mType = {};
-		uint16 mIndex = 0;
-		uint16 mCount = 0;
+		u16 mIndex = 0;
+		u16 mCount = 0;
 		vk::DescriptorBindingFlags mFlags = {};
 
 		FName mName;
@@ -184,8 +184,8 @@ namespace Turbo
 	{
 		vk::DescriptorSetLayout mVkLayout = nullptr;
 
-		uint16 mNumBindings = 0;
-		uint16 mSetIndex = 0;
+		u16 mNumBindings = 0;
+		u16 mSetIndex = 0;
 
 		THandle<FDescriptorSetLayout> mHandle = {};
 

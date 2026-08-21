@@ -13,12 +13,12 @@ namespace Turbo
 	{
 		using Iterator = T*;
 
-		constexpr static float kGrowFactor = 1.5f;
+		constexpr static fp32 kGrowFactor = 1.5f;
 
 		/* Data */
 		T* mData = nullptr;
-		TurboSize mSize = 0;
-		TurboSize mCapacity = 0;
+		SizeType mSize = 0;
+		SizeType mCapacity = 0;
 		AllocatorType* mAllocator = nullptr;
 
 		/* Constructors */
@@ -27,7 +27,7 @@ namespace Turbo
 		{
 		}
 
-		explicit TArray(TurboSize initialCapacity, AllocatorType* allocator = nullptr)
+		explicit TArray(SizeType initialCapacity, AllocatorType* allocator = nullptr)
 			: mCapacity(initialCapacity)
 			, mAllocator(allocator)
 		{
@@ -37,12 +37,12 @@ namespace Turbo
 		/* Methods */
 		T* Data() { return mData; }
 		const T* Data() const { return mData; }
-		TurboSize Size() const { return mSize; }
-		TurboSize ByteSize() const { return mSize * sizeof(T); }
+		SizeType Size() const { return mSize; }
+		SizeType ByteSize() const { return mSize * sizeof(T); }
 		bool IsEmpty() const { return mSize == 0; }
 
 		template <typename... ArgsType>
-		TurboSize Emplace(ArgsType&&... args)
+		SizeType Emplace(ArgsType&&... args)
 		{
 			if (mSize + 1 >= mCapacity)
 			{
@@ -58,12 +58,12 @@ namespace Turbo
 		template <typename... ArgsType>
 		T& EmplaceGetRef(ArgsType&&... args)
 		{
-         TurboSize index = Emplace(Forward<ArgsType>(args)...);
+         SizeType index = Emplace(Forward<ArgsType>(args)...);
          return mData[index];
 		}
 
-		TurboSize Push(const T& newElement) { return Emplace(newElement); }
-		TurboSize PushUninitialized(const T& newElement)
+		SizeType Push(const T& newElement) { return Emplace(newElement); }
+		SizeType PushUninitialized(const T& newElement)
 		{
 			if (mSize + 1 >= mCapacity)
 			{
@@ -74,7 +74,7 @@ namespace Turbo
 			return mSize - 1;
 		}
 
-		TurboSize Pop()
+		SizeType Pop()
 		{
 			TURBO_CHECK(IsEmpty() == false)
 			mSize--;
@@ -82,8 +82,8 @@ namespace Turbo
 
 		void Clear() { mSize = 0; }
 
-		void Grow() { Reserve(static_cast<TurboSize>(mCapacity * kGrowFactor)); }
-		void Reserve(TurboSize newCapacity)
+		void Grow() { Reserve(static_cast<SizeType>(mCapacity * kGrowFactor)); }
+		void Reserve(SizeType newCapacity)
 		{
 			if (mData != nullptr)
 			{
@@ -99,13 +99,13 @@ namespace Turbo
 		}
 
 		/* Operators */
-		T& operator[](TurboSize index)
+		T& operator[](SizeType index)
 		{
 			TURBO_CHECK(index > 0 && index < mSize)
 			return mData + index;
 		}
 
-		const T& operator[](TurboSize index) const
+		const T& operator[](SizeType index) const
 		{
 			TURBO_CHECK(index > 0 && index < mSize)
 			return mData + index;
@@ -124,10 +124,10 @@ namespace Turbo
 
 		/* Data */
 		T* mBegin;
-		TurboSize mSize;
+		SizeType mSize;
 
 		/* Constructors */
-		TArrayView(T* begin, TurboSize size)
+		TArrayView(T* begin, SizeType size)
 			: mBegin(begin)
 			, mSize(size)
 		{
@@ -142,16 +142,16 @@ namespace Turbo
 
 		/* Methods */
 		T* Data() { return mBegin; }
-		TurboSize Size() { return mSize; }
+		SizeType Size() { return mSize; }
 
 		/* Operators */
-		T& operator[](TurboSize index)
+		T& operator[](SizeType index)
 		{
 			TURBO_CHECK(index > 0 && index < mSize)
 			return mBegin + index;
 		}
 
-		const T& operator[](TurboSize index) const
+		const T& operator[](SizeType index) const
 		{
 			TURBO_CHECK(index > 0 && index < mSize)
 			return mBegin + index;

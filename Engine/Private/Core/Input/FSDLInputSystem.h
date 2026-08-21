@@ -20,8 +20,8 @@ namespace Turbo
 		virtual void Init() override;
 		virtual void Destroy() override;
 
-		virtual float GetAxisValue(const FKey& key) override;
-		virtual float GetActionValue(FName actionName) override;
+		virtual fp32 GetAxisValue(const FKey& key) override;
+		virtual fp32 GetActionValue(FName actionName) override;
 
 		virtual bool IsKeyPressed(const FKey& key) override;
 		virtual bool IsActionPressed(FName actionName) override;
@@ -34,7 +34,7 @@ namespace Turbo
 		void HandleSDLMouseWheelEvent(const SDL_MouseWheelEvent& mouseWheelEvent);
 
 		static FKey ConvertSDLKey(SDL_Keycode key);
-		static FKey ConvertSDLMouseButton(uint8 mouseButtonIndex);
+		static FKey ConvertSDLMouseButton(u8 mouseButtonIndex);
 
 		void HandleKeyEvent(FKeyEvent& keyEvent);
 		void HandleAxisEvent(FAxisEvent& axisEvent);
@@ -42,7 +42,7 @@ namespace Turbo
 	private:
 		entt::dense_map<FName /** actionName **/, FActionBinding> mActionBindings;
 
-		std::unordered_map<FName /** keyName **/, float> mLastAxisValues;
+		std::unordered_map<FName /** keyName **/, fp32> mLastAxisValues;
 		std::unordered_map<FName /** keyName **/, bool> mLastKeyValues;
 
 	public:

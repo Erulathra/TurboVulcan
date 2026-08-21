@@ -8,12 +8,12 @@ namespace Turbo
 	struct FCommandLineArgs
 	{
 	public:
-		static void Parse(uint32 argc, char* argv[]);
+		static void Parse(u32 argc, char* argv[]);
 
 		static bool HasFlag(std::string_view argument);
 		static std::optional<std::string_view> ParseString(std::string_view argumentName);
-		static std::optional<int32> ParseInt(std::string_view argumentName);
-		static std::optional<float> ParseFloat(std::string_view argumentName);
+		static std::optional<i32> ParseInt(std::string_view argumentName);
+		static std::optional<fp32> ParseFloat(std::string_view argumentName);
 		static const std::filesystem::path& GetWorkingDir();
 
 		static std::vector<std::string_view>& GetLooseArgs();

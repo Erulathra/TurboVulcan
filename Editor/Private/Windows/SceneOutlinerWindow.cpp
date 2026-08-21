@@ -41,7 +41,7 @@ namespace Turbo
 		ImGui::BeginTable("##EntityList", 1, ImGuiTableFlags_RowBg);
 
 		// breath-first search
-		std::vector<std::pair<entt::entity, uint32>> entitiesToProcess;
+		std::vector<std::pair<entt::entity, u32>> entitiesToProcess;
 
 		auto rootView = registry.view<FWorldRoot>();
 		for (entt::entity entity : rootView)
@@ -49,7 +49,7 @@ namespace Turbo
 			entitiesToProcess.emplace_back(entity, 0);
 		}
 
-		uint32 currentDepth = 0;
+		u32 currentDepth = 0;
 
 		while (entitiesToProcess.empty() == false)
 		{
@@ -97,7 +97,7 @@ namespace Turbo
 			nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 		}
 
-		ImGui::SetNextItemStorageID(static_cast<uint32>(entity));
+		ImGui::SetNextItemStorageID(static_cast<u32>(entity));
 		bool bOpen = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<intptr_t>(entity)), nodeFlags, "%s", label.c_str());
 		bOpen &= bHasChildren;
 

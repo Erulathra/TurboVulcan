@@ -94,7 +94,7 @@ namespace Turbo
 		FEventDispatcher::Dispatch<FActionEvent>(Event, &FFlyMovementSystem::HandleAction);
 	}
 
-	void FFlyMovementSystem::Tick(double deltaTime)
+	void FFlyMovementSystem::Tick(fp64 deltaTime)
 	{
 		FWorld* world = gEngine->GetWorld();
 		auto view = world->mRegistry.view<FFlyMovementComp>();
@@ -132,7 +132,7 @@ namespace Turbo
 				{
 					FFlyMovementComp& input = view.get<FFlyMovementComp>(entity);
 
-					const float directionSign = actionEvent.mbDown ? 1.f : -1.f;
+					const fp32 directionSign = actionEvent.mbDown ? 1.f : -1.f;
 					input.mMoveInputValue += binding.mDirection * directionSign;
 					input.mMoveInputValue =
 						glm::clamp(input.mMoveInputValue, glm::float3(-1.f), glm::float3(1.f));

@@ -29,7 +29,7 @@ namespace Turbo
 	constexpr size_t kBLASPoolSize = 1024;
 	constexpr size_t kTLASPoolSize = 16;
 
-	constexpr uint32 kInvalidBinding = std::numeric_limits<uint32>::max();
+	constexpr u32 kInvalidBinding = std::numeric_limits<u32>::max();
 
 	struct FBufferedFrameData final
 	{
@@ -56,7 +56,7 @@ namespace Turbo
 		bool BeginFrame();
 		bool PresentFrame();
 
-		[[nodiscard]] const FBufferedFrameData& GetFrameData(uint32 index) const { return mFrameDatas[index]; }
+		[[nodiscard]] const FBufferedFrameData& GetFrameData(u32 index) const { return mFrameDatas[index]; }
 		[[nodiscard]] vk::CommandPool GetCommandPool() const;
 		[[nodiscard]] FCommandBuffer& GetMainCommandBuffer() const;
 
@@ -76,10 +76,10 @@ namespace Turbo
 		}
 
 		[[nodiscard]] glm::uint2 GetFrameBufferSize() const { return mFramebufferSize; }
-		[[nodiscard]] uint32 GetFrameInFlightId() const { return mBufferedFrameId; }
-		[[nodiscard]] uint32 GetNumRenderedFrames() const { return mRenderedFrames; }
-		[[nodiscard]] uint32 GetNumBufferedFrames() const { return kMaxFramesInFlight; }
-		[[nodiscard]] uint32 GetNumRenderingThreads() const { return mNumRenderingThreads; }
+		[[nodiscard]] u32 GetFrameInFlightId() const { return mBufferedFrameId; }
+		[[nodiscard]] u32 GetNumRenderedFrames() const { return mRenderedFrames; }
+		[[nodiscard]] u32 GetNumBufferedFrames() const { return kMaxFramesInFlight; }
+		[[nodiscard]] u32 GetNumRenderingThreads() const { return mNumRenderingThreads; }
 
 		void RequestSwapChainResize() { mbRequestedSwapchainResize = true; }
 
@@ -127,7 +127,7 @@ namespace Turbo
 		THandle<FBLAS> CreateBLAS(const FBLASBuilder& builder);
 		THandle<FTLAS> CreateTLAS(const FTLASBuilder& builder);
 
-		vk::CommandPool CreateCommandPool(uint32 queueFamilyIndex, vk::CommandPoolCreateFlags createFlags = {});
+		vk::CommandPool CreateCommandPool(u32 queueFamilyIndex, vk::CommandPoolCreateFlags createFlags = {});
 		TUniquePtr<FCommandBuffer> CreateCommandBuffer(const FCommandBufferBuilder& builder);
 
 		/** Resource creation end */
@@ -181,9 +181,9 @@ namespace Turbo
 		[[nodiscard]] vk::Device GetVkDevice() const { return mVkDevice; }
 		[[nodiscard]] vk::Queue GetVkQueue() const { return mVkGraphicsQueue; }
 
-		[[nodiscard]] uint32 GetGraphicsQueueFamily() const { return mVkGraphicsQueueFamilyIndex; }
-		[[nodiscard]] uint32 GetComputeQueueFamily() const { return mVkComputeQueueFamilyIndex; }
-		[[nodiscard]] uint32 GetTransferQueueFamily() const { return mVkTransferQueueFamilyIndex; }
+		[[nodiscard]] u32 GetGraphicsQueueFamily() const { return mVkGraphicsQueueFamilyIndex; }
+		[[nodiscard]] u32 GetComputeQueueFamily() const { return mVkComputeQueueFamilyIndex; }
+		[[nodiscard]] u32 GetTransferQueueFamily() const { return mVkTransferQueueFamilyIndex; }
 
 		/** Vulkan Getters end */
 
@@ -291,13 +291,13 @@ namespace Turbo
 		vk::Device mVkDevice = nullptr;
 
 		vk::Queue mVkGraphicsQueue = nullptr;
-		uint32 mVkGraphicsQueueFamilyIndex = std::numeric_limits<uint32>::max();
+		u32 mVkGraphicsQueueFamilyIndex = std::numeric_limits<u32>::max();
 
 		vk::Queue mVkTransferQueue = nullptr;
-		uint32 mVkTransferQueueFamilyIndex = std::numeric_limits<uint32>::max();
+		u32 mVkTransferQueueFamilyIndex = std::numeric_limits<u32>::max();
 
 		vk::Queue mVkComputeQueue = nullptr;
-		uint32 mVkComputeQueueFamilyIndex = std::numeric_limits<uint32>::max();
+		u32 mVkComputeQueueFamilyIndex = std::numeric_limits<u32>::max();
 
 		vk::DescriptorPool mVkDescriptorPool = nullptr;
 
@@ -316,22 +316,22 @@ namespace Turbo
 		std::array<vk::Semaphore, kMaxSwapChainImages> mSubmitSemaphores;
 		glm::uint2 mFramebufferSize = glm::uint2(0);
 
-		uint32 mNumSwapChainImages = 0;
+		u32 mNumSwapChainImages = 0;
 		/** Note that this is an index of swap chain image */
-		uint32 mCurrentSwapchainImageIndex = 0;
+		u32 mCurrentSwapchainImageIndex = 0;
 
 		bool mbRequestedSwapchainResize = false;
 
 		/** Swapchain end */
 
 		/** Frame handing */
-		uint32 mNumRenderingThreads = 1;
+		u32 mNumRenderingThreads = 1;
 		std::array<FBufferedFrameData, kMaxFramesInFlight> mFrameDatas;
 
 		/** Note that this is an index of buffered frame */
-		uint32 mBufferedFrameId = 0;
+		u32 mBufferedFrameId = 0;
 		/** Note that this is an index of rendered frame (from Init) */
-		uint32 mRenderedFrames = 0;
+		u32 mRenderedFrames = 0;
 
 		/** TODO: move me to better category */
 		bool mbVSync = false;

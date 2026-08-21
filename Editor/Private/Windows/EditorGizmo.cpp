@@ -49,7 +49,7 @@ namespace Turbo
 
 		// Draw gizmo settings
 		{
-			constexpr int32 IconFontSize = 20;
+			constexpr i32 IconFontSize = 20;
 			constexpr glm::float2 ButtonSize = glm::float2(IconFontSize + 8);
 			const glm::uint2 ContentRegionMin = ImGui::GetWindowContentRegionMin();
 			ImGui::SetCursorPos(ContentRegionMin + glm::uint2(10.f));

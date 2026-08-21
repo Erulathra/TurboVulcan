@@ -11,7 +11,7 @@ namespace Turbo
 {
 	class FGPUDevice;
 
-	enum class EClearColor : uint8
+	enum class EClearColor : u8
 	{
 		TransparentBlack, // {0, 0, 0, 0}
 		OpaqueBlack, // {0, 0, 0, 1}
@@ -22,20 +22,20 @@ namespace Turbo
 		One = OpaqueWhite
 	};
 
-	enum class ELoadOp : uint8
+	enum class ELoadOp : u8
 	{
 		Load,
 		Clear,
 		DontCare
 	};
 
-	enum class EStoreOp : uint8
+	enum class EStoreOp : u8
 	{
 		Store,
 		DontCare
 	};
 
-	enum class EResolveMode : uint8
+	enum class EResolveMode : u8
 	{
 		None,
 		SampleZero,
@@ -71,7 +71,7 @@ namespace Turbo
 			return *this;
 		}
 
-		uint32 mNumColorAttachments = 0;
+		u32 mNumColorAttachments = 0;
 		std::array<FAttachment, kMaxColorAttachments> mColorAttachments = {};
 		FAttachment mDepthAttachment = {};
 	};
@@ -91,8 +91,8 @@ namespace Turbo
 	{
 		THandle<FBuffer> mBuffer = {};
 		FDeviceSize mOffset = 0;
-		uint32 mDrawCount = 0;
-		uint32 mStride = 0;
+		u32 mDrawCount = 0;
+		u32 mStride = 0;
 	};
 
 	struct FDrawIndirectCountParams
@@ -101,8 +101,8 @@ namespace Turbo
 		FDeviceSize mOffset = 0;
 		THandle<FBuffer> mCountBuffer = {};
 		FDeviceSize mCountOffset = 0;
-		uint32 mMaxDrawCount = 0;
-		uint32 mStride = 0;
+		u32 mMaxDrawCount = 0;
+		u32 mStride = 0;
 	};
 
 	struct FBuildTLASParams
@@ -134,10 +134,10 @@ namespace Turbo
 
 		void CopyBuffer(THandle<FBuffer> src, THandle<FBuffer> dst, FDeviceSize size);
 		void CopyBuffer(const FCopyBufferParams& copyBufferInfo);
-		void CopyBufferToTexture(THandle<FBuffer> src, THandle<FTexture> dst, uint32 mipIndex, FDeviceSize bufferOffset = 0);
-		void FillBuffer(THandle<FBuffer> dst, FDeviceSize offset, FDeviceSize size, uint32 value);
+		void CopyBufferToTexture(THandle<FBuffer> src, THandle<FTexture> dst, u32 mipIndex, FDeviceSize bufferOffset = 0);
+		void FillBuffer(THandle<FBuffer> dst, FDeviceSize offset, FDeviceSize size, u32 value);
 
-		void BindDescriptorSet(THandle<FDescriptorSet> descriptorSetHandle, uint32 setIndex = 0);
+		void BindDescriptorSet(THandle<FDescriptorSet> descriptorSetHandle, u32 setIndex = 0);
 		void BindPipeline(THandle<FPipeline> pipelineHandle);
 		void BindIndexBuffer(THandle<FBuffer> indexBuffer);
 
@@ -149,8 +149,8 @@ namespace Turbo
 		void SetViewport(const FViewport& viewport);
 		void SetScissor(const FRect2DInt& rect);
 
-		void Draw(uint32 vertexCount, uint32 instanceCount = 1, uint32 firstVertex = 0, uint32 firstInstance = 0);
-		void DrawIndexed(uint32 indexCount, uint32 instanceCount = 1, uint32 firstIndex = 0, int32 vertexOffset = 0, uint32 firstInstance = 0);
+		void Draw(u32 vertexCount, u32 instanceCount = 1, u32 firstVertex = 0, u32 firstInstance = 0);
+		void DrawIndexed(u32 indexCount, u32 instanceCount = 1, u32 firstIndex = 0, i32 vertexOffset = 0, u32 firstInstance = 0);
 		void DrawIndirect(const FDrawIndirectParams& params);
 		void DrawIndirectCount(const FDrawIndirectCountParams& params);
 
@@ -175,7 +175,7 @@ namespace Turbo
 
 		vk::CommandBufferSubmitInfo CreateSubmitInfo() const;
 
-		void PushConstants_Internal(void* pushConstants, uint32 size);
+		void PushConstants_Internal(void* pushConstants, u32 size);
 
 	private:
 		FGPUDevice* mGpu;

@@ -57,13 +57,13 @@ namespace Turbo
 
 	SDL_Surface* FWindow::LoadSurface(std::string_view path)
 	{
-		std::vector<byte> imgData;
+		std::vector<ByteType> imgData;
 		if (FileSystem::LoadData(path, imgData) == false)
 		{
 			return nullptr;
 		}
 
-		int32 sizeX, sizeY, numComponents;
+		i32 sizeX, sizeY, numComponents;
 		void* pixels = stbi_load(
 			path.data(),
 			&sizeX,
@@ -195,9 +195,9 @@ namespace Turbo
 		return glm::ivec2(Result);
 	}
 
-	float FWindow::GetDisplayScale() const
+	fp32 FWindow::GetDisplayScale() const
 	{
-		const float displayScale = SDL_GetWindowDisplayScale(mSDLWindow);
+		const fp32 displayScale = SDL_GetWindowDisplayScale(mSDLWindow);
 		return displayScale > TURBO_SMALL_NUMBER ? displayScale : 1.f;
 	}
 
@@ -250,7 +250,7 @@ namespace Turbo
 	{
 		std::vector<const char*> Result;
 
-		uint32 ExtensionsCount;
+		u32 ExtensionsCount;
 		char const* const* ExtensionNames = SDL_Vulkan_GetInstanceExtensions(&ExtensionsCount);
 		if (ExtensionNames == nullptr)
 		{

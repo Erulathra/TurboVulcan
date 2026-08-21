@@ -13,24 +13,24 @@ namespace Turbo
 		const static FName geometryBufferAfterToneMapName = FName{"GBuffer_AfterToneMap"};
 
 		const FRGTextureInfo colorInfo = {
-			.mWidth = static_cast<uint16>(resolution.x),
-			.mHeight = static_cast<uint16>(resolution.y),
+			.mWidth = static_cast<u16>(resolution.x),
+			.mHeight = static_cast<u16>(resolution.y),
 			.mFormat = kColorFormat,
 			.mFlags = ETextureFlags::RenderTarget,
 			.mName = geometryBufferColorName
 		};
 
 		const FRGTextureInfo depthInfo = {
-			.mWidth = static_cast<uint16>(resolution.x),
-			.mHeight = static_cast<uint16>(resolution.y),
+			.mWidth = static_cast<u16>(resolution.x),
+			.mHeight = static_cast<u16>(resolution.y),
 			.mFormat = kDepthStencilFormat,
 			.mFlags = ETextureFlags::RenderTarget,
 			.mName = geometryBufferDepthName
 		};
 
 		const FRGTextureInfo afterToneMap = {
-			.mWidth = static_cast<uint16>(resolution.x),
-			.mHeight = static_cast<uint16>(resolution.y),
+			.mWidth = static_cast<u16>(resolution.x),
+			.mHeight = static_cast<u16>(resolution.y),
 			.mFormat = kAfterToneMapFormat,
 			.mFlags = ETextureFlags::StorageImage,
 			.mName = geometryBufferAfterToneMapName

@@ -5,7 +5,7 @@
 
 namespace ImGui
 {
-	using FTextureId = uint32_t;
+	using FTextureId = u32;
 
 	void Texture(Turbo::THandle<Turbo::FTexture> textureHandle);
 }
@@ -29,8 +29,8 @@ struct FImGuiTexture
 		virtual void Start() override;
 		virtual void Shutdown() override;
 
-		virtual void BeginTick(double deltaTime) override;
-		virtual void EndTick(double deltaTime) override;
+		virtual void BeginTick(fp64 deltaTime) override;
+		virtual void EndTick(fp64 deltaTime) override;
 		virtual bool ShouldTick() override { return true; }
 
 		virtual void PostBeginFrame(FRenderGraphBuilder& graphBuilder) override;

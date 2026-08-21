@@ -167,20 +167,20 @@ namespace Turbo
 			return gPlaceholderMesh;
 		}
 
-		void GenerateCheckerboardTextureData(byte* outBytes, glm::uint2 size, std::span<const byte> onValue, std::span<const byte> offValue)
+		void GenerateCheckerboardTextureData(ByteType* outBytes, glm::uint2 size, std::span<const ByteType> onValue, std::span<const ByteType> offValue)
 		{
-			const uint32 bytesPerPixel = onValue.size();
+			const u32 bytesPerPixel = onValue.size();
 			const glm::uint2 halfSize = size / glm::uint2(2, 2);
 			TURBO_CHECK(onValue.size() == offValue.size())
 
-			for (uint32 y = 0; y < size.y; ++y)
+			for (u32 y = 0; y < size.y; ++y)
 			{
-				for (uint32 x = 0; x < size.x; ++x)
+				for (u32 x = 0; x < size.x; ++x)
 				{
-					const uint32 byteIndex = (y * size.x + x) * bytesPerPixel;
-					for (uint32 pixelByteOffset = 0; pixelByteOffset < bytesPerPixel; ++pixelByteOffset)
+					const u32 byteIndex = (y * size.x + x) * bytesPerPixel;
+					for (u32 pixelByteOffset = 0; pixelByteOffset < bytesPerPixel; ++pixelByteOffset)
 					{
-						byte& targetByte = *(outBytes + byteIndex + pixelByteOffset);
+						ByteType& targetByte = *(outBytes + byteIndex + pixelByteOffset);
 						const bool bPixelOn = x > halfSize.x ^ y > halfSize.y;
 						targetByte = bPixelOn ? onValue[pixelByteOffset] : offValue[pixelByteOffset];
 					}

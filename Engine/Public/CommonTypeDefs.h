@@ -1,44 +1,37 @@
 #pragma once
 
-// NOTE(SS): Deprecated aliases
-using int8 = std::int8_t;
-using uint8 = std::uint8_t;
-
-namespace Turbo {
-   // Our graciously reigning Microsoft definied byte in his most roubust and powerfull `Windows.h` library
-   using byte = std::byte;
-}
-
-using int16 = std::int16_t;
-using uint16 = std::uint16_t;
-
-using int32 = std::int32_t;
-using uint32 = std::uint32_t;
-
-using int64 = std::int64_t;
-using uint64 = std::uint64_t;
-
-using TurboSize = uint64;
-
-// NOTE(SS): New aliases
 using i8 = int8_t;
 using u8 = uint8_t;
-using i16 = uint16_t;
+using i16 = int16_t;
 using u16 = uint16_t;
-using i32 = uint32_t;
+using i32 = int32_t;
 using u32 = uint32_t;
-using i64 = uint64_t;
+using i64 = int64_t;
 using u64 = uint64_t;
 
 using iPtr = uintptr_t;
 
-using TSize = uint64;
+using SizeType = u64;
+using ByteType = std::byte;
 
 using fp32 = float;
 using fp64 = double;
 
 using ConstString = const char*;
 
+#define I16_MIN std::numeric_limits<i16>::min();
+#define I16_MAX std::numeric_limits<i16>::max();
+#define U16_MAX std::numeric_limits<u16>::max();
+
+#define I32_MIN std::numeric_limits<i32>::min();
+#define I32_MAX std::numeric_limits<i32>::max();
+#define U32_MAX std::numeric_limits<u32>::max();
+
+#define I64_MIN std::numeric_limits<i64>::min();
+#define I64_MAX std::numeric_limits<i64>::max();
+#define U64_MAX std::numeric_limits<u64>::max();
+
+// NOTE(SS): Probably we would get rid of this
 #define INDEX_NONE (-1)
 
 // Deprecated

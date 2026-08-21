@@ -12,7 +12,7 @@ namespace Turbo
 			"Prints a message to the console.",
 			FConsoleCommandDelegate::CreateLambda([](IConsoleManager& consoleManager, const FArgsVector args)
 			{
-				uint32 messageLength = 0;
+				u32 messageLength = 0;
 				for (const std::string_view& arg : args)
 				{
 					messageLength += arg.size();
@@ -84,7 +84,7 @@ namespace Turbo
 			}
 		case EConsoleVariableType::Int32:
 			{
-				if (const std::optional<int32> result = StringUtils::ParseInt(arg);
+				if (const std::optional<i32> result = StringUtils::ParseInt(arg);
 					result.has_value())
 				{
 					Set(result.value());
@@ -94,7 +94,7 @@ namespace Turbo
 			}
 		case EConsoleVariableType::Float:
 			{
-				if (const std::optional<float> result = StringUtils::ParseFloat(arg);
+				if (const std::optional<fp32> result = StringUtils::ParseFloat(arg);
 					result.has_value())
 				{
 					Set(result.value());
@@ -120,10 +120,10 @@ namespace Turbo
 		}
 	}
 
-	void FConsoleVariable::Set(int32 value)
+	void FConsoleVariable::Set(i32 value)
 	{
 		TURBO_CHECK(mType == EConsoleVariableType::Int32 && mDataPtr != nullptr)
-		int32& castedValue = *static_cast<int32*>(mDataPtr);
+		i32& castedValue = *static_cast<i32*>(mDataPtr);
 
 		if (castedValue != value)
 		{
@@ -132,10 +132,10 @@ namespace Turbo
 		}
 	}
 
-	void FConsoleVariable::Set(float value)
+	void FConsoleVariable::Set(fp32 value)
 	{
 		TURBO_CHECK(mType == EConsoleVariableType::Float && mDataPtr != nullptr)
-		float& castedValue = *static_cast<float*>(mDataPtr);
+		fp32& castedValue = *static_cast<fp32*>(mDataPtr);
 
 		if (castedValue != value)
 		{
@@ -150,16 +150,16 @@ namespace Turbo
 		return *static_cast<bool*>(mDataPtr);
 	}
 
-	int32 FConsoleVariable::GetInt() const
+	i32 FConsoleVariable::GetInt() const
 	{
 		TURBO_CHECK(mType == EConsoleVariableType::Int32 && mDataPtr != nullptr)
-		return *static_cast<int32*>(mDataPtr);
+		return *static_cast<i32*>(mDataPtr);
 	}
 
-	float FConsoleVariable::GetFloat() const
+	fp32 FConsoleVariable::GetFloat() const
 	{
 		TURBO_CHECK(mType == EConsoleVariableType::Float && mDataPtr != nullptr)
-		return *static_cast<float*>(mDataPtr);
+		return *static_cast<fp32*>(mDataPtr);
 	}
 
 	std::string FConsoleVariable::ValueToString() const

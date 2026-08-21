@@ -1,4 +1,5 @@
 #include "Core/FileSystem.h"
+#include "CommonTypeDefs.h"
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -6,12 +7,12 @@
 
 namespace Turbo
 {
-	bool FileSystem::LoadAssetData(FName filePath, std::vector<byte>& outData)
+	bool FileSystem::LoadAssetData(FName filePath, std::vector<ByteType>& outData)
 	{
 		return LoadData(filePath.ToString(), outData);
 	}
 
-	bool FileSystem::LoadData(std::string_view filePath, std::vector<byte>& outData)
+	bool FileSystem::LoadData(std::string_view filePath, std::vector<ByteType>& outData)
 	{
 		std::ifstream file(std::string(filePath), std::ios::in | std::ios::binary | std::ios::ate);
 		if (file.is_open() == false || file.good() == false)
@@ -45,12 +46,12 @@ namespace Turbo
 		CreateDirectory(kConfigPath);
 	}
 
-	uint64 FileSystem::GetFileWriteTimeStamp(FName filePath)
+	u64 FileSystem::GetFileWriteTimeStamp(FName filePath)
 	{
       return GetFileWriteTimeStamp(filePath.ToString());
 	}
 
-	uint64 FileSystem::GetFileWriteTimeStamp(std::string_view filePath)
+	u64 FileSystem::GetFileWriteTimeStamp(std::string_view filePath)
 	{
       auto writeTimeStamp = std::filesystem::last_write_time(filePath);
       return std::chrono::duration_cast<std::chrono::seconds>(writeTimeStamp.time_since_epoch()).count();

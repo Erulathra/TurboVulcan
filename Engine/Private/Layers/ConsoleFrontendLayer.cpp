@@ -34,7 +34,7 @@ namespace Turbo
 			FConsoleCommandDelegate::CreateLambda([this](IConsoleManager& consoleManager, const FArgsVector args)
 			{
 				std::string message;
-				for (int32 commandId = 0; commandId < mConsoleHistory.size(); ++commandId)
+				for (i32 commandId = 0; commandId < mConsoleHistory.size(); ++commandId)
 				{
 					message += fmt::format("\t{}\t{}\n", commandId, mConsoleHistory[commandId]);
 				}
@@ -51,7 +51,7 @@ namespace Turbo
 	}
 
 
-	int32 OnConsoleInputCallback(ImGuiInputTextCallbackData* data)
+	i32 OnConsoleInputCallback(ImGuiInputTextCallbackData* data)
 	{
 		FConsoleFrontendLayer* frontend = static_cast<FConsoleFrontendLayer*>(data->UserData);
 		IConsoleManager& consoleManager = entt::locator<IConsoleManager>::value();
@@ -89,7 +89,7 @@ namespace Turbo
 					frontend->mTempBuffer = std::string_view(data->Buf, data->BufTextLen);
 				}
 
-				int32 newHistoryIndex = frontend->mHistoryIndex;
+				i32 newHistoryIndex = frontend->mHistoryIndex;
 				if (data->EventKey == ImGuiKey_UpArrow)
 				{
 					newHistoryIndex--;
@@ -99,7 +99,7 @@ namespace Turbo
 					newHistoryIndex++;
 				}
 
-				frontend->mHistoryIndex = Math::Modulo<int32>(newHistoryIndex, history.size() + 1);
+				frontend->mHistoryIndex = Math::Modulo<i32>(newHistoryIndex, history.size() + 1);
 
 				std::string_view historyEntry;
 				if (frontend->mHistoryIndex == history.size())
@@ -128,7 +128,7 @@ namespace Turbo
 		return 0;
 	}
 
-	void FConsoleFrontendLayer::BeginTick(double deltaTime)
+	void FConsoleFrontendLayer::BeginTick(fp64 deltaTime)
 	{
 		ILayer::BeginTick(deltaTime);
 

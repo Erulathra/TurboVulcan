@@ -60,7 +60,7 @@ namespace Turbo
 
 	private:
 		template<typename AssetType>
-		THandle<AssetType> FindCachedAsset(uint32 hash)
+		THandle<AssetType> FindCachedAsset(u32 hash)
 		{
 			if (auto foundIt = mAssetCache.find(hash);
 				foundIt != mAssetCache.end())
@@ -79,7 +79,7 @@ namespace Turbo
 
 		TManualPoolGrowable<FTextureAsset> mTexturePool;
 
-		entt::dense_map<uint32, FHandle> mAssetCache;
+		entt::dense_map<u32, FHandle> mAssetCache;
 
 	public:
 		friend class FEngine;

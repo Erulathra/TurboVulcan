@@ -2,7 +2,7 @@
 #include "Graphics/VulkanHelpers.h"
 
 namespace Turbo {
-	vk::CommandPoolCreateInfo VulkanInitializers::CommandPoolCreateInfo(uint32 queueFamilyIndex, vk::CommandPoolCreateFlags flags)
+	vk::CommandPoolCreateInfo VulkanInitializers::CommandPoolCreateInfo(u32 queueFamilyIndex, vk::CommandPoolCreateFlags flags)
 	{
 		vk::CommandPoolCreateInfo result{};
 		result.setPNext(nullptr);
@@ -13,7 +13,7 @@ namespace Turbo {
 		return result;
 	}
 
-	vk::CommandBufferAllocateInfo VulkanInitializers::BufferAllocateInfo(const vk::CommandPool& commandPool, uint32 bufferCount)
+	vk::CommandBufferAllocateInfo VulkanInitializers::BufferAllocateInfo(const vk::CommandPool& commandPool, u32 bufferCount)
 	{
 		vk::CommandBufferAllocateInfo result{};
 		result.setPNext(nullptr);
@@ -95,7 +95,7 @@ namespace Turbo {
 		return result;
 	}
 
-	vk::PresentInfoKHR VulkanInitializers::PresentInfo(const vk::SwapchainKHR& swapChain, const vk::Semaphore& waitSemaphore, const uint32& imageIndex)
+	vk::PresentInfoKHR VulkanInitializers::PresentInfo(const vk::SwapchainKHR& swapChain, const vk::Semaphore& waitSemaphore, const u32& imageIndex)
 	{
 		vk::PresentInfoKHR result{};
 		result.setPNext(nullptr);

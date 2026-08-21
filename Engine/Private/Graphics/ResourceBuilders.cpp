@@ -8,7 +8,7 @@ constexpr std::array kSupportedDescriptors = {
 	vk::DescriptorType::eStorageBuffer,
 };
 
-Turbo::FBufferBuilder Turbo::FBufferBuilder::CreateStagingBuffer(const void* data, uint32 size)
+Turbo::FBufferBuilder Turbo::FBufferBuilder::CreateStagingBuffer(const void* data, u32 size)
 {
 	static const FName kStagingBufferName("Staging");
 
@@ -21,17 +21,17 @@ Turbo::FBufferBuilder Turbo::FBufferBuilder::CreateStagingBuffer(const void* dat
 	return result;
 }
 
-Turbo::FBufferBuilder Turbo::FBufferBuilder::CreateStagingBuffer(uint32 size)
+Turbo::FBufferBuilder Turbo::FBufferBuilder::CreateStagingBuffer(u32 size)
 {
 	return CreateStagingBuffer(nullptr, size);
 }
 
-Turbo::FBufferBuilder Turbo::FBufferBuilder::CreateStagingBuffer(std::span<byte> data)
+Turbo::FBufferBuilder Turbo::FBufferBuilder::CreateStagingBuffer(std::span<ByteType> data)
 {
 	return CreateStagingBuffer(data.data(), data.size());
 }
 
-Turbo::FBufferBuilder Turbo::FBufferBuilder::CreateScratchBuffer(uint32 size)
+Turbo::FBufferBuilder Turbo::FBufferBuilder::CreateScratchBuffer(u32 size)
 {
 	static const FName kStagingBufferName("Scratch");
 
@@ -60,7 +60,7 @@ Turbo::FDescriptorPoolBuilder& Turbo::FDescriptorPoolBuilder::Reset()
 	return *this;
 }
 
-Turbo::FDescriptorPoolBuilder& Turbo::FDescriptorPoolBuilder::SetPoolRatio(vk::DescriptorType type, float ratio)
+Turbo::FDescriptorPoolBuilder& Turbo::FDescriptorPoolBuilder::SetPoolRatio(vk::DescriptorType type, fp32 ratio)
 {
 	mPoolSizes[type] = ratio;
 	return *this;

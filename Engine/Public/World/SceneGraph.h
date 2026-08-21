@@ -27,7 +27,7 @@ namespace Turbo
 
 	struct FRelationship
 	{
-		uint32 mNumChildren = {};
+		u32 mNumChildren = {};
 		entt::entity mFirstChild = entt::null;
 		entt::entity mPrevious = entt::null;
 		entt::entity mNext = entt::null;
@@ -128,7 +128,7 @@ namespace Turbo
 			const FRelationship& componentRel = registry.get<FRelationship>(entity);
 			entt::entity currentEntt = componentRel.mFirstChild;
 
-			for (uint32 ChildId = 0; ChildId < componentRel.mNumChildren; ++ChildId)
+			for (u32 ChildId = 0; ChildId < componentRel.mNumChildren; ++ChildId)
 			{
 				std::invoke(func, currentEntt);
 

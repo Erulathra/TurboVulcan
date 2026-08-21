@@ -35,14 +35,14 @@ namespace Turbo
 			{
 			case EProjectionType::Perspective:
 				{
-					const float verticalFov = 2.f * glm::atan(glm::tan(camera.mFov * 0.5f) / camera.mAspectRatio);
+					const fp32 verticalFov = 2.f * glm::atan(glm::tan(camera.mFov * 0.5f) / camera.mAspectRatio);
 					projectionMatrix = glm::perspective(verticalFov, camera.mAspectRatio, camera.mFarPlane, camera.mNearPlane);
 					break;
 				}
 			case EProjectionType::Orthographic:
 				{
-					const float halfWidth = camera.mOrtoWidth * 0.5f;
-					const float halfHeight = halfWidth / camera.mAspectRatio;
+					const fp32 halfWidth = camera.mOrtoWidth * 0.5f;
+					const fp32 halfHeight = halfWidth / camera.mAspectRatio;
 					projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight);
 
 					break;
@@ -60,7 +60,7 @@ namespace Turbo
 		registry.remove<FProjectionDirty>(view.begin(), view.end());
 	}
 
-	void FCameraUtils::UpdateFreeCameraPosition(entt::registry& registry, const glm::float3& movementInput, float deltaTime)
+	void FCameraUtils::UpdateFreeCameraPosition(entt::registry& registry, const glm::float3& movementInput, fp32 deltaTime)
 	{
 		if (glm::length2(movementInput) < TURBO_SMALL_NUMBER)
 		{
@@ -108,7 +108,7 @@ namespace Turbo
 		}
 	}
 
-	void FCameraUtils::UpdateFreeCameraSpeed(entt::registry& registry, const int32 deltaSpeed)
+	void FCameraUtils::UpdateFreeCameraSpeed(entt::registry& registry, const i32 deltaSpeed)
 	{
 		if (deltaSpeed == 0)
 		{
@@ -169,8 +169,8 @@ namespace Turbo
 		{
 		case EProjectionType::Perspective:
 			{
-                const float halfWidth = camera.mFarPlane * glm::tan(camera.mFov * 0.5f);
-                const float halfHeight = halfWidth / camera.mAspectRatio;
+                const fp32 halfWidth = camera.mFarPlane * glm::tan(camera.mFov * 0.5f);
+                const fp32 halfHeight = halfWidth / camera.mAspectRatio;
                 const glm::float3 farVector = forward * camera.mFarPlane;
 
                 // Right, Left Plane
@@ -189,8 +189,8 @@ namespace Turbo
 			}
 		case EProjectionType::Orthographic:
 			{
-				const float halfWidth = camera.mOrtoWidth * 0.5f;
-				const float halfHeight = halfWidth / camera.mAspectRatio;
+				const fp32 halfWidth = camera.mOrtoWidth * 0.5f;
+				const fp32 halfHeight = halfWidth / camera.mAspectRatio;
 
 				frustum.GetRight() = {-right, position + right * halfWidth};
 				frustum.GetBottom() = {right, position - right * halfWidth};

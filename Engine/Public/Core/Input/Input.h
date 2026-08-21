@@ -32,7 +32,7 @@ namespace Turbo
 		}
 	};
 
-	enum class EKeyModifier : uint8
+	enum class EKeyModifier : u8
 	{
 		None = 0,
 		LeftShift	= 1 << 0,
@@ -43,7 +43,7 @@ namespace Turbo
 		RightAlt	= 1 << 5,
 	};
 
-	DEFINE_ENUM_OPERATORS(EKeyModifier, uint8)
+	DEFINE_ENUM_OPERATORS(EKeyModifier, u8)
 
 	struct FKeyEvent : FEventBase
 	{
@@ -62,7 +62,7 @@ namespace Turbo
 
 		FKey mKey;
 
-		float mValue = 0.f;
+		fp32 mValue = 0.f;
 	};
 
 	struct FActionEvent : FEventBase
@@ -75,7 +75,7 @@ namespace Turbo
 		bool mbAxis = false;
 
 		bool mbDown = false;
-		float mValue = 0.f;
+		fp32 mValue = 0.f;
 
 		EKeyModifier mModifiers = EKeyModifier::None;
 
@@ -105,8 +105,8 @@ namespace Turbo
 		virtual void Init() = 0;
 		virtual void Destroy() = 0;
 
-		virtual float GetAxisValue(const FKey& key) = 0;
-		virtual float GetActionValue(FName actionName) = 0;
+		virtual fp32 GetAxisValue(const FKey& key) = 0;
+		virtual fp32 GetActionValue(FName actionName) = 0;
 
 		virtual bool IsKeyPressed(const FKey& key) = 0;
 		virtual bool IsActionPressed(FName actionName) = 0;

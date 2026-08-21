@@ -12,7 +12,7 @@ namespace Turbo
 		virtual void Shutdown() override;
 		void ShowImGuiWindow();
 
-		virtual void BeginTick(double deltaTime) override;
+		virtual void BeginTick(fp64 deltaTime) override;
 
 		virtual bool ShouldTick() override { return true; }
 		virtual bool ShouldRender() override { return true; }

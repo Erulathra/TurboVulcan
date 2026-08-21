@@ -21,9 +21,9 @@ namespace Turbo
 		readBytesNum += count;
 	}
 
-	fastgltf::span<byte> FTurboGLTFDataBuffer::read(std::size_t count, std::size_t padding)
+	fastgltf::span<ByteType> FTurboGLTFDataBuffer::read(std::size_t count, std::size_t padding)
 	{
-		std::span<byte> sub(mBytes.data() + readBytesNum, count);
+		std::span<ByteType> sub(mBytes.data() + readBytesNum, count);
 		readBytesNum += count;
 
 		return sub;
@@ -41,7 +41,7 @@ namespace Turbo
 				const fastgltf::sources::URI bufferURI = std::get<fastgltf::sources::URI>(buffer.data);
 				const std::filesystem::path relativeBufferPath = assetDirectory / bufferURI.uri.path();
 
-				std::vector<byte> bufferData;
+				std::vector<ByteType> bufferData;
 				FileSystem::LoadData(relativeBufferPath.string(), bufferData);
 
 				fastgltf::sources::Vector vectorSource = {std::move(bufferData)};

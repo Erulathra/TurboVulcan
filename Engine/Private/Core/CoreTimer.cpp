@@ -38,8 +38,8 @@ namespace Turbo {
 
 		const FChronoTimePoint newTickStartTime = std::chrono::steady_clock::now();
 
-		mDeltaTime = std::chrono::duration<double>(newTickStartTime - mTickStartTime).count();
-		mTimeFromEngineStart = std::chrono::duration<double>(newTickStartTime - mEngineStartTime).count();
+		mDeltaTime = std::chrono::duration<fp64>(newTickStartTime - mTickStartTime).count();
+		mTimeFromEngineStart = std::chrono::duration<fp64>(newTickStartTime - mEngineStartTime).count();
 
 		mTickStartTime = newTickStartTime;
 		++mTickIndex;

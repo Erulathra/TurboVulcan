@@ -42,23 +42,8 @@ using FTraceGPUCtx = TracyVkCtx;
 namespace Turbo
 {
 	using EPlotFormat = tracy::PlotFormatType;
-	using FCounterType = int64;
+	using FCounterType = i64;
 }
-
-#if 0 // broken
-inline void * operator new ( std :: size_t count )
-{
-	auto ptr = malloc ( count ) ;
-	TracyAlloc ( ptr , count ) ;
-	return ptr ;
-}
-
-inline void operator delete ( void * ptr ) noexcept
-{
-	TracyFree ( ptr ) ;
-	free ( ptr ) ;
-}
-#endif
 
 #else // WITH_PROFILER
 

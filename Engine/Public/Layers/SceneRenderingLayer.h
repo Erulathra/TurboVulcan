@@ -20,12 +20,12 @@ namespace Turbo
 
 	struct FSceneData final
 	{
-		uint32 mNumLights = 0;
-		uint32 mSceneTLAS = 0;
+		u32 mNumLights = 0;
+		u32 mSceneTLAS = 0;
 
-		float mAmbientLight = 0.03f;
+		fp32 mAmbientLight = 0.03f;
 
-		uint32 _PADDING[2];
+		u32 _PADDING[2];
 	};
 
 	struct FSceneView
@@ -47,7 +47,7 @@ namespace Turbo
 	struct FDrawIndirectBucket
 	{
 		THandle<FMaterial> mMaterialHandle = {};
-		uint32 mCount = 0;
+		u32 mCount = 0;
 		FRGResourceHandle mIndirectCommandBuffer = {};
 		FRGResourceHandle mDrawBuffer = {};
 	};

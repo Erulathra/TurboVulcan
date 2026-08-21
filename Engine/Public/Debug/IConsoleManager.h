@@ -32,7 +32,7 @@ namespace Turbo
         FAutoConsoleCommand(std::string_view name, std::string_view description, FConsoleCommandDelegate delegate);
     };
 
-    enum class EConsoleVariableType : uint8
+    enum class EConsoleVariableType : u8
     {
         Bool,
         Int32,
@@ -56,12 +56,12 @@ namespace Turbo
         [[nodiscard]] bool Parse(std::string_view arg);
 
         void Set(bool bValue);
-        void Set(int32 value);
-        void Set(float value);
+        void Set(i32 value);
+        void Set(fp32 value);
 
         [[nodiscard]] bool GetBool() const;
-        [[nodiscard]] int32 GetInt() const;
-        [[nodiscard]] float GetFloat() const;
+        [[nodiscard]] i32 GetInt() const;
+        [[nodiscard]] fp32 GetFloat() const;
 
         [[nodiscard]] std::string ValueToString() const;
     };
@@ -92,10 +92,10 @@ namespace Turbo
     inline EConsoleVariableType GetConsoleVariableType<bool>() { return EConsoleVariableType::Bool; }
 
     template<>
-    inline EConsoleVariableType GetConsoleVariableType<int32>() { return EConsoleVariableType::Int32; }
+    inline EConsoleVariableType GetConsoleVariableType<i32>() { return EConsoleVariableType::Int32; }
 
     template<>
-    inline EConsoleVariableType GetConsoleVariableType<float>() { return EConsoleVariableType::Float; }
+    inline EConsoleVariableType GetConsoleVariableType<fp32>() { return EConsoleVariableType::Float; }
 
     class FConsoleManager
     {

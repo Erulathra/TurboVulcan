@@ -7,11 +7,11 @@ namespace Turbo
 	struct FLightComponent
 	{
 		glm::float3 mColor = glm::float3(1.f);
-		float mIntensity = 1000.f;
+		fp32 mIntensity = 1000.f;
 
 		ELightType mType = ELightType::Point;
-		float mRange = 5.f;
-		float mInnerAngle = glm::radians(30.f);
-		float mOuterAngle = glm::radians(60.f);
+		fp32 mRange = 5.f;
+		fp32 mInnerAngle = glm::radians(30.f);
+		fp32 mOuterAngle = glm::radians(60.f);
 	};
 }

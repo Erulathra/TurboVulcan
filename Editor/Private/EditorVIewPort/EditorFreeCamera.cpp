@@ -105,7 +105,7 @@ namespace Turbo
 		registry.remove<FEditorFreeCameraInput>(entity);
 	}
 
-	void FEditorFreeCameraUtils::Tick(double deltaTime)
+	void FEditorFreeCameraUtils::Tick(fp64 deltaTime)
 	{
 		FWorld* world = gEngine->GetWorld();
 		auto view = world->mRegistry.view<FEditorFreeCameraInput>();
@@ -185,7 +185,7 @@ namespace Turbo
 				if (binding.mActionName == actionEvent.mName
 					&& freeCameraInput.bNavigationEnabled)
 				{
-					const float directionSign = actionEvent.mbDown ? 1.f : -1.f;
+					const fp32 directionSign = actionEvent.mbDown ? 1.f : -1.f;
 					freeCameraInput.mMoveInputValue += binding.mDirection * directionSign;
 					freeCameraInput.mMoveInputValue =
 						glm::clamp(freeCameraInput.mMoveInputValue, glm::float3(-1.f), glm::float3(1.f));

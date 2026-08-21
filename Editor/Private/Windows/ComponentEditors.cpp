@@ -38,12 +38,12 @@ namespace Turbo
 
 			if (ImGui::BeginCombo("Type", ToString(lightComponent.mType)))
 			{
-				for (uint8 typeId = 0; typeId < static_cast<uint8>(ELightType::Num); ++typeId)
+				for (u8 typeId = 0; typeId < static_cast<u8>(ELightType::Num); ++typeId)
 				{
 					ELightType currentType = static_cast<ELightType>(typeId);
 
-					ImGui::PushID(static_cast<int32>(typeId));
-					if (ImGui::Selectable(ToString(currentType), typeId == static_cast<uint8>(lightComponent.mType)))
+					ImGui::PushID(static_cast<i32>(typeId));
+					if (ImGui::Selectable(ToString(currentType), typeId == static_cast<u8>(lightComponent.mType)))
 					{
 						lightComponent.mType = static_cast<ELightType>(typeId);
 					}
@@ -64,8 +64,8 @@ namespace Turbo
 
 			if (lightComponent.mType == ELightType::Spot)
 			{
-				float innerAngleDeg = glm::degrees(lightComponent.mInnerAngle);
-				float outerAngleDeg = glm::degrees(lightComponent.mOuterAngle);
+				fp32 innerAngleDeg = glm::degrees(lightComponent.mInnerAngle);
+				fp32 outerAngleDeg = glm::degrees(lightComponent.mOuterAngle);
 				if (ImGui::DragFloat("InnerAngle", &innerAngleDeg, 0.1f, 0.f, 180.f))
 				{
 					lightComponent.mInnerAngle = glm::min(innerAngleDeg, outerAngleDeg);

@@ -11,8 +11,8 @@ namespace Turbo
 	// TODO: Replace that with config
 	namespace WindowDefaultValues
 	{
-		static constexpr int32 kSizeX = 1280;
-		static constexpr int32 kSizeY = 720;
+		static constexpr i32 kSizeX = 1280;
+		static constexpr i32 kSizeY = 720;
 		static constexpr std::string_view kName = "Turbo Vulkan";
 	}
 
@@ -58,7 +58,7 @@ namespace Turbo
 		[[nodiscard]] glm::uint2 GetFrameBufferSize() const;
 		[[nodiscard]] SDL_Window* GetWindow() const { return mSDLWindow; }
 
-		float GetDisplayScale() const;
+		fp32 GetDisplayScale() const;
 
 		[[nodiscard]] bool IsFullscreenEnabled() const;
 		void SetFullscreen(bool bFullscreen);

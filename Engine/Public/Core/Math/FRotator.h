@@ -152,5 +152,5 @@ namespace Turbo
 
 	};
 
-	using FRotator = TRotator<float>;
+	using FRotator = TRotator<fp32>;
 }

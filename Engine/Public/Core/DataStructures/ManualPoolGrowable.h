@@ -13,13 +13,13 @@ namespace Turbo
 
 		void Reserve(FHandle::IndexType numElements)
 		{
-			const uint32 targetSize = glm::max(numElements, static_cast<FHandle::IndexType>(mData.size() * 2));
+			const u32 targetSize = glm::max(numElements, static_cast<FHandle::IndexType>(mData.size() * 2));
 			mData.resize(targetSize);
 		}
 
 		T& Access(FHandle atIndex)
 		{
-			const uint32 handleIndex = atIndex.GetIndex();
+			const u32 handleIndex = atIndex.GetIndex();
 			TURBO_CHECK(handleIndex)
 
 			if (mData.size() <= handleIndex)

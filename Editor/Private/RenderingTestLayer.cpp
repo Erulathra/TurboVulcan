@@ -43,13 +43,13 @@ namespace Turbo
 	{
 		ImGui::Begin("Rendering test");
 
-		constexpr uint32 frameTimeHistorySize = 256;
-		static float frameTimeHistory[frameTimeHistorySize];
+		constexpr u32 frameTimeHistorySize = 256;
+		static fp32 frameTimeHistory[frameTimeHistorySize];
 
-		frameTimeHistory[FCoreTimer::TickIndex() % frameTimeHistorySize] = static_cast<float>(FCoreTimer::DeltaTime());
+		frameTimeHistory[FCoreTimer::TickIndex() % frameTimeHistorySize] = static_cast<fp32>(FCoreTimer::DeltaTime());
 
-		float AvgFrameTime = 0;
-		for (float frameTime : frameTimeHistory)
+		fp32 AvgFrameTime = 0;
+		for (fp32 frameTime : frameTimeHistory)
 		{
 			AvgFrameTime += frameTime;
 		}
@@ -78,7 +78,7 @@ namespace Turbo
 		}
 		else if (registry.valid(selection))
 		{
-			selectionString = fmt::format("Entity: {}", static_cast<uint32>(selection));
+			selectionString = fmt::format("Entity: {}", static_cast<u32>(selection));
 		}
 
 		ImGui::TextFmt("Selected entities: {}", selectionString);
@@ -86,7 +86,7 @@ namespace Turbo
 		ImGui::End();
 	}
 
-	void FRenderingTestLayer::BeginTick(double deltaTime)
+	void FRenderingTestLayer::BeginTick(fp64 deltaTime)
 	{
 		ShowImGuiWindow();
 	}

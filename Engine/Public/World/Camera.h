@@ -5,7 +5,7 @@
 
 namespace Turbo
 {
-	enum class EProjectionType : uint8
+	enum class EProjectionType : u8
 	{
 		Perspective,
 		Orthographic
@@ -13,12 +13,12 @@ namespace Turbo
 
 	struct FCamera final
 	{
-		float mOrtoWidth = 10.f;
-		float mFov = glm::radians(60.f);
-		float mAspectRatio = 16.f / 9.f;
+		fp32 mOrtoWidth = 10.f;
+		fp32 mFov = glm::radians(60.f);
+		fp32 mAspectRatio = 16.f / 9.f;
 
-		float mNearPlane = 0.1f;
-		float mFarPlane = 10000.f;
+		fp32 mNearPlane = 0.1f;
+		fp32 mFarPlane = 10000.f;
 
 		EProjectionType mProjectionType = EProjectionType::Perspective;
 
@@ -35,11 +35,11 @@ namespace Turbo
 
 	struct FFreeCamera
 	{
-		float mMinMovementSpeed = 1.f;
-		float mMaxMovementSpeed = 1000.f;
-		float mMovementSpeedFactor = 1.1f;
-		float mMovementSpeed = 5.f;
-		float mRotationSensitivity = glm::radians(0.16f);
+		fp32 mMinMovementSpeed = 1.f;
+		fp32 mMaxMovementSpeed = 1000.f;
+		fp32 mMovementSpeedFactor = 1.1f;
+		fp32 mMovementSpeed = 5.f;
+		fp32 mRotationSensitivity = glm::radians(0.16f);
 		FRotator mRotator = FRotator(0.f);
 	};
 
@@ -54,25 +54,25 @@ namespace Turbo
 		glm::float4x4 mWorldToProjection = {1.f};
 		glm::float3 mCameraPosition = {};
 
-		double mTime = 0.f;
-		double mWorldTime = 0.f;
-		double mDeltaTime = 0.f;
-		int32 mFrameIndex = 0;
+		fp64 mTime = 0.f;
+		fp64 mWorldTime = 0.f;
+		fp64 mDeltaTime = 0.f;
+		i32 mFrameIndex = 0;
 
 		// In world space
 		FFrustum mViewFrustum = {};
 
-		float mPreExposure = 1.f;
-		float mOneOverPreExposure = 1.f;
+		fp32 mPreExposure = 1.f;
+		fp32 mOneOverPreExposure = 1.f;
 	};
 
 	class FCameraUtils final
 	{
 	public:
 		static void UpdateDirtyCameras(entt::registry& registry);
-		static void UpdateFreeCameraPosition(entt::registry& registry, const glm::float3& movementInput, float deltaTime);
+		static void UpdateFreeCameraPosition(entt::registry& registry, const glm::float3& movementInput, fp32 deltaTime);
 		static void UpdateFreeCameraRotation(entt::registry& registry, const glm::float2& deltaRotation);
-		static void UpdateFreeCameraSpeed(entt::registry& registry, const int32 deltaSpeed);
+		static void UpdateFreeCameraSpeed(entt::registry& registry, const i32 deltaSpeed);
 		static void UpdateCameraFrustum(entt::registry& registry);
 		static FFrustum GetViewFrustum(const FCamera& camera, const FWorldTransform& transform);
 

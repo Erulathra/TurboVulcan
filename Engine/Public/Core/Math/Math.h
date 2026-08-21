@@ -1,7 +1,7 @@
 #pragma once
 
 // MATH
-#define TURBO_SMALL_NUMBER 1e-5
+#define TURBO_SMALL_NUMBER 1e-4
 #define TURBO_VERY_SMALL_NUMBER 1e-8
 
 namespace Turbo
@@ -25,7 +25,7 @@ namespace Turbo
 		template <typename T>
 		T DivideAndRoundUp(T lhs, T rhs)
 		{
-			return glm::ceil(static_cast<double>(lhs) / rhs);
+			return glm::ceil(static_cast<fp64>(lhs) / rhs);
 		}
 
 		template<>
@@ -81,7 +81,7 @@ namespace Turbo
 
 } // Turbo
 
-template <int32 L, typename T>
+template <i32 L, typename T>
 struct fmt::formatter<glm::vec<L, T>> : fmt::formatter<std::string>
 {
 	auto format(const glm::vec<L, T>& vector, format_context& ctx) const
@@ -98,14 +98,14 @@ struct fmt::formatter<glm::vec<L, T>> : fmt::formatter<std::string>
 	}
 };
 
-template<uint32 columns, uint32 rows, typename T, glm::qualifier Q>
+template<u32 columns, u32 rows, typename T, glm::qualifier Q>
 struct fmt::formatter<glm::mat<columns, rows, T, Q>> : fmt::formatter<std::string>
 {
 	auto format(const glm::mat<columns, rows, T, Q>& matrix, format_context& ctx) const
 	{
 		std::stringstream resultStream;
 		resultStream << '{';
-		for (uint32 column = 0; column < matrix.length() - 1; ++column)
+		for (u32 column = 0; column < matrix.length() - 1; ++column)
 		{
 			resultStream << fmt::format("{}", matrix[column]) << ", \n";
 		}

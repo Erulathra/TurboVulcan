@@ -15,7 +15,7 @@ namespace ImGui
 		TextUnformatted(&str.front(), (&str.back()) + 1);
 	}
 
-	inline void TreePop(uint32& currentDepth, uint32 targetDepth)
+	inline void TreePop(u32& currentDepth, u32 targetDepth)
 	{
 		while (currentDepth > targetDepth)
 		{

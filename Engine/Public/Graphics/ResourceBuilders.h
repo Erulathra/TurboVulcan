@@ -17,10 +17,10 @@ namespace Turbo
 
 	struct FBufferBuilder
 	{
-		static FBufferBuilder CreateStagingBuffer(const void* data, uint32 size);
-		static FBufferBuilder CreateStagingBuffer(uint32 size);
-		static FBufferBuilder CreateStagingBuffer(std::span<byte> data);
-		static FBufferBuilder CreateScratchBuffer(uint32 size);
+		static FBufferBuilder CreateStagingBuffer(const void* data, u32 size);
+		static FBufferBuilder CreateStagingBuffer(u32 size);
+		static FBufferBuilder CreateStagingBuffer(std::span<ByteType> data);
+		static FBufferBuilder CreateScratchBuffer(u32 size);
 
 		FBufferBuilder& Reset() { mSize = 0; mInitialData = nullptr; return *this; }
 		FBufferBuilder& Init(EBufferFlags bufferFlags, size_t size)
@@ -55,16 +55,16 @@ namespace Turbo
 			{ mFormat = format; mType = type; mFlags = flags;  return *this; }
 		FTextureBuilder& SetSize(glm::uint3 size) { mWidth = size.x; mHeight = size.y; mDepth = size.z; return *this; }
 		FTextureBuilder& SetNumSamples(EMSAASamples numSamples) { mNumSamples = numSamples; return *this; }
-		FTextureBuilder& SetNumMips(uint8 numMips) { mNumMips = numMips; return *this; }
+		FTextureBuilder& SetNumMips(u8 numMips) { mNumMips = numMips; return *this; }
 		FTextureBuilder& SetBindTexture(bool bBindTexture) { mbBindTexture = bBindTexture; return *this; }
 
 		FTextureBuilder& SetName(FName name) { mName = name; return *this; }
 
 	public:
-		uint16 mWidth = 1;
-		uint16 mHeight = 1;
-		uint16 mDepth = 1;
-		uint8 mNumMips = 1;
+		u16 mWidth = 1;
+		u16 mHeight = 1;
+		u16 mDepth = 1;
+		u8 mNumMips = 1;
 		ETextureFlags mFlags = ETextureFlags::Invalid;
 
 		vk::Format mFormat = vk::Format::eUndefined;
@@ -109,15 +109,15 @@ namespace Turbo
 	public:
 		FDescriptorPoolBuilder();
 		FDescriptorPoolBuilder& Reset();
-		FDescriptorPoolBuilder& SetPoolRatio(vk::DescriptorType type, float ratio);
+		FDescriptorPoolBuilder& SetPoolRatio(vk::DescriptorType type, fp32 ratio);
 
 		FDescriptorPoolBuilder& SetFlags(vk::DescriptorPoolCreateFlags flags) {mFlags = flags; return *this;}
-		FDescriptorPoolBuilder& SetMaxSets(uint32 maxSets) { mMaxSets = maxSets; return *this; }
+		FDescriptorPoolBuilder& SetMaxSets(u32 maxSets) { mMaxSets = maxSets; return *this; }
 		FDescriptorPoolBuilder& SetName(FName name) { mName = name; return *this; }
 
 	public:
-		std::unordered_map<vk::DescriptorType, float /** Ratio **/> mPoolSizes = {};
-		uint32 mMaxSets = 0;
+		std::unordered_map<vk::DescriptorType, fp32 /** Ratio **/> mPoolSizes = {};
+		u32 mMaxSets = 0;
 
 		vk::DescriptorPoolCreateFlags mFlags;
 
@@ -128,7 +128,7 @@ namespace Turbo
 	{
 	public:
 		FDescriptorSetLayoutBuilder& Reset() { *this = {}; return *this; }
-		FDescriptorSetLayoutBuilder& AddBinding(vk::DescriptorType type, uint16 start, uint16 count, vk::DescriptorBindingFlags flags = {}, FName name = FName())
+		FDescriptorSetLayoutBuilder& AddBinding(vk::DescriptorType type, u16 start, u16 count, vk::DescriptorBindingFlags flags = {}, FName name = FName())
 		{
 			TURBO_CHECK_MSG(count > 0, "Binding count must be greater than 0.")
 
@@ -137,19 +137,19 @@ namespace Turbo
 
 			return *this;
 		}
-		FDescriptorSetLayoutBuilder& AddBinding(vk::DescriptorType type, uint16 id, vk::DescriptorBindingFlags flags = {}, FName name = FName())
+		FDescriptorSetLayoutBuilder& AddBinding(vk::DescriptorType type, u16 id, vk::DescriptorBindingFlags flags = {}, FName name = FName())
 		{
 			return AddBinding(type, id, 1, flags, name);
 		}
-		FDescriptorSetLayoutBuilder& SetIndex(uint16 index) { mSetIndex = index; return *this; }
+		FDescriptorSetLayoutBuilder& SetIndex(u16 index) { mSetIndex = index; return *this; }
 		FDescriptorSetLayoutBuilder& SetFlags(vk::DescriptorSetLayoutCreateFlags flags) { mFlags = flags; return *this; }
 
 		FDescriptorSetLayoutBuilder& SetName(FName name) { mName = name; return *this; }
 
 	public:
 		std::array<FBinding, kMaxDescriptorsPerSet> mBindings;
-		uint16 mNumBindings = 0;
-		uint16 mSetIndex = 0;
+		u16 mNumBindings = 0;
+		u16 mSetIndex = 0;
 		vk::DescriptorSetLayoutCreateFlags mFlags = {};
 
 		FName mName;
@@ -204,7 +204,7 @@ namespace Turbo
 		bool mbEnableDepthTest : 1 = false;
 		bool mbEnableWriteDepth : 1 = false;
 		bool mbEnableStencil : 1 = false;
-		uint8 mPadding : 5 = 0;
+		u8 mPadding : 5 = 0;
 	};
 
 	struct FBlendState
@@ -292,7 +292,7 @@ namespace Turbo
 
 	public:
 		std::array<FBlendState, kMaxColorAttachments> mBlendStates;
-		uint32 mActiveStates = 0;
+		u32 mActiveStates = 0;
 	};
 
 	struct FShaderStage
@@ -317,7 +317,7 @@ namespace Turbo
 
 	public:
 		std::array<vk::Format, kMaxColorAttachments> mColorAttachmentFormats = {};
-		uint32 mNumColorAttachments = 0;
+		u32 mNumColorAttachments = 0;
 
 		vk::Format mDepthAttachmentFormat = vk::Format::eUndefined;
 	};
@@ -354,7 +354,7 @@ namespace Turbo
 
 	public:
 		std::array<FShaderStage, kMaxShaderStages> mStages;
-		uint32 mStagesCount = 0;
+		u32 mStagesCount = 0;
 
 		FName mName;
 	};
@@ -389,9 +389,9 @@ namespace Turbo
 		FMultisampleStateBuilder mMultisampleStateBuilder;
 
 		std::array<THandle<FDescriptorSetLayout>, kMaxDescriptorSetLayouts> mDescriptorSetLayouts;
-		uint32 mNumActiveLayouts = 1; // The 0th set are always bindless resources
+		u32 mNumActiveLayouts = 1; // The 0th set are always bindless resources
 
-		uint32 mPushConstantSize = 0;
+		u32 mPushConstantSize = 0;
 
 		vk::PrimitiveTopology mTopology = vk::PrimitiveTopology::eTriangleList;
 
@@ -412,7 +412,7 @@ namespace Turbo
 		THandle<FBuffer> mVertexBuffer = {};
 		THandle<FBuffer> mIndexBuffer = {};
 
-		uint32 mNumVertices = 0;
+		u32 mNumVertices = 0;
 
 		vk::GeometryTypeKHR mGeometryType = vk::GeometryTypeKHR::eTriangles;
 		vk::GeometryFlagsKHR mGeometryFlags = vk::GeometryFlagBitsKHR::eOpaque;
@@ -422,7 +422,7 @@ namespace Turbo
 
 	struct FTLASBuilder
 	{
-		uint32 mNumInstances = 0;
+		u32 mNumInstances = 0;
 		FName mName = {};
 	};
 

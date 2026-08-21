@@ -28,7 +28,7 @@ namespace Turbo
 			TRACE_ZONE_SCOPED_N("Recalculate dirty transforms (DFS)")
 			std::vector<entt::entity> entitiesToProcess;
 			entt::dense_set<entt::entity> processedEntities;
-			int32 entitiesToProcessBack = 0;
+			i32 entitiesToProcessBack = 0;
 
 			{
 				auto dirtyTransformsView = registry.view<FRelationship, FWorldTransformDirty>();
@@ -74,7 +74,7 @@ namespace Turbo
 				});
 			}
 
-			TRACE_PLOT("Dirty transforms", static_cast<int64>(processedEntities.size()));
+			TRACE_PLOT("Dirty transforms", static_cast<i64>(processedEntities.size()));
 		}
 	}
 

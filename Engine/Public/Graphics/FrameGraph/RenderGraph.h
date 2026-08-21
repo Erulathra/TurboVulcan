@@ -32,8 +32,8 @@ namespace Turbo
 		FRGResourceHandle ReadBuffer(FRGResourceHandle buffer);
 		FRGResourceHandle WriteBuffer(FRGResourceHandle buffer);
 
-		void AddAttachment(FRGResourceHandle attachment, uint32 attachmentIndex);
-		void AddAttachment(FRGAttachment attachment, uint32 attachmentIndex);
+		void AddAttachment(FRGResourceHandle attachment, u32 attachmentIndex);
+		void AddAttachment(FRGAttachment attachment, u32 attachmentIndex);
 		void SetDepthStencilAttachment(FRGResourceHandle attachment);
 		void SetDepthStencilAttachment(FRGAttachment attachment);
 
@@ -98,9 +98,9 @@ namespace Turbo
 
 	struct FRenderGraphBuilder
 	{
-		static constexpr uint32 kPerFrameStackSize = 64 * Memory::kMebi;
-		static constexpr uint32 kBufferAddressTableSize = 1024;
-		static constexpr uint32 kTextureBindingTableSize = 1024;
+		static constexpr u32 kPerFrameStackSize = 64 * Memory::kMebi;
+		static constexpr u32 kBufferAddressTableSize = 1024;
+		static constexpr u32 kTextureBindingTableSize = 1024;
 
 		DELETE_COPY(FRenderGraphBuilder)
 		FRenderGraphBuilder() = default;
@@ -141,13 +141,13 @@ namespace Turbo
 		void Reset();
 
 		/* Stack allocation Interface */
-		[[nodiscard]] void* Allocate(TurboSize numBytes) { return Memory::Allocate(&mAllocator, numBytes); }
+		[[nodiscard]] void* Allocate(SizeType numBytes) { return Memory::Allocate(&mAllocator, numBytes); }
 
 		template <typename PODType>
 		[[nodiscard]] PODType* AllocatePOD() { return Memory::Allocate<PODType>(&mAllocator); }
 
 		template <typename PODType>
-		[[nodiscard]] PODType* AllocatePOD(TurboSize num) { return Memory::Allocate<PODType>(&mAllocator, num); }
+		[[nodiscard]] PODType* AllocatePOD(SizeType num) { return Memory::Allocate<PODType>(&mAllocator, num); }
 
 		/* Other */
 		[[nodiscard]] vk::Format GetTextureFormat(FRGResourceHandle resourceHandle) const;

@@ -2,10 +2,10 @@
 
 namespace glm
 {
-	typedef uint32						uint1;			//!< \brief unsigned integer vector with 1 component. (From GLM_GTX_compatibility extension)
-	typedef vec<2, uint32, highp>		uint2;			//!< \brief unsigned integer vector with 2 components. (From GLM_GTX_compatibility extension)
-	typedef vec<3, uint32, highp>		uint3;			//!< \brief unsigned integer vector with 3 components. (From GLM_GTX_compatibility extension)
-	typedef vec<4, uint32, highp>		uint4;			//!< \brief unsigned integer vector with 4 components. (From GLM_GTX_compatibility extension)
+	typedef u32						uint1;			//!< \brief unsigned integer vector with 1 component. (From GLM_GTX_compatibility extension)
+	typedef vec<2, u32, highp>		uint2;			//!< \brief unsigned integer vector with 2 components. (From GLM_GTX_compatibility extension)
+	typedef vec<3, u32, highp>		uint3;			//!< \brief unsigned integer vector with 3 components. (From GLM_GTX_compatibility extension)
+	typedef vec<4, u32, highp>		uint4;			//!< \brief unsigned integer vector with 4 components. (From GLM_GTX_compatibility extension)
 }
 
 namespace Turbo
@@ -37,8 +37,8 @@ namespace Turbo
 	struct FViewport final
 	{
 		FRect2DInt Rect;
-		float MinDepth = 0.f;
-		float MaxDepth = 0.f;
+		fp32 MinDepth = 0.f;
+		fp32 MaxDepth = 0.f;
 
 		static FViewport FromSize(glm::ivec2 size)
 		{
@@ -54,11 +54,11 @@ namespace Turbo
 	struct FPlane final
 	{
 		glm::float3 mNormal = {};
-		float mDistance = 0.f;
+		fp32 mDistance = 0.f;
 
 		FPlane() = default;
 
-		FPlane(glm::float3 normal, float distance);
+		FPlane(glm::float3 normal, fp32 distance);
 		FPlane(glm::float3 normal, glm::float3 point);
 	};
 

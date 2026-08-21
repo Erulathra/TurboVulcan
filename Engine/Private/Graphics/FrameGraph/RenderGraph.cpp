@@ -57,12 +57,12 @@ namespace Turbo
 		return buffer;
 	}
 
-	void FRGPassInfo::AddAttachment(FRGResourceHandle attachment, uint32 attachmentIndex)
+	void FRGPassInfo::AddAttachment(FRGResourceHandle attachment, u32 attachmentIndex)
 	{
 		AddAttachment({.mTexture = attachment }, attachmentIndex);
 	}
 
-	void FRGPassInfo::AddAttachment(FRGAttachment attachment, uint32 attachmentIndex)
+	void FRGPassInfo::AddAttachment(FRGAttachment attachment, u32 attachmentIndex)
 	{
 		TURBO_CHECK(attachmentIndex < kMaxColorAttachments);
 		TURBO_CHECK(mColorAttachments[attachmentIndex].IsValid() == false)
@@ -149,7 +149,7 @@ namespace Turbo
       TURBO_CHECK(mDescriptorSetLayout)
 
       /* Create descriptor set per frame in flight */
-      for (uint32 frameId = 0; frameId < kMaxFramesInFlight; ++frameId)
+      for (u32 frameId = 0; frameId < kMaxFramesInFlight; ++frameId)
       {
 			const FName descriptorSetName(fmt::format("RenderGraph_{}", frameId));
 			FDescriptorSetBuilder descriptorSetBuilder;
@@ -176,7 +176,7 @@ namespace Turbo
 	{
 		TURBO_CHECK(textureInfo.IsValid())
 		mTextures.push_back(textureInfo);
-		return {ERGResourceType::Texture, static_cast<uint32>(mTextures.size() - 1)};
+		return {ERGResourceType::Texture, static_cast<u32>(mTextures.size() - 1)};
 	}
 
 	FRGResourceHandle FRenderGraphBuilder::RegisterExternalTexture(THandle<FTexture> texture, ETextureLayout initLayout)
@@ -194,7 +194,7 @@ namespace Turbo
 		};
 
 		// Check is texture is registered, if yes return it.
-		for (uint32 textureIndex = 0; textureIndex < mTextures.size(); ++textureIndex)
+		for (u32 textureIndex = 0; textureIndex < mTextures.size(); ++textureIndex)
 		{
 		   if (mTextures[textureIndex].mExternalTextureHandle == textureHandle)
 			{
@@ -220,7 +220,7 @@ namespace Turbo
 		};
 
 		mTextures.push_back(textureInfo);
-		return {ERGResourceType::Texture, static_cast<uint32>(mTextures.size()) - 1, true};
+		return {ERGResourceType::Texture, static_cast<u32>(mTextures.size()) - 1, true};
 	}
 
 	FRGTextureInfo FRenderGraphBuilder::GetTextureInfo(FRGResourceHandle resourceHandle) const
@@ -233,7 +233,7 @@ namespace Turbo
 	{
 		TURBO_CHECK(bufferInfo.IsValid())
 		mBuffers.push_back(bufferInfo);
-		return {ERGResourceType::Buffer, static_cast<uint32>(mBuffers.size() - 1)};
+		return {ERGResourceType::Buffer, static_cast<u32>(mBuffers.size() - 1)};
 	}
 
 	void FRenderGraphBuilder::QueueBufferUpload(const FRGBufferUpload& bufferUpload)
@@ -287,7 +287,7 @@ namespace Turbo
 		TURBO_CHECK(bufferHandle)
 
 		// Check is buffer is registered, if yes return it.
-		for (uint32 bufferId = 0; bufferId < mBuffers.size(); ++bufferId)
+		for (u32 bufferId = 0; bufferId < mBuffers.size(); ++bufferId)
 		{
 		   if (mBuffers[bufferId].mExternalBufferHandle == bufferHandle)
 			{
@@ -307,7 +307,7 @@ namespace Turbo
 		};
 
 		mBuffers.push_back(externalBufferInfo);
-		return {ERGResourceType::Buffer, static_cast<uint32>(mBuffers.size()) - 1, true};
+		return {ERGResourceType::Buffer, static_cast<u32>(mBuffers.size()) - 1, true};
 	}
 
 	FRGPassInitializer FRenderGraphBuilder::AddPass(FName passName, EPassType passType)
@@ -316,7 +316,7 @@ namespace Turbo
 		FRGPassInfo& passInfo = mRenderPasses.back();
 		passInfo.mPassType = passType;
 		passInfo.mGraphBuilder = this;
-		passInfo.mHandle = { .mIndex = static_cast<uint16>(mRenderPasses.size() - 1) };
+		passInfo.mHandle = { .mIndex = static_cast<u16>(mRenderPasses.size() - 1) };
 		passInfo.mName = passName;
 
 		return FRGPassInitializer(*this, passInfo);
@@ -406,7 +406,7 @@ namespace Turbo
 		entt::dense_map<FRGResourceHandle, FResourceState> resourceData;
 
 		// register external resources
-		for (uint32 textureId = 0; textureId < mTextures.size(); ++textureId)
+		for (u32 textureId = 0; textureId < mTextures.size(); ++textureId)
 		{
          const FRGTextureInfo& textureInfo = mTextures[textureId];
 			if (textureInfo.mExternalTextureHandle.IsValid())
@@ -424,7 +424,7 @@ namespace Turbo
 		mPerPassTextureBarriers.clear();
 		mPerPassTextureBarriers.resize(mRenderPasses.size());
 
-		for (uint32 passId = 0; passId < mRenderPasses.size(); ++passId)
+		for (u32 passId = 0; passId < mRenderPasses.size(); ++passId)
 		{
 			const FRGPassInfo& pass = mRenderPasses[passId];
 			TURBO_LOG(LogRenderGraph, Display, "[Compile Texture Syncronization] {}", pass.mName)
@@ -532,7 +532,7 @@ namespace Turbo
 		}
 
 		// Add final exterior resources barriers
-		for (uint32 textureId = 0; textureId < mTextures.size(); ++textureId)
+		for (u32 textureId = 0; textureId < mTextures.size(); ++textureId)
 		{
    		const FRGTextureInfo& textureInfo = mTextures[textureId];
          FRGResourceHandle resourceHandle(ERGResourceType::Texture, textureId, true);
@@ -574,7 +574,7 @@ namespace Turbo
 
 		entt::dense_map<FRGResourceHandle, FResourceState> resourceData;
 
-		for (uint32 bufferId = 0; bufferId < mBuffers.size(); ++bufferId)
+		for (u32 bufferId = 0; bufferId < mBuffers.size(); ++bufferId)
 		{
 		   const FRGBufferInfo& bufferInfo = mBuffers[bufferId];
 			if (bufferInfo.mExternalBufferHandle.IsValid())
@@ -599,7 +599,7 @@ namespace Turbo
 		mPerPassBufferBarriers.clear();
 		mPerPassBufferBarriers.resize(mRenderPasses.size());
 
-		for (uint32 passId = 0; passId < mRenderPasses.size(); ++passId)
+		for (u32 passId = 0; passId < mRenderPasses.size(); ++passId)
 		{
 			const FRGPassInfo& pass = mRenderPasses[passId];
 
@@ -679,15 +679,15 @@ namespace Turbo
 		TRACE_ZONE_SCOPED()
 		TURBO_LOG(LogRenderGraph, Display, "Executing render graph");
 
-		const uint32 NumTextures = mTextures.size();
-		const uint32 NumBuffers = mBuffers.size();
+		const u32 NumTextures = mTextures.size();
+		const u32 NumBuffers = mBuffers.size();
 
 		FRenderResources renderResources = {};
 		renderResources.mTextures.reserve(NumTextures);
 		renderResources.mBuffers.reserve(NumBuffers);
 
 		// Allocate textures
-		for (uint32 textureId = 0; textureId < mTextures.size(); ++textureId)
+		for (u32 textureId = 0; textureId < mTextures.size(); ++textureId)
 		{
 			const FRGTextureInfo& textureInfo = mTextures[textureId];
 
@@ -722,7 +722,7 @@ namespace Turbo
 		}
 
 		// Allocate buffers
-		for (uint32 bufferId = 0; bufferId < mBuffers.size(); ++bufferId)
+		for (u32 bufferId = 0; bufferId < mBuffers.size(); ++bufferId)
 		{
 			const FRGBufferInfo bufferInfo = mBuffers[bufferId];
 
@@ -760,7 +760,7 @@ namespace Turbo
 
 			const FBuffer* buffer = gpu.AccessBuffer(renderResources.GetBuffer(bufferUpload.mTargetBuffer));
 			std::memcpy(
-				static_cast<byte*>(buffer->mMappedAddress) + bufferUpload.mOffset,
+				static_cast<ByteType*>(buffer->mMappedAddress) + bufferUpload.mOffset,
 				bufferUpload.mData,
 				bufferUpload.mDataSize
 			);
@@ -780,7 +780,7 @@ namespace Turbo
 			const FBuffer* bufferAddressTable = gpu.AccessBuffer(bufferAddressTableHandle);
 			FDeviceAddress* batMappedAddress = reinterpret_cast<FDeviceAddress*>(bufferAddressTable->mMappedAddress);
 
-			for (uint32 bufferId = 0; bufferId < renderResources.mBuffers.size(); ++bufferId)
+			for (u32 bufferId = 0; bufferId < renderResources.mBuffers.size(); ++bufferId)
 			{
    			const FBuffer* buffer = gpu.AccessBuffer(renderResources.mBuffers[bufferId]);
             TURBO_CHECK(buffer)
@@ -798,7 +798,7 @@ namespace Turbo
          const FBuffer* textureIndexTable = gpu.AccessBuffer(textureIndexTableHandle);
          FHandle::IndexType* titMappedAddress = reinterpret_cast<FHandle::IndexType*>(textureIndexTable->mMappedAddress);
 
-         for (uint32 textureId = 0; textureId < renderResources.mTextures.size(); ++textureId)
+         for (u32 textureId = 0; textureId < renderResources.mTextures.size(); ++textureId)
 			{
 				titMappedAddress[textureId] = renderResources.mTextures[textureId].GetIndex();
 			}
@@ -838,7 +838,7 @@ namespace Turbo
 			gpu.DestroyBuffer(textureIndexTableHandle);
 		}
 
-		for (uint32 passId = 0; passId < mRenderPasses.size(); ++passId)
+		for (u32 passId = 0; passId < mRenderPasses.size(); ++passId)
 		{
 			const FRGPassInfo& pass = mRenderPasses[passId];
 			DEBUG_LABEL_REGION(cmd, pass.mName);
@@ -894,7 +894,7 @@ namespace Turbo
 				FRenderingAttachments renderingAttachments;
 
 				// Bind color attachments
-				for (uint32 attachmentId = 0; attachmentId < kMaxColorAttachments; ++attachmentId)
+				for (u32 attachmentId = 0; attachmentId < kMaxColorAttachments; ++attachmentId)
 				{
 					if (pass.mColorAttachments[attachmentId].IsValid())
 					{
@@ -981,7 +981,7 @@ namespace Turbo
 
 		// Destroy resources
 		// Destroy textures
-		for (uint32 textureId = 0; textureId < mTextures.size(); ++textureId)
+		for (u32 textureId = 0; textureId < mTextures.size(); ++textureId)
 		{
          const FRGTextureInfo& textureInfo = mTextures[textureId];
          if (textureInfo.mExternalTextureHandle.IsValid() == false)
@@ -993,7 +993,7 @@ namespace Turbo
 		}
 
 		// Destroy buffers
-		for (uint32 bufferId = 0; bufferId < mBuffers.size(); ++bufferId)
+		for (u32 bufferId = 0; bufferId < mBuffers.size(); ++bufferId)
 		{
 		   const FRGBufferInfo& bufferInfo = mBuffers[bufferId];
 			if (bufferInfo.mExternalBufferHandle.IsValid() == false)

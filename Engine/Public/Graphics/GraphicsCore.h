@@ -4,25 +4,25 @@
 #include "vulkan/vulkan_core.h"
 namespace Turbo
 {
-	inline constexpr uint16 kInvalidSetIndex = std::numeric_limits<uint16>::max();
+	inline constexpr u16 kInvalidSetIndex = I16_MAX;
 
-	inline constexpr uint8 kMaxColorAttachments = 8;
-	inline constexpr uint8 kMaxShaderStages = 5;
-	inline constexpr uint8 kMaxDescriptorsPerSet = 8;
-	inline constexpr uint32 kMaxSwapChainImages = 5;
-	inline constexpr uint32 kMaxFramesInFlight = 2;
+	inline constexpr u8 kMaxColorAttachments = 8;
+	inline constexpr u8 kMaxShaderStages = 5;
+	inline constexpr u8 kMaxDescriptorsPerSet = 8;
+	inline constexpr u32 kMaxSwapChainImages = 5;
+	inline constexpr u32 kMaxFramesInFlight = 2;
 
-	inline constexpr uint32 kMaxRenderingThreads = 16;
+	inline constexpr u32 kMaxRenderingThreads = 16;
 
-	inline constexpr uint8 kMaxDescriptorSetLayouts = 2;
-	inline constexpr uint32 kMaxDescriptorSets = 2;
+	inline constexpr u8 kMaxDescriptorSetLayouts = 2;
+	inline constexpr u32 kMaxDescriptorSets = 2;
 
-	inline constexpr uint32 kMaxPushConstantSize = 256;
+	inline constexpr u32 kMaxPushConstantSize = 256;
 
-	inline constexpr uint32 kVulkanVersion = VK_MAKE_VERSION(1, 3, 0);
+	inline constexpr u32 kVulkanVersion = VK_MAKE_VERSION(1, 3, 0);
 
-	inline constexpr uint32 kDefaultTimeout = 1000000000; // 1 second
-	inline constexpr uint32 kMaxTimeout = std::numeric_limits<uint32>::max();
+	inline constexpr u32 kDefaultTimeout = 1000000000; // 1 second
+	inline constexpr u32 kMaxTimeout = U32_MAX;
 
 	using FDeviceAddress = vk::DeviceAddress;
 	inline constexpr FDeviceAddress kNullDeviceAddress = 0;
@@ -34,13 +34,13 @@ namespace Turbo
 /** Constants end */
 
 template <>
-struct fmt::formatter<vk::Result> : formatter<int32>
+struct fmt::formatter<vk::Result> : formatter<i32>
 {
 	format_context::iterator format(vk::Result result, format_context& ctx) const;
 };
 
 template <>
-struct fmt::formatter<VkResult> : formatter<int32>
+struct fmt::formatter<VkResult> : formatter<i32>
 {
 	format_context::iterator format(VkResult result, format_context& ctx) const;
 };

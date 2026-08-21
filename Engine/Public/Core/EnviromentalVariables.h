@@ -6,7 +6,7 @@ namespace Turbo
 	{
 	public:
 		static bool GetFlag(std::string_view variableName);
-		static std::optional<int32> GetInt(std::string_view variableName);
+		static std::optional<i32> GetInt(std::string_view variableName);
 		static std::optional<std::string> GetString(std::string_view variableName);
 
 		static std::optional<std::string> FindOrGetEnvVariable(std::string_view variableName);

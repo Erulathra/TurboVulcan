@@ -69,7 +69,7 @@ namespace Turbo
 #if ENABLE_SHADER_CACHING
 				// Cache loaded modues
 				// TODO: To enable this feature in developement we need to check module modify access to remove invalid cache.
-				for (uint32 moduleId = 0; moduleId < mSession->getLoadedModuleCount(); ++moduleId)
+				for (u32 moduleId = 0; moduleId < mSession->getLoadedModuleCount(); ++moduleId)
 				{
 					slang::IModule* moduleToCache = mSession->getLoadedModule(moduleId);
 					const std::filesystem::path loadedModulePath = moduleToCache->getFilePath();
@@ -153,7 +153,7 @@ namespace Turbo
 			}
 
 			vk::ShaderModuleCreateInfo createInfo = {};
-			createInfo.pCode = static_cast<const uint32_t*>(spirvCode->getBufferPointer());
+			createInfo.pCode = static_cast<const u32*>(spirvCode->getBufferPointer());
 			createInfo.codeSize = spirvCode->getBufferSize();
 
 			CHECK_VULKAN_RESULT(result, device.createShaderModule(createInfo));

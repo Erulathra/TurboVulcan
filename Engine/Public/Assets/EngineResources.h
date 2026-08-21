@@ -17,21 +17,21 @@ namespace Turbo
 
 		struct FBasePassMaterialData
 		{
-			uint32 mBaseColorSampler = kInvalidBinding;
-			uint32 mMetalicRoughnessSampler = kInvalidBinding;
-			uint32 mNormalSampler = kInvalidBinding;
+			u32 mBaseColorSampler = kInvalidBinding;
+			u32 mMetalicRoughnessSampler = kInvalidBinding;
+			u32 mNormalSampler = kInvalidBinding;
 		};
 
 		struct FBasePassInstanceData
 		{
-			uint32 mBaseColorTexture = kInvalidBinding;
-			uint32 mMetalicRoughnessTexture = kInvalidBinding;
-			uint32 mNormalTexture = kInvalidBinding;
+			u32 mBaseColorTexture = kInvalidBinding;
+			u32 mMetalicRoughnessTexture = kInvalidBinding;
+			u32 mNormalTexture = kInvalidBinding;
 
-			float mNormalScale = 1.f;
+			fp32 mNormalScale = 1.f;
 			glm::float4 mBaseColorFactor = glm::float4(1.f);
-			float mMetalicFactor = 0.f;
-			float mRoughnessFactor = 1.f;
+			fp32 mMetalicFactor = 0.f;
+			fp32 mRoughnessFactor = 1.f;
 		};
 	}
 
@@ -56,10 +56,10 @@ namespace Turbo
 		THandle<FMesh> GetPlaceholderMesh();
 
 		void GenerateCheckerboardTextureData(
-			byte* outBytes,
+			ByteType* outBytes,
 			glm::uint2 size,
-			std::span<const byte> onValue,
-			std::span<const byte> offValue
+			std::span<const ByteType> onValue,
+			std::span<const ByteType> offValue
 		);
 	}
 }

@@ -29,8 +29,8 @@ namespace Turbo
 {
 	struct FIndirectDrawBufferHeader
 	{
-		uint32 mNumDrawCalls = 0;
-		uint32 __PADDING[3];
+		u32 mNumDrawCalls = 0;
+		u32 __PADDING[3];
 	};
 
 	struct FDrawCall
@@ -41,7 +41,7 @@ namespace Turbo
 		THandle<FMaterial> mMaterial = {};
 		THandle<FMaterial::Instance> mMaterialInstance = {};
 
-		uint64 mDrawCallHash = std::numeric_limits<uint64>::max();
+		u64 mDrawCallHash = std::numeric_limits<u64>::max();
 
 		glm::float3 mBoundsMin = {};
 		glm::float3 mBoundsMax = {};
@@ -87,7 +87,7 @@ namespace Turbo
 		viewData.mDeltaTime = FCoreTimer::DeltaTime();
 
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		viewData.mFrameIndex = static_cast<int32>(gpu.GetNumRenderedFrames());
+		viewData.mFrameIndex = static_cast<i32>(gpu.GetNumRenderedFrames());
 
 		viewData.mViewFrustum = cameraCache.mViewFrustum;
 
@@ -169,18 +169,18 @@ namespace Turbo
 					currentDrawCall.mMaterial = meshComponent.mMaterial;
 					currentDrawCall.mMaterialInstance = meshComponent.mMaterialInstance;
 
-					constexpr uint64 kMaterialMask = 0xFFFF000000000000;
-					constexpr uint64 kMaterialInstanceMask = 0x0000FFFF00000000;
-					constexpr uint64 kMeshMask = 0x00000000FFFF0000;
+					constexpr u64 kMaterialMask = 0xFFFF000000000000;
+					constexpr u64 kMaterialInstanceMask = 0x0000FFFF00000000;
+					constexpr u64 kMeshMask = 0x00000000FFFF0000;
 
 					TURBO_CHECK(currentDrawCall.mMaterial.GetIndex() < 1 << std::popcount(kMaterialMask))
 					TURBO_CHECK(currentDrawCall.mMaterial.GetIndex() < 1 << std::popcount(kMaterialInstanceMask))
 					TURBO_CHECK(currentDrawCall.mMaterial.GetIndex() < 1 << std::popcount(kMeshMask))
 
 					currentDrawCall.mDrawCallHash =
-						static_cast<uint64>(currentDrawCall.mMaterial.GetIndex()) << std::countr_zero(kMaterialMask)
-						| static_cast<uint64>(currentDrawCall.mMaterialInstance.GetIndex()) << std::countr_zero(kMaterialInstanceMask)
-						| static_cast<uint64>(currentDrawCall.mMesh.GetIndex()) << std::countr_zero(kMeshMask);
+						static_cast<u64>(currentDrawCall.mMaterial.GetIndex()) << std::countr_zero(kMaterialMask)
+						| static_cast<u64>(currentDrawCall.mMaterialInstance.GetIndex()) << std::countr_zero(kMaterialInstanceMask)
+						| static_cast<u64>(currentDrawCall.mMesh.GetIndex()) << std::countr_zero(kMeshMask);
 				}
 			}
 		}
@@ -222,7 +222,7 @@ namespace Turbo
 			const FAssetManager& assetManager = entt::locator<FAssetManager>::value();
 			const FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 
-			uint32 numBuckets = materialBuckets.size();
+			u32 numBuckets = materialBuckets.size();
 			outBuckets.reserve(numBuckets);
 
 			for (const FMaterialBucket& bucket : materialBuckets)
@@ -231,7 +231,7 @@ namespace Turbo
 				drawIndirectBucket.mMaterialHandle = bucket.mTargetMaterial;
 
 				const FMaterial* material = materialManager.AccessMaterial(bucket.mTargetMaterial);
-				const uint32 numDraws = bucket.mEndIt - bucket.mStartIt;
+				const u32 numDraws = bucket.mEndIt - bucket.mStartIt;
 				drawIndirectBucket.mCount = numDraws;
 
 				// Initialize buffers
@@ -260,7 +260,7 @@ namespace Turbo
 				const FViewData* viewData = sceneView->mViewData;
 
 				// Fill buffers
-				uint32 drawIndex = 0;
+				u32 drawIndex = 0;
 				for (FDrawCallIt drawCallIt = bucket.mStartIt; drawCallIt != bucket.mEndIt; ++drawCallIt)
 				{
 					FMaterial::IndirectDrawData& drawData = drawDatum[drawIndex];
@@ -321,7 +321,7 @@ namespace Turbo
 
 		const static FName tlasName{"SceneTLAS"};
 		FTLASBuilder tlasBuilder = {
-			.mNumInstances = static_cast<uint32>(instances.size()),
+			.mNumInstances = static_cast<u32>(instances.size()),
 			.mName = tlasName
 		};
 		const FAccelerationStructureSizeInfo& tlasSizeInfo = gpu.CalculateTLASSize(tlasBuilder);
@@ -529,7 +529,7 @@ namespace Turbo
 
 					cmd.PushConstants(pushConstants);
 
-					const glm::uint3 groupCount = glm::uint3(Math::DivideAndRoundUp<uint32>(bucket.mCount, 64), 1, 1 );
+					const glm::uint3 groupCount = glm::uint3(Math::DivideAndRoundUp<u32>(bucket.mCount, 64), 1, 1 );
 
 					cmd.Dispatch(groupCount);
 				}
@@ -666,7 +666,7 @@ namespace Turbo
 
 					static const ConstString kRenderBuckets = "Render Buckets";
 					TRACE_PLOT_CONFIGURE(kRenderBuckets, EPlotFormat::Number, true, true, 0xFFFF00)
-					TRACE_PLOT(kRenderBuckets, static_cast<int64>(drawIndirectBuckets.size()))
+					TRACE_PLOT(kRenderBuckets, static_cast<i64>(drawIndirectBuckets.size()))
 				}
 			);
 

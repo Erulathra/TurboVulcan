@@ -11,7 +11,7 @@ namespace Turbo
 		virtual void Shutdown() override;
 
 		virtual void OnEvent(FEventBase& event) override;
-		virtual void BeginTick(double deltaTime) override;
+		virtual void BeginTick(fp64 deltaTime) override;
 		virtual bool ShouldTick() override;
 
 		virtual FName GetName() override;

@@ -42,12 +42,12 @@ namespace Turbo
 		mViewportWindow->Shutdown();
 	}
 
-	void FEditorLayer::BeginTick(double deltaTime)
+	void FEditorLayer::BeginTick(fp64 deltaTime)
 	{
 		mViewportWindow->Tick(deltaTime);
 	}
 
-	void FEditorLayer::EndTick(double deltaTime)
+	void FEditorLayer::EndTick(fp64 deltaTime)
 	{
 		mViewportWindow->Draw();
 		mOutlinerWindow->Draw();
@@ -62,7 +62,7 @@ namespace Turbo
 	void FEditorLayer::EndFrame(FRenderGraphBuilder& graphBuilder, FRGResourceHandle presentTexture)
 	{
 		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		const uint32 bufferedFrameId = gpu.GetFrameInFlightId();
+		const u32 bufferedFrameId = gpu.GetFrameInFlightId();
 
 		std::vector<THandle<FTexture>>& renderedTextures = mViewportWindow->mRenderedTextures;
 		if (bufferedFrameId < renderedTextures.size())

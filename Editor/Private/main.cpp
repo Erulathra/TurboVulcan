@@ -3,7 +3,7 @@
 #include "Core/Engine.h"
 #include "Layers/Layer.h"
 
-int32_t main(int argc, char* argv[])
+i32 main(int argc, char* argv[])
 {
     Turbo::FEngine::Init(argc, argv);
 

@@ -19,7 +19,7 @@ namespace Turbo
 
 		// Source: https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
 		template <typename T, typename... Rest>
-		void HashCombine(uint32& inOutHash, const T& v, const Rest&... rest)
+		void HashCombine(u32& inOutHash, const T& v, const Rest&... rest)
 		{
 			inOutHash ^= std::hash<T>{}(v) + 0x9e3779b9u + (inOutHash << 6) + (inOutHash >> 2);
 			(HashCombine(inOutHash, rest), ...);
@@ -32,15 +32,15 @@ namespace Turbo
 			(HashCombine(inOutHash, rest), ...);
 		};
 
-		inline uint32 Adler32Hash(std::span<byte> data)
+		inline u32 Adler32Hash(std::span<ByteType> data)
 		{
-			uint32 a = 1, b = 0;
+			u32 a = 1, b = 0;
 
 			for (size_t index = 0; index < data.size(); ++index)
 			{
-   			constexpr uint32 modulo = 65521;
+   			constexpr u32 modulo = 65521;
 
-				a = (a + (uint32)data[index]) % modulo;
+				a = (a + (u32)data[index]) % modulo;
 				b = (b + a) % modulo;
 			}
 

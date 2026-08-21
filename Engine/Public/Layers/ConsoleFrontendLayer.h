@@ -18,7 +18,7 @@ namespace Turbo
 
 		virtual void OnEvent(FEventBase& event) override;
 
-		virtual void BeginTick(double deltaTime) override;
+		virtual void BeginTick(fp64 deltaTime) override;
 		virtual bool ShouldTick() override;
 
 		virtual FName GetName() override;
@@ -33,12 +33,12 @@ namespace Turbo
 		// Used when accessing history, as 0th entry.
 		std::string mTempBuffer;
 
-		uint32 mHistoryIndex = 0;
+		u32 mHistoryIndex = 0;
 
 		bool mbConsoleVisible : 1 = false;
 		bool mbFocusConsoleInput : 1 = false;
 
 	public:
-		friend int32 OnConsoleInputCallback(ImGuiInputTextCallbackData* data);
+		friend i32 OnConsoleInputCallback(ImGuiInputTextCallbackData* data);
 	};
 }
