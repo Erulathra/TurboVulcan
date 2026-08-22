@@ -40,7 +40,7 @@ using namespace std::string_view_literals;
 	}
 #else // WITH_ASSERTIONS
 #define TURBO_CHECK(CONDITION) {}
-#define TURBO_CHECK_MSG(CONDITION) {}
+#define TURBO_CHECK_MSG(CONDITION, MESSAGE, ...) {}
 #endif // else WITH_ASSERTIONS
 
 #if WITH_SLOW_ASSERTIONS
