@@ -7,8 +7,8 @@ namespace Turbo
 	struct FAsyncLoadingManager
 	{
 	public:
-		void Init(FGPUDevice& gpu);
-		void Shutdown(FGPUDevice& gpu);
+		void Init(GPUDevice& gpu);
+		void Shutdown(GPUDevice& gpu);
 
 		void Update();
 

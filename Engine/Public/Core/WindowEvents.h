@@ -5,7 +5,7 @@
 
 namespace Turbo
 {
-	class FWindow;
+	class Window;
 
 	struct FCloseWindowEvent : FEventBase
 	{
@@ -19,4 +19,3 @@ namespace Turbo
 		glm::uint2 mNewWindowSize;
 	};
 }
-

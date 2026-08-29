@@ -57,7 +57,6 @@ namespace Turbo
 		fp64 mTime = 0.f;
 		fp64 mWorldTime = 0.f;
 		fp64 mDeltaTime = 0.f;
-		i32 mFrameIndex = 0;
 
 		// In world space
 		FFrustum mViewFrustum = {};

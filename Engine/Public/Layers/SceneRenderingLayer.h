@@ -1,9 +1,11 @@
 #pragma once
 
+#include "CommonTypeDefs.h"
 #include "Core/DataStructures/Handle.h"
+#include "Graphics/FrameGraph/RenderGraph.h"
 #include "Graphics/FrameGraph/RenderGraphHelpers.h"
+#include "Graphics/GPUDevice.h"
 #include "Graphics/Resources.h"
-#include "Layer.h"
 #include "World/Camera.h"
 #include "World/World.h"
 
@@ -11,14 +13,17 @@ DECLARE_LOG_CATEGORY(LogSceneRendering, Display, Display)
 
 namespace Turbo
 {
+   struct Engine;
 	struct FBuffer;
 	struct FMaterial;
 	class FCommandBuffer;
+	struct RenderGraph;
+	struct CoreTimer;
 
 	// Replace with growable buffer
-	constexpr size_t kNumAllocatedMaterialInstances = 512;
+	constexpr SizeType kNumAllocatedMaterialInstances = 512;
 
-	struct FSceneData final
+	struct SceneData final
 	{
 		u32 mNumLights = 0;
 		u32 mSceneTLAS = 0;
@@ -28,11 +33,11 @@ namespace Turbo
 		u32 _PADDING[2];
 	};
 
-	struct FSceneView
+	struct SceneView
 	{
 		// Those pointers are valid only during this frame
 		FViewData* mViewData = nullptr;
-		FSceneData* mSceneData = nullptr;
+		SceneData* mSceneData = nullptr;
 		FLight* mLights = nullptr; // There is mNumLights in mSceneData;
 
 		FRGResourceHandle mViewDataBufferHandle = {};
@@ -44,7 +49,7 @@ namespace Turbo
 		FRGResourceHandle mTLASStorageBufferHandle = {};
 	};
 
-	struct FDrawIndirectBucket
+	struct DrawIndirectBucket
 	{
 		THandle<FMaterial> mMaterialHandle = {};
 		u32 mCount = 0;
@@ -52,41 +57,22 @@ namespace Turbo
 		FRGResourceHandle mDrawBuffer = {};
 	};
 
-	class FSceneRenderingLayer : public ILayer
+	struct SceneRenderingLayer
 	{
-	public:
-		virtual void Start() override;
-		virtual void Shutdown() override;
+		THandle<FPipeline> mFrustumCullingPipeline;
+		THandle<FPipeline> mToneMapperPipeline;
 
-		virtual FName GetName() override;
+		/* Public interface */
+		void Init(Engine* engine);
+		void Shutdown(Engine* engine);
 
-		virtual bool ShouldRender() override;
+		void Render(Engine* engine);
 
-		void Render(FRenderGraphBuilder& graphBuilder);
-		void RenderScene(FRenderGraphBuilder& graphBuilder, FSceneView* SceneView);
-		void RenderPostProcess(FRenderGraphBuilder& graphBuilder, FSceneView* SceneView);
+		void RenderScene(Engine* engine, SceneView* SceneView);
+		void RenderPostProcess(Engine* engine, SceneView* SceneView);
 
-	private:
-		static void UpdateViewData(World* world, FViewData& viewData);
-
-		static void CreateIndirectRenderBuffers(
-			FRenderGraphBuilder& graphBuilder,
-			World* world,
-			FSceneView* sceneView,
-			std::vector<FDrawIndirectBucket>& outBuckets
-		);
-
-		static void CreateSceneTLAS(FRenderGraphBuilder& graphBuilder, World* world, FSceneView* sceneView);
-
-	private:
-		THandle<FPipeline> mFrustumCullingPipeline = {};
-		THandle<FPipeline> mToneMapperPipeline = {};
+		static void UpdateViewData(Engine* engine, FViewData& viewData);
+		static void CreateIndirectRenderBuffers(Engine* engine, SceneView* sceneView, std::vector<DrawIndirectBucket>& outBuckets);
+		static void CreateSceneTLAS(Engine* engine, SceneView* sceneView);
 	};
-
-	template <>
-	inline FName GetStaticLayerName<FSceneRenderingLayer>()
-	{
-		static FName name("SceneRenderingLayer");
-		return name;
-	}
 } // namespace Turbo

@@ -1,12 +1,10 @@
 #include "Windows/SceneOutlinerWindow.h"
 
-#include "Core/Engine.h"
-#include "EditorLayer.h"
+#include "Editor.h"
 #include "Extensions/ImGui/ImGuiExtensions.h"
 #include "imgui.h"
 #include "World/EntityUtils.h"
 #include "World/SceneGraph.h"
-#include "World/World.h"
 
 namespace Turbo
 {
@@ -36,6 +34,7 @@ namespace Turbo
 
 	void FSceneOutlinerWindow::DrawTree()
 	{
+	#if 0
 		entt::registry& registry = gEngine->mWorld->mRegistry;
 
 		ImGui::BeginTable("##EntityList", 1, ImGuiTableFlags_RowBg);
@@ -71,6 +70,7 @@ namespace Turbo
 
 		ImGui::TreePop(currentDepth, 0);
 		ImGui::EndTable();
+		#endif
 	}
 
 	bool FSceneOutlinerWindow::DrawNode(entt::registry& registry, entt::entity entity, bool bForceLeaf)
@@ -119,6 +119,7 @@ namespace Turbo
 
 	void FSceneOutlinerWindow::DrawList(ImGuiTextFilter& filter)
 	{
+	#if 0
 		entt::registry& registry = gEngine->mWorld->mRegistry;
 
 		ImGui::BeginTable("##EntityList", 1, ImGuiTableFlags_RowBg);
@@ -137,5 +138,6 @@ namespace Turbo
 		}
 
 		ImGui::EndTable();
+	#endif
 	}
 } // Turbo

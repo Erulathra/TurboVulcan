@@ -1,12 +1,10 @@
 #include "Windows/PropertyEditor.h"
 
-#include "EditorLayer.h"
+#include "Editor.h"
 #include "imgui.h"
-#include "Core/Engine.h"
 #include "Extensions/ImGui/ImGuiExtensions.h"
 #include "Windows/ComponentEditors.h"
 #include "World/EntityUtils.h"
-#include "World/World.h"
 
 namespace Turbo
 {
@@ -36,6 +34,7 @@ namespace Turbo
 
 	void FPropertyEditorWindow::Draw()
 	{
+	#if 0
 		entt::registry& registry = gEngine->mWorld->mRegistry;
 		const entt::entity selection = entt::locator<FEditorSelection>::value().GetSelection();
 		const FPropertyEditorSystem* propertyEditorSystem = FPropertyEditorSystem::Get();
@@ -69,5 +68,6 @@ namespace Turbo
 		}
 
 		ImGui::End();
+	#endif
 	}
 } // Turbo

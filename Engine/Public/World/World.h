@@ -10,20 +10,17 @@ namespace Turbo
 
 	struct FSpawnedByLevelTag {};
 
-	struct FRuntimeLevel
-	{
-		TArray<THandle<FMesh>> mLoadedMeshes;
-		TArray<THandle<FTexture>> mLoadedTextures;
-	};
-
 	struct World
 	{
+   	TArray<THandle<FMesh>> mLoadedMeshes;
+   	TArray<THandle<FTexture>> mLoadedTextures;
+
 	   /* Properties */
    	entt::registry mRegistry;
-   	FRuntimeLevel mRuntimeLevel;
 
       /* Level loading */
-		void OpenLevel(FName path);
+      void Init(Engine* engine);
+		void OpenLevel(Engine* engine, FName path);
 		void UnloadLevel();
 	};
 } // Turbo

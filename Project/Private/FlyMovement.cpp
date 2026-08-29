@@ -91,7 +91,7 @@ namespace Turbo
 
 	void FFlyMovementSystem::HandleEvent(FEventBase& Event)
 	{
-		FEventDispatcher::Dispatch<FActionEvent>(Event, &FFlyMovementSystem::HandleAction);
+		EventDispatcher::Dispatch<FActionEvent>(Event, &FFlyMovementSystem::HandleAction);
 	}
 
 	void FFlyMovementSystem::Tick(fp64 deltaTime)

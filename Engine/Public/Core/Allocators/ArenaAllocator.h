@@ -8,7 +8,7 @@ namespace Turbo
 {
 	struct FArenaAllocator
 	{
-   	static constexpr bool kStaticAllocator = false;
+      static constexpr bool kStaticAllocator = false;
 
 		ByteType* mAllocation = nullptr;
 		ByteType* mTop = nullptr;
@@ -45,9 +45,10 @@ namespace Turbo
 
 		bool Contains(void* ptr, SizeType size = 0) const
 		{
-			return ptr >= mAllocation && static_cast<ByteType*>(ptr) + size <= mTop;
+			return ptr >= mAllocation && (ByteType*)(ptr) + size <= mTop;
 		}
 
 		void Clear() { mTop = mAllocation; }
 	};
+
 } // namespace Turbo

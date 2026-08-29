@@ -6,8 +6,8 @@ DECLARE_LOG_CATEGORY(LogRenderDoc, Display, Display)
 
 namespace Turbo
 {
-	class FWindow;
-	class FGPUDevice;
+	class Window;
+	class GPUDevice;
 
 	class FRenderDocFrameDebuggerAPI final : public IFrameDebuggerAPI
 	{
@@ -18,8 +18,8 @@ namespace Turbo
 		virtual bool Init() override;
 		virtual void Shutdown() override;
 		virtual bool CanCapture() override;
-		virtual void BeginCapture(FGPUDevice* gpu, FWindow* window) override;
-		virtual void EndCapture(FGPUDevice* gpu, FWindow* window) override;
+		virtual void BeginCapture(GPUDevice* gpu, Window* window) override;
+		virtual void EndCapture(GPUDevice* gpu, Window* window) override;
 		virtual void CaptureFrame() override;
 
 	private:

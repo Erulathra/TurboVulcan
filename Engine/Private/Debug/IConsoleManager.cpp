@@ -46,14 +46,6 @@ namespace Turbo
 
 				consoleManager.Print(message);
 			}));
-
-		static FAutoConsoleCommand gConsoleCommand_Exit(
-			"exit",
-			"Shut downs the engine",
-			FConsoleCommandDelegate::CreateLambda([](IConsoleManager& consoleManager, const FArgsVector args)
-			{
-				gEngine->RequestExit(EExitCode::Success);
-			}));
 	}
 
 	FAutoConsoleCommand::FAutoConsoleCommand(std::string_view name, std::string_view description, FConsoleCommandDelegate delegate)
@@ -266,7 +258,10 @@ namespace Turbo
 		FConsoleBufferChangedEvent event {};
 		event.mMessage = message;
 
+		// TODO(SS): Make cvars non static
+		#if 0
 		gEngine->PushEvent(event);
+		#endif
 	}
 
 	void FConsoleManager::Parse(const std::string_view input)

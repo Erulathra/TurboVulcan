@@ -9,11 +9,7 @@
 
 namespace Turbo
 {
-	class FWindow;
-
-	struct FGPUDeviceBuilder
-	{
-	};
+	class Window;
 
 	struct FBufferBuilder
 	{

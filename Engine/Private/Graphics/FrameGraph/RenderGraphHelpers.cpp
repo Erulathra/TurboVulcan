@@ -39,7 +39,7 @@ namespace Turbo
 			&& mSize > 0;
 	}
 
-	vk::BufferMemoryBarrier2 FRGBufferMemoryBarrier::ToVkBufferBarrier(FGPUDevice& gpu, THandle<FBuffer> bufferHandle) const
+	vk::BufferMemoryBarrier2 FRGBufferMemoryBarrier::ToVkBufferBarrier(GPUDevice* gpu, THandle<FBuffer> bufferHandle) const
 	{
 		vk::BufferMemoryBarrier2 vkBarrier = {};
 		vkBarrier.srcStageMask = mSrcStageMask;
@@ -49,7 +49,7 @@ namespace Turbo
 		vkBarrier.srcQueueFamilyIndex = vk::QueueFamilyIgnored;
 		vkBarrier.dstQueueFamilyIndex = vk::QueueFamilyIgnored;
 
-		const FBuffer* buffer = gpu.AccessBuffer(bufferHandle);
+		const FBuffer* buffer = gpu->AccessBuffer(bufferHandle);
 		vkBarrier.buffer = buffer->mVkBuffer;
 		vkBarrier.offset = 0;
 		vkBarrier.size = vk::WholeSize;
@@ -57,7 +57,7 @@ namespace Turbo
 		return vkBarrier;
 	}
 
-	vk::ImageMemoryBarrier2 FRGTextureMemoryBarrier::ToVkImageBarrier(FGPUDevice& gpu, THandle<FTexture> textureHandle) const
+	vk::ImageMemoryBarrier2 FRGTextureMemoryBarrier::ToVkImageBarrier(GPUDevice* gpu, THandle<FTexture> textureHandle) const
 	{
 		vk::ImageMemoryBarrier2 vkBarrier = {};
 		vkBarrier.srcStageMask = mSrcStageMask;
@@ -69,7 +69,7 @@ namespace Turbo
 		vkBarrier.srcQueueFamilyIndex = vk::QueueFamilyIgnored;
 		vkBarrier.dstQueueFamilyIndex = vk::QueueFamilyIgnored;
 
-		const FTexture* texture = gpu.AccessTexture(textureHandle);
+		const FTexture* texture = gpu->AccessTexture(textureHandle);
 		TURBO_CHECK(texture)
 
 		vkBarrier.image = texture->mVkImage;

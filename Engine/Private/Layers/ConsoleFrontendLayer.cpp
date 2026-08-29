@@ -1,5 +1,7 @@
 #include "Layers/ConsoleFrontendLayer.h"
 
+#include "Core/Engine.h"
+#include "Core/Input/InputSystem.h"
 #include "imgui.h"
 #include "Core/Input/Input.h"
 #include "Core/Input/Keys.h"
@@ -10,24 +12,14 @@ namespace Turbo
 {
 	const FName kToggleConsoleName = FName("ToggleConsole");
 
-	template<>
-	FName GetStaticLayerName<FConsoleFrontendLayer>()
+	void ConsoleFrontendLayer::Init(Engine* engine)
 	{
-		static FName name("ConsoleFrontend");
-		return name;
-	}
+	   // TODO(SS): If we get rid of the standard library that would not be necessary
+	   new(this) ConsoleFrontendLayer();
 
-	FName FConsoleFrontendLayer::GetName()
-	{
-		return GetStaticLayerName<FConsoleFrontendLayer>();
-	}
+		engine->mInputSystem->RegisterBinding({kToggleConsoleName, EKeys::Grave});
 
-	void FConsoleFrontendLayer::Start()
-	{
-		IInputSystem& inputSystem = entt::locator<IInputSystem>::value();
-		inputSystem.RegisterBinding({kToggleConsoleName, EKeys::Grave});
-
-		IConsoleManager& consoleManager = entt::locator<IConsoleManager>::value();
+		IConsoleManager& consoleManager = IConsoleManager::Get();
 		consoleManager.RegisterCommand(FConsoleCommand(
 			"history",
 			"Shows command history",
@@ -44,16 +36,15 @@ namespace Turbo
 		));
 	}
 
-	void FConsoleFrontendLayer::Shutdown()
+	void ConsoleFrontendLayer::Shutdown(Engine* engine)
 	{
 		IConsoleManager& consoleManager = entt::locator<IConsoleManager>::value();
 		consoleManager.UnregisterCommand("history");
 	}
 
-
 	i32 OnConsoleInputCallback(ImGuiInputTextCallbackData* data)
 	{
-		FConsoleFrontendLayer* frontend = static_cast<FConsoleFrontendLayer*>(data->UserData);
+		ConsoleFrontendLayer* frontend = static_cast<ConsoleFrontendLayer*>(data->UserData);
 		IConsoleManager& consoleManager = entt::locator<IConsoleManager>::value();
 
 		switch (data->EventFlag)
@@ -128,10 +119,8 @@ namespace Turbo
 		return 0;
 	}
 
-	void FConsoleFrontendLayer::BeginTick(fp64 deltaTime)
+	void ConsoleFrontendLayer::BeginTick(fp64 deltaTime)
 	{
-		ILayer::BeginTick(deltaTime);
-
 		std::string inputBuffer;
 
 		ImGui::Begin("Console");
@@ -165,32 +154,27 @@ namespace Turbo
 		ImGui::End();
 	}
 
-	bool FConsoleFrontendLayer::ShouldTick()
+	void ConsoleFrontendLayer::HandleEvent(FEventBase& event)
 	{
-		return mbConsoleVisible;
+		EventDispatcher::Dispatch<FActionEvent>(event, &ConsoleFrontendLayer::HandleInputActionEvent, this);
+		EventDispatcher::Dispatch<FConsoleBufferChangedEvent>(event, &ConsoleFrontendLayer::HandleConsoleBufferChangedEvent, this);
 	}
 
-	void FConsoleFrontendLayer::OnEvent(FEventBase& event)
-	{
-		FEventDispatcher::DispatchLayer<FActionEvent>(event, this, &FConsoleFrontendLayer::HandleInputActionEvent);
-		FEventDispatcher::DispatchLayer<FConsoleBufferChangedEvent>(event, this, &FConsoleFrontendLayer::HandleConsoleBufferChangedEvent);
-	}
-
-	void FConsoleFrontendLayer::HandleInputActionEvent(FActionEvent& event)
+	void ConsoleFrontendLayer::HandleInputActionEvent(FActionEvent& event, ConsoleFrontendLayer* layer)
 	{
 		if (event.mName == kToggleConsoleName && event.mbDown)
 		{
-			mbConsoleVisible = !mbConsoleVisible;
-			if (mbConsoleVisible)
+			layer->mbConsoleVisible = !layer->mbConsoleVisible;
+			if (layer->mbConsoleVisible)
 			{
-				mbFocusConsoleInput = true;
+				layer->mbFocusConsoleInput = true;
 			}
 		}
 	}
 
-	void FConsoleFrontendLayer::HandleConsoleBufferChangedEvent(FConsoleBufferChangedEvent& event)
+	void ConsoleFrontendLayer::HandleConsoleBufferChangedEvent(FConsoleBufferChangedEvent& event, ConsoleFrontendLayer* layer)
 	{
-		mConsoleBuffer += event.mMessage;
-		mConsoleBuffer += "\n";
+		layer->mConsoleBuffer += event.mMessage;
+		layer->mConsoleBuffer += "\n";
 	}
 }

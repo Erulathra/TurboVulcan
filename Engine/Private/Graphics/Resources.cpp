@@ -2,42 +2,42 @@
 #include "Graphics/GPUDevice.h"
 
 namespace Turbo {
-	void FBufferDestroyer::Destroy(FGPUDevice& GPUDevice)
+	void FBufferDestroyer::Destroy(GPUDevice& GPUDevice)
 	{
 		GPUDevice.DestroyBufferImmediate(*this);
 	}
 
-	void FSamplerDestroyer::Destroy(FGPUDevice& GPUDevice)
+	void FSamplerDestroyer::Destroy(GPUDevice& GPUDevice)
 	{
 		GPUDevice.DestroySamplerImmediate(*this);
 	}
 
-	void FTextureDestroyer::Destroy(FGPUDevice& GPUDevice)
+	void FTextureDestroyer::Destroy(GPUDevice& GPUDevice)
 	{
 		GPUDevice.DestroyTextureImmediate(*this);
 	}
 
-	void FShaderStateDestroyer::Destroy(FGPUDevice& GPUDevice)
+	void FShaderStateDestroyer::Destroy(GPUDevice& GPUDevice)
 	{
 		GPUDevice.DestroyShaderStateImmediate(*this);
 	}
 
-	void FDescriptorSetLayoutDestroyer::Destroy(FGPUDevice& GPUDevice)
+	void FDescriptorSetLayoutDestroyer::Destroy(GPUDevice& GPUDevice)
 	{
 		GPUDevice.DestroyDescriptorSetLayoutImmediate(*this);
 	}
 
-	void FDescriptorPoolDestroyer::Destroy(FGPUDevice& GPUDevice)
+	void FDescriptorPoolDestroyer::Destroy(GPUDevice& GPUDevice)
 	{
 		GPUDevice.DestroyDescriptorPoolImmediate(*this);
 	}
 
-	void FPipelineDestroyer::Destroy(FGPUDevice& GPUDevice)
+	void FPipelineDestroyer::Destroy(GPUDevice& GPUDevice)
 	{
 		GPUDevice.DestroyPipelineImmediate(*this);
 	}
 
-	void FAccelerationStructureDestroyer::Destroy(FGPUDevice& GPUDevice)
+	void FAccelerationStructureDestroyer::Destroy(GPUDevice& GPUDevice)
 	{
 		GPUDevice.DestroyAccelerationStructureImmediate(*this);
 	}

@@ -15,8 +15,9 @@ add_subdirectory(ThirdParty)
 # Engine Project
 add_subdirectory(Engine)
 
+# NOTE(SS): Disabled for now
 # Game Project
-add_subdirectory(Project)
+# add_subdirectory(Project)
 
 # Editor Project
 add_subdirectory(Editor)

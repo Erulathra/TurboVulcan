@@ -9,12 +9,13 @@
 #include "Core/Math/MathTypes.h"
 #include "Core/Name.h"
 #include "Graphics/Enums.h"
+#include "Graphics/FrameGraph/RenderGraph.h"
 #include "Graphics/FrameGraph/RenderGraphHelpers.h"
-#include "Graphics/GeometryBuffer.h"
+#include "Graphics/FrameGraph/RenderGraphUtils.h"
 #include "Graphics/GPUDevice.h"
+#include "Graphics/GeometryBuffer.h"
 #include "Graphics/PostProcess.h"
 #include "Graphics/ResourceBuilders.h"
-#include "Graphics/FrameGraph/RenderGraphUtils.h"
 #include "Graphics/Resources.h"
 #include "Graphics/Shaders/SceneCullingCS.h"
 #include "Graphics/Shaders/ToneMapperPostProcess.h"
@@ -47,30 +48,23 @@ namespace Turbo
 		glm::float3 mBoundsMax = {};
 	};
 
-	void FSceneRenderingLayer::Start()
+	void SceneRenderingLayer::Init(Engine* engine)
 	{
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		mFrustumCullingPipeline = SceneCullingCS::CreatePipeline(gpu);
-		mToneMapperPipeline = ToneMapperPostProcess::CreatePipeline(gpu);
+		mFrustumCullingPipeline = SceneCullingCS::CreatePipeline(engine->mGPU);
+		mToneMapperPipeline = ToneMapperPostProcess::CreatePipeline(engine->mRenderGraph->mDescriptorSetLayout, engine->mGPU);
 	}
 
-	void FSceneRenderingLayer::Shutdown()
+	void SceneRenderingLayer::Shutdown(Engine* engine)
 	{
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		gpu.DestroyPipeline(mFrustumCullingPipeline);
-		gpu.DestroyPipeline(mToneMapperPipeline);
+		engine->mGPU->DestroyPipeline(mFrustumCullingPipeline);
+		engine->mGPU->DestroyPipeline(mToneMapperPipeline);
 	}
 
-	FName FSceneRenderingLayer::GetName()
-	{
-		return GetStaticLayerName<FSceneRenderingLayer>();
-	}
-
-	void FSceneRenderingLayer::UpdateViewData(World* world, FViewData& viewData)
+	void SceneRenderingLayer::UpdateViewData(Engine* engine, FViewData& viewData)
 	{
 		TRACE_ZONE_SCOPED()
 
-		auto mainCameraView = world->mRegistry.view<FCameraCache const, FWorldTransform const, FMainViewport const>();
+		auto mainCameraView = engine->mWorld->mRegistry.view<FCameraCache const, FWorldTransform const, FMainViewport const>();
 		TURBO_CHECK(mainCameraView.begin() != mainCameraView.end())
 
 		const entt::entity mainCameraEntity = *mainCameraView.begin();
@@ -82,16 +76,15 @@ namespace Turbo
 		viewData.mWorldToProjection = viewData.mProjectionMatrix * viewData.mViewMatrix;
 		viewData.mCameraPosition = TransformUtils::GetPosition(cameraTransform);
 
-		viewData.mTime = FCoreTimer::TimeFromEngineStart();
-		viewData.mWorldTime = FCoreTimer::TimeFromEngineStart();
-		viewData.mDeltaTime = FCoreTimer::DeltaTime();
+		CoreTimer* coreTimer = engine->mCoreTimer;
 
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		viewData.mFrameIndex = static_cast<i32>(gpu.GetNumRenderedFrames());
+		viewData.mTime = coreTimer->mTimeFromEngineStart;
+		viewData.mWorldTime = coreTimer->mTimeFromEngineStart;
+		viewData.mDeltaTime = coreTimer->mDeltaTime;
 
 		viewData.mViewFrustum = cameraCache.mViewFrustum;
 
-		auto ppSettingsView = world->mRegistry.view<FPostProcessSettings>();
+		auto ppSettingsView = engine->mWorld->mRegistry.view<FPostProcessSettings>();
 		if (ppSettingsView->empty() == false)
 		{
          const FPostProcessSettings& exposureSettings =
@@ -102,16 +95,10 @@ namespace Turbo
 		}
 	}
 
-	void FSceneRenderingLayer::CreateIndirectRenderBuffers(
-		FRenderGraphBuilder& graphBuilder,
-		World* world,
-		FSceneView* sceneView,
-		std::vector<FDrawIndirectBucket>& outBuckets
-	)
+	void SceneRenderingLayer::CreateIndirectRenderBuffers(Engine* engine, SceneView* sceneView, std::vector<DrawIndirectBucket>& outBuckets)
 	{
 		TRACE_ZONE_SCOPED()
-
-		entt::registry& registry = world->mRegistry;
+		entt::registry& registry = engine->mWorld->mRegistry;
 
 		entt::storage<FDrawCall> drawCalls;
 		using FDrawCallIt = entt::storage<FDrawCall>::iterator;
@@ -220,14 +207,15 @@ namespace Turbo
 			TRACE_ZONE_SCOPED_N("Initialize render buckets' buffers")
 			const FMaterialManager& materialManager = entt::locator<FMaterialManager>::value();
 			const FAssetManager& assetManager = entt::locator<FAssetManager>::value();
-			const FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 
 			u32 numBuckets = materialBuckets.size();
 			outBuckets.reserve(numBuckets);
 
+			RenderGraph* renderGraph = engine->mRenderGraph;
+
 			for (const FMaterialBucket& bucket : materialBuckets)
 			{
-				FDrawIndirectBucket& drawIndirectBucket = outBuckets.emplace_back();
+				DrawIndirectBucket& drawIndirectBucket = outBuckets.emplace_back();
 				drawIndirectBucket.mMaterialHandle = bucket.mTargetMaterial;
 
 				const FMaterial* material = materialManager.AccessMaterial(bucket.mTargetMaterial);
@@ -240,7 +228,7 @@ namespace Turbo
 					.mBufferFlags = EBufferFlags::CreateMapped | EBufferFlags::StorageBuffer,
 					.mName = FName(fmt::format("{}_DrawData", material->mName))
 				};
-				drawIndirectBucket.mDrawBuffer = graphBuilder.CreateBuffer(drawDataBufferInfo);
+				drawIndirectBucket.mDrawBuffer = renderGraph->CreateBuffer(drawDataBufferInfo);
 
 				const FDeviceSize indirectCommandsBufferSize = sizeof(FIndirectDrawBufferHeader) + numDraws * sizeof(vk::DrawIndirectCommand);
 				const FRGBufferInfo indirectCommandsBufferInfo = {
@@ -248,10 +236,10 @@ namespace Turbo
 					.mBufferFlags = EBufferFlags::CreateMapped | EBufferFlags::StorageBuffer | EBufferFlags::IndirectBuffer,
 					.mName = FName(fmt::format("{}_IndirectCommands", material->mName))
 				};
-				drawIndirectBucket.mIndirectCommandBuffer = graphBuilder.CreateBuffer(indirectCommandsBufferInfo);
+				drawIndirectBucket.mIndirectCommandBuffer = renderGraph->CreateBuffer(indirectCommandsBufferInfo);
 
-				FMaterial::IndirectDrawData* drawDatum = graphBuilder.AllocatePOD<FMaterial::IndirectDrawData>(numDraws);
-				graphBuilder.QueueBufferUpload({
+				FMaterial::IndirectDrawData* drawDatum = renderGraph->AllocatePOD<FMaterial::IndirectDrawData>(numDraws);
+				renderGraph->QueueBufferUpload({
 					.mTargetBuffer = drawIndirectBucket.mDrawBuffer,
 					.mData = drawDatum,
 					.mDataSize = numDraws * sizeof(FMaterial::IndirectDrawData),
@@ -269,9 +257,9 @@ namespace Turbo
 					drawData.mModelToWorld = drawCallIt->mWorldTransform;
 					drawData.mNormalModelToWorld = glm::float3x3(glm::transpose(glm::inverse(drawData.mModelToWorld)));
 
-					drawData.mMaterialInstance = materialManager.GetMaterialInstanceAddress(gpu, drawCallIt->mMaterialInstance);
-					drawData.mMaterialData = materialManager.GetMaterialDataAddress(gpu, bucket.mTargetMaterial);
-					drawData.mMeshData = assetManager.GetMeshPointersAddress(gpu, drawCallIt->mMesh);
+					drawData.mMaterialInstance = materialManager.GetMaterialInstanceAddress(drawCallIt->mMaterialInstance);
+					drawData.mMaterialData = materialManager.GetMaterialDataAddress(bucket.mTargetMaterial);
+					drawData.mMeshData = assetManager.GetMeshPointersAddress(drawCallIt->mMesh);
 
 					drawIndex++;
 				}
@@ -279,18 +267,20 @@ namespace Turbo
 		}
 	}
 
-	void FSceneRenderingLayer::CreateSceneTLAS(FRenderGraphBuilder& graphBuilder, World* world, FSceneView* sceneView)
+	void SceneRenderingLayer::CreateSceneTLAS(Engine* engine, SceneView* sceneView)
 	{
       TRACE_ZONE_SCOPED()
 
 		std::vector<vk::AccelerationStructureInstanceKHR> instances;
-		auto& registry = world->mRegistry;
+		auto& registry = engine->mWorld->mRegistry;
+
+		GPUDevice* gpu = engine->mGPU;
+		RenderGraph* renderGraph = engine->mRenderGraph;
 
 		const auto meshView = registry.view<FMeshComponent>();
 		instances.reserve(meshView.size());
 
 		FAssetManager& assetManager = entt::locator<FAssetManager>::value();
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 
 		// Fill instances data
 		for (entt::entity entity : meshView)
@@ -310,7 +300,7 @@ namespace Turbo
 			TURBO_CHECK(transform != nullptr)
 
 			const FMesh* mesh = assetManager.AccessMesh(meshComp.mMesh);
-			const FAccelerationStructure* blas = gpu.AccessBLAS(mesh->mBlas);
+			const FAccelerationStructure* blas = gpu->AccessBLAS(mesh->mBlas);
 
 			vk::AccelerationStructureInstanceKHR& instance = instances.emplace_back();
 			std::memcpy(instance.transform, glm::value_ptr(glm::transpose(*transform)), sizeof(vk::TransformMatrixKHR));
@@ -324,18 +314,18 @@ namespace Turbo
 			.mNumInstances = static_cast<u32>(instances.size()),
 			.mName = tlasName
 		};
-		const FAccelerationStructureSizeInfo& tlasSizeInfo = gpu.CalculateTLASSize(tlasBuilder);
-		sceneView->mTLAS = gpu.CreateTLAS(tlasBuilder);
-		const FTLAS* sceneTLAS = gpu.AccessTLAS(sceneView->mTLAS);
+		const FAccelerationStructureSizeInfo& tlasSizeInfo = gpu->CalculateTLASSize(tlasBuilder);
+		sceneView->mTLAS = gpu->CreateTLAS(tlasBuilder);
+		const FTLAS* sceneTLAS = gpu->AccessTLAS(sceneView->mTLAS);
 
 		// As we regenerate TLAS each frame, we can enqueue it's deletion when the frame woudl be completed.
-		gpu.DestroyTLAS(sceneView->mTLAS);
+		gpu->DestroyTLAS(sceneView->mTLAS);
 
 		// Create instances data buffer and queue for upload
 		const static FName instancesBufferName("SceneTLASInstanceData");
 		FRGResourceHandle instanceDataBufferHandle;
 		void* instanceDataPtr;
-      std::tie(instanceDataBufferHandle, instanceDataPtr) = graphBuilder.CreateAndQueueBufferUpload(FCreateAndUploadBuffer{
+      std::tie(instanceDataBufferHandle, instanceDataPtr) = renderGraph->CreateAndQueueBufferUpload(FCreateAndUploadBuffer{
          .mData = instances.data(),
          .mSize = instances.size() * sizeof(vk::AccelerationStructureInstanceKHR),
          .mBufferFlags = EBufferFlags::AccelerationStructureInput,
@@ -344,23 +334,23 @@ namespace Turbo
 
 		// Create TLAS's scratch buffer
 		const static FName scratchBufferName("SceneTLASScratch");
-		const FRGResourceHandle scratchBufferHandle = graphBuilder.CreateBuffer(FRGBufferInfo{
+		const FRGResourceHandle scratchBufferHandle = renderGraph->CreateBuffer(FRGBufferInfo{
 			.mSize = tlasSizeInfo.mBuildScratchSize,
 			.mBufferFlags = EBufferFlags::AccelerationStructureStorage | EBufferFlags::AccelerationStructureInput
                		  | EBufferFlags::TransferSrc | EBufferFlags::StorageBuffer,
 			.mName = scratchBufferName
 		});
 
-		sceneView->mTLASStorageBufferHandle = graphBuilder.RegisterExternalBuffer(sceneTLAS->mBuffer);
+		sceneView->mTLASStorageBufferHandle = renderGraph->RegisterExternalBuffer(sceneTLAS->mBuffer);
 
 		const FName passName("Build TLAS");
-		FRGPassInitializer pass = graphBuilder.AddPass(passName, EPassType::Compute);
+		FRGPassInitializer pass = renderGraph->AddPass(passName, EPassType::Compute);
 		pass->ReadBuffer(instanceDataBufferHandle);
 		pass->WriteBuffer(scratchBufferHandle);
 		pass->WriteBuffer(sceneView->mTLASStorageBufferHandle);
 
 		pass->mExecutePass.BindLambda(
-			[=](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+			[=](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
 				const THandle<FBuffer> instanceDataBuffer = resources.GetBuffer(instanceDataBufferHandle);
 				const THandle<FBuffer> scratchBuffer = resources.GetBuffer(scratchBufferHandle);
@@ -374,9 +364,12 @@ namespace Turbo
 		);
 	}
 
-	void FSceneRenderingLayer::Render(FRenderGraphBuilder& graphBuilder)
+	void SceneRenderingLayer::Render(Engine* engine)
 	{
-		World* world = gEngine->mWorld;
+		TRACE_ZONE_SCOPED_N("SceneRenderingLayer: Render")
+
+		World* world = engine->mWorld;
+
 		SceneGraph::UpdateWorldTransforms(world->mRegistry);
 		FCameraUtils::UpdateDirtyCameras(world->mRegistry);
 		FCameraUtils::UpdateCameraFrustum(world->mRegistry);
@@ -389,38 +382,36 @@ namespace Turbo
 			return;
 		}
 
-		FSceneView* sceneView = graphBuilder.AllocatePOD<FSceneView>();
+		SceneView* sceneView = engine->mRenderGraph->AllocatePOD<SceneView>();
 
-		RenderScene(graphBuilder, sceneView);
-		RenderPostProcess(graphBuilder, sceneView);
+		RenderScene(engine, sceneView);
+		RenderPostProcess(engine, sceneView);
 	}
 
-	void FSceneRenderingLayer::RenderScene(FRenderGraphBuilder& graphBuilder, FSceneView* sceneView)
+	void SceneRenderingLayer::RenderScene(Engine* engine, SceneView* sceneView)
 	{
 		TRACE_ZONE_SCOPED_N("Render Scene")
 
-		World* world = gEngine->mWorld;
-
 		// Create and upload view data
-		sceneView->mViewData = graphBuilder.AllocatePOD<FViewData>();
-		sceneView->mViewDataBufferHandle = graphBuilder.CreateBuffer({
+		sceneView->mViewData = engine->mRenderGraph->AllocatePOD<FViewData>();
+		sceneView->mViewDataBufferHandle = engine->mRenderGraph->CreateBuffer({
 			.mSize = sizeof(FViewData),
 			.mBufferFlags = EBufferFlags::CreateMapped | EBufferFlags::UniformBuffer,
 			.mName = FName("ViewDataBuffer")
 		});
 
-		UpdateViewData(world, *sceneView->mViewData);
-		graphBuilder.QueueBufferUpload({
+		UpdateViewData(engine, *sceneView->mViewData);
+		engine->mRenderGraph->QueueBufferUpload({
 			.mTargetBuffer = sceneView->mViewDataBufferHandle,
 			.mData = sceneView->mViewData,
 			.mDataSize = sizeof(FViewData),
 		});
 
-		CreateSceneTLAS(graphBuilder, world, sceneView);
+		CreateSceneTLAS(engine, sceneView);
 
 		// Create Lights buffers
 		std::vector<FLight> lights;
-		auto lightView = world->mRegistry.view<FLightComponent, FWorldTransform>();
+		auto lightView = engine->mWorld->mRegistry.view<FLightComponent, FWorldTransform>();
 		for (const entt::entity entity : lightView)
 		{
 			const FWorldTransform& transform = lightView.get<FWorldTransform>(entity);
@@ -439,10 +430,11 @@ namespace Turbo
 			}
 		}
 
+		RenderGraph* renderGraph = engine->mRenderGraph;
 		if (lights.empty() == false)
 		{
 			std::tie(sceneView->mLightsBufferHandle, sceneView->mLights) =
-				graphBuilder.CreateAndQueueBufferUpload<FLight>(FCreateAndUploadBuffer{
+				renderGraph->CreateAndQueueBufferUpload<FLight>(FCreateAndUploadBuffer{
 					.mData = lights.data(),
 					.mSize = lights.size() * sizeof(FLight),
 					.mBufferFlags = EBufferFlags::UniformBuffer,
@@ -456,7 +448,7 @@ namespace Turbo
 			FLight dummyLight;
 
 			std::tie(sceneView->mLightsBufferHandle, sceneView->mLights) =
-				graphBuilder.CreateAndQueueBufferUpload<FLight>(FCreateAndUploadBuffer{
+				renderGraph->CreateAndQueueBufferUpload<FLight>(FCreateAndUploadBuffer{
 					.mData = &dummyLight,
 					.mSize = sizeof(FLight),
 					.mBufferFlags = EBufferFlags::UniformBuffer,
@@ -465,63 +457,63 @@ namespace Turbo
 		}
 
 		FWorldSettings worldSettings = {};
-		auto worldSettingsView = world->mRegistry.view<FWorldSettings>();
+		auto worldSettingsView = engine->mWorld->mRegistry.view<FWorldSettings>();
 		if (worldSettingsView->empty() == false)
 		{
          worldSettings = worldSettingsView.get<FWorldSettings>(*worldSettingsView.begin());
 		}
 
 		// Create and upload scene data
-		FSceneData* sceneData = graphBuilder.AllocatePOD<FSceneData>();
+		SceneData* sceneData = renderGraph->AllocatePOD<SceneData>();
 		sceneData->mNumLights = lights.size();
 		sceneData->mSceneTLAS = sceneView->mTLAS.GetIndex();
 		sceneData->mAmbientLight = worldSettings.mAmbientLight;
 
 		std::tie(sceneView->mSceneDataBufferHandle, sceneView->mSceneData) =
-			graphBuilder.CreateAndQueueBufferUpload<FSceneData>(FCreateAndUploadBuffer{
+			renderGraph->CreateAndQueueBufferUpload<SceneData>(FCreateAndUploadBuffer{
 				.mData = sceneData,
-				.mSize = sizeof(FSceneData),
+				.mSize = sizeof(SceneData),
 				.mBufferFlags = EBufferFlags::UniformBuffer,
 				.mName = FName("SceneDataBuffer")
 			});
 
-		std::vector<FDrawIndirectBucket> drawIndirectBuckets;
-		CreateIndirectRenderBuffers(graphBuilder, world, sceneView, drawIndirectBuckets);
+		std::vector<DrawIndirectBucket> drawIndirectBuckets;
+		CreateIndirectRenderBuffers(engine, sceneView, drawIndirectBuckets);
 
 		// Fill IndirectCommandsBuffer header
-		for (const FDrawIndirectBucket& bucket : drawIndirectBuckets)
+		for (const DrawIndirectBucket& bucket : drawIndirectBuckets)
 		{
-			RenderGraphUtils::AddFillBufferPass(graphBuilder, bucket.mIndirectCommandBuffer, 0, sizeof(FIndirectDrawBufferHeader), 0);
+			RenderGraphUtils::AddFillBufferPass(renderGraph, bucket.mIndirectCommandBuffer, 0, sizeof(FIndirectDrawBufferHeader), 0);
 		}
 
 		// Geometry culling
 		static FName cullingPassName = FName("GeometryCullingPass");
-		FRGPassInitializer cullingPass = graphBuilder.AddPass(cullingPassName, EPassType::Compute);
+		FRGPassInitializer cullingPass = renderGraph->AddPass(cullingPassName, EPassType::Compute);
 
 		cullingPass->ReadBuffer(sceneView->mViewDataBufferHandle);
-		for (const FDrawIndirectBucket& bucket : drawIndirectBuckets)
+		for (const DrawIndirectBucket& bucket : drawIndirectBuckets)
 		{
 			cullingPass->ReadBuffer(bucket.mDrawBuffer);
 			cullingPass->WriteBuffer(bucket.mIndirectCommandBuffer);
 		}
 
 		cullingPass->mExecutePass.BindLambda(
-			[drawIndirectBuckets, pipeline = mFrustumCullingPipeline, sceneView](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+			[drawIndirectBuckets, pipeline = mFrustumCullingPipeline, sceneView](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
 				cmd.BindPipeline(pipeline);
 
 				const FAssetManager& assetManager = entt::locator<FAssetManager>::value();
-				const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
+				const FBuffer* viewDataBuffer = gpu->AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
 
 				SceneCullingCS::FPushConstants pushConstants = {
 					.mViewData = viewDataBuffer->mDeviceAddress,
-					.mBounds = assetManager.GetBoundsAddress(gpu)
+					.mBounds = assetManager.GetBoundsAddress()
 				};
 
-				for (const FDrawIndirectBucket& bucket : drawIndirectBuckets)
+				for (const DrawIndirectBucket& bucket : drawIndirectBuckets)
 				{
-					const FBuffer* drawBuffer = gpu.AccessBuffer(resources.GetBuffer(bucket.mDrawBuffer));
-					const FBuffer* indirectCommandBuffer = gpu.AccessBuffer(resources.GetBuffer(bucket.mIndirectCommandBuffer));
+					const FBuffer* drawBuffer = gpu->AccessBuffer(resources.GetBuffer(bucket.mDrawBuffer));
+					const FBuffer* indirectCommandBuffer = gpu->AccessBuffer(resources.GetBuffer(bucket.mIndirectCommandBuffer));
 
 					pushConstants.mDrawData = drawBuffer->mDeviceAddress;
 					pushConstants.mDrawIndirectCommand = indirectCommandBuffer->mDeviceAddress;
@@ -541,7 +533,7 @@ namespace Turbo
 		// Depth pre-pass
 		{
 			const static FName depthPrepassName = FName("DepthPrepass");
-			FRGPassInitializer depthPass = graphBuilder.AddPass(depthPrepassName, EPassType::Graphics);
+			FRGPassInitializer depthPass = renderGraph->AddPass(depthPrepassName, EPassType::Graphics);
 
 			depthPass->SetDepthStencilAttachment({
 				.mTexture = geometryBuffer.mDepthStencil,
@@ -551,18 +543,18 @@ namespace Turbo
 
 			depthPass->ReadBuffer(sceneView->mViewDataBufferHandle);
 
-			for (const FDrawIndirectBucket& bucket : drawIndirectBuckets)
+			for (const DrawIndirectBucket& bucket : drawIndirectBuckets)
 			{
 				depthPass->ReadBuffer(bucket.mIndirectCommandBuffer);
 				depthPass->ReadBuffer(bucket.mDrawBuffer);
 			}
 
 			depthPass->mExecutePass.BindLambda(
-				[=](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+				[=](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 				{
 					FMaterialManager& materialManager = entt::locator<FMaterialManager>::value();
 
-					for (const FDrawIndirectBucket& bucket : drawIndirectBuckets)
+					for (const DrawIndirectBucket& bucket : drawIndirectBuckets)
 					{
 						TRACE_ZONE_SCOPED_N("Render Depth Pre-Pass")
 						TRACE_GPU_SCOPED(gpu, cmd, "Render Depth Pre-Pass")
@@ -571,10 +563,10 @@ namespace Turbo
 						if (material->mDepthOnlyPipeline)
 						{
 							cmd.BindPipeline(material->mDepthOnlyPipeline);
-							cmd.BindDescriptorSet(gpu.GetBindlessResourcesSet(), 0);
+							cmd.BindDescriptorSet(gpu->GetBindlessResourcesSet(), 0);
 
-							const FBuffer* drawBuffer = gpu.AccessBuffer(resources.GetBuffer(bucket.mDrawBuffer));
-							const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
+							const FBuffer* drawBuffer = gpu->AccessBuffer(resources.GetBuffer(bucket.mDrawBuffer));
+							const FBuffer* viewDataBuffer = gpu->AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
 
 							const FMaterial::PushConstants pushConstants = {
 								.mViewData = viewDataBuffer->mDeviceAddress,
@@ -600,7 +592,7 @@ namespace Turbo
 		// Base Pass
 		{
 			const static FName geometryPassName = FName("GeometryPass");
-			FRGPassInitializer geometryPass = graphBuilder.AddPass(geometryPassName, EPassType::Graphics);
+			FRGPassInitializer geometryPass = renderGraph->AddPass(geometryPassName, EPassType::Graphics);
 
 			geometryPass->AddAttachment(
 				{
@@ -619,30 +611,30 @@ namespace Turbo
 			geometryPass->ReadBuffer(sceneView->mSceneDataBufferHandle);
 			geometryPass->ReadBuffer(sceneView->mLightsBufferHandle);
 
-			for (const FDrawIndirectBucket& bucket : drawIndirectBuckets)
+			for (const DrawIndirectBucket& bucket : drawIndirectBuckets)
 			{
 				geometryPass->ReadBuffer(bucket.mIndirectCommandBuffer);
 				geometryPass->ReadBuffer(bucket.mDrawBuffer);
 			}
 
 			geometryPass->mExecutePass.BindLambda(
-				[=](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+				[=](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 				{
 					FMaterialManager& materialManager = entt::locator<FMaterialManager>::value();
 
-					for (const FDrawIndirectBucket& bucket : drawIndirectBuckets)
+					for (const DrawIndirectBucket& bucket : drawIndirectBuckets)
 					{
 						TRACE_ZONE_SCOPED_N("Render Bucket")
 						TRACE_GPU_SCOPED(gpu, cmd, "Render Bucket")
 
 						const FMaterial* material = materialManager.AccessMaterial(bucket.mMaterialHandle);
 						cmd.BindPipeline(material->mGraphicsPipeline);
-						cmd.BindDescriptorSet(gpu.GetBindlessResourcesSet(), 0);
+						cmd.BindDescriptorSet(gpu->GetBindlessResourcesSet(), 0);
 
-						const FBuffer* drawBuffer = gpu.AccessBuffer(resources.GetBuffer(bucket.mDrawBuffer));
-						const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
-						const FBuffer* sceneDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mSceneDataBufferHandle));
-						const FBuffer* lightsBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mLightsBufferHandle));
+						const FBuffer* drawBuffer = gpu->AccessBuffer(resources.GetBuffer(bucket.mDrawBuffer));
+						const FBuffer* viewDataBuffer = gpu->AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
+						const FBuffer* sceneDataBuffer = gpu->AccessBuffer(resources.GetBuffer(sceneView->mSceneDataBufferHandle));
+						const FBuffer* lightsBuffer = gpu->AccessBuffer(resources.GetBuffer(sceneView->mLightsBufferHandle));
 
 						const FMaterial::PushConstants pushConstants = {
 							.mViewData = viewDataBuffer->mDeviceAddress,
@@ -673,7 +665,7 @@ namespace Turbo
 		}
 	}
 
-	void FSceneRenderingLayer::RenderPostProcess(FRenderGraphBuilder& graphBuilder, FSceneView* sceneView)
+	void SceneRenderingLayer::RenderPostProcess(Engine* engine, SceneView* sceneView)
 	{
 		TRACE_ZONE_SCOPED_N("Render Post-Process")
 
@@ -681,16 +673,17 @@ namespace Turbo
 
 		// Tone Mapping
 		{
-			World* world = gEngine->mWorld;
 			FPostProcessSettings settings = {};
 
-			if (const auto settingsView = world->mRegistry.view<FPostProcessSettings>();
+			if (const auto settingsView = engine->mWorld->mRegistry.view<FPostProcessSettings>();
 				settingsView.begin() != settingsView.end())
 			{
 				settings = settingsView.get<FPostProcessSettings>(*settingsView.begin());
 			}
 
-			ToneMapperPostProcess::FUniformBuffer* uniformBufferData = graphBuilder.AllocatePOD<ToneMapperPostProcess::FUniformBuffer>();
+			RenderGraph* renderGraph = engine->mRenderGraph;
+
+			ToneMapperPostProcess::FUniformBuffer* uniformBufferData = renderGraph->AllocatePOD<ToneMapperPostProcess::FUniformBuffer>();
 			uniformBufferData->mOneOverPreExposure = glm::exp2(settings.mEV100);
 			uniformBufferData->mExposure = 1.f / uniformBufferData->mOneOverPreExposure;
 			uniformBufferData->mSaturation = settings.mAgXSaturation;
@@ -701,7 +694,7 @@ namespace Turbo
 			const static FName uniformBufferName = FName("ToneMapper.UniformBuffer");
 			FRGResourceHandle uniformBufferHandle;
 			std::tie(uniformBufferHandle, uniformBufferData) =
-				graphBuilder.CreateAndQueueBufferUpload<ToneMapperPostProcess::FUniformBuffer>(FCreateAndUploadBuffer{
+				renderGraph->CreateAndQueueBufferUpload<ToneMapperPostProcess::FUniformBuffer>(FCreateAndUploadBuffer{
 					.mData = uniformBufferData,
 					.mSize = sizeof(ToneMapperPostProcess::FUniformBuffer),
 					.mBufferFlags = EBufferFlags::UniformBuffer,
@@ -709,19 +702,19 @@ namespace Turbo
 				});
 
 			const static FName passName = FName("ToneMapping");
-			FRGPassInitializer pass = graphBuilder.AddPass(passName, EPassType::Compute);
+			FRGPassInitializer pass = renderGraph->AddPass(passName, EPassType::Compute);
 			pass->ReadBuffer(uniformBufferHandle);
 			pass->ReadTexture(geometryBuffer.mSceneColor);
 			pass->WriteTexture(geometryBuffer.mAfterToneMap);
 
 			pass->mExecutePass.BindLambda(
-				[=, pipeline = mToneMapperPipeline](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+				[=, pipeline = mToneMapperPipeline](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 				{
    				const THandle<FTexture> sceneColorHandle = resources.GetTexture(geometryBuffer.mSceneColor);
-					const FTexture* sceneColor = gpu.AccessTexture(sceneColorHandle);
+					const FTexture* sceneColor = gpu->AccessTexture(sceneColorHandle);
 					const THandle<FTexture> afterToneMapHandle = resources.GetTexture(geometryBuffer.mAfterToneMap);
-					const FBuffer* uniformBuffer = gpu.AccessBuffer(resources.GetBuffer(uniformBufferHandle));
-					const FBuffer* viewDataBuffer = gpu.AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
+					const FBuffer* uniformBuffer = gpu->AccessBuffer(resources.GetBuffer(uniformBufferHandle));
+					const FBuffer* viewDataBuffer = gpu->AccessBuffer(resources.GetBuffer(sceneView->mViewDataBufferHandle));
 
 					const ToneMapperPostProcess::FPushConstants pushConstants = {
    					.mSceneColor = sceneColorHandle.GetIndex(),
@@ -732,7 +725,7 @@ namespace Turbo
 
 					cmd.BindPipeline(pipeline);
 					cmd.PushConstants(pushConstants);
-					cmd.BindDescriptorSet(gpu.GetBindlessResourcesSet(), 0);
+					cmd.BindDescriptorSet(gpu->GetBindlessResourcesSet(), 0);
 					cmd.BindDescriptorSet(resources.mDescriptorSet, 1);
 
 					const glm::uint3 groupCount = Math::DivideAndRoundUp<glm::uint3>(
@@ -744,8 +737,4 @@ namespace Turbo
 		}
 	}
 
-	bool FSceneRenderingLayer::ShouldRender()
-	{
-		return true;
-	}
 } // Turbo

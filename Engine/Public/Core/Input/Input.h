@@ -92,25 +92,4 @@ namespace Turbo
 
 	DECLARE_MULTICAST_DELEGATE(FOnKeyEvent, FKeyEvent);
 	DECLARE_MULTICAST_DELEGATE(FOnActionEvent, FActionEvent);
-
-	class IInputSystem
-	{
-	public:
-		virtual ~IInputSystem() = default;
-
-	public:
-		static IInputSystem* Get();
-
-	public:
-		virtual void Init() = 0;
-		virtual void Destroy() = 0;
-
-		virtual fp32 GetAxisValue(const FKey& key) = 0;
-		virtual fp32 GetActionValue(FName actionName) = 0;
-
-		virtual bool IsKeyPressed(const FKey& key) = 0;
-		virtual bool IsActionPressed(FName actionName) = 0;
-
-		virtual bool RegisterBinding(const FActionBinding& ActionBinding) = 0;
-	};
 } // Turbo

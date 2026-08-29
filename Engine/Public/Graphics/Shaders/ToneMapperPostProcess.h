@@ -30,21 +30,17 @@ namespace Turbo::ToneMapperPostProcess
 		FDeviceAddress mUniforms = kNullDeviceAddress;
 	};
 
-	THandle<FPipeline> CreatePipeline();
-
-	inline THandle<FPipeline> CreatePipeline(FGPUDevice& gpu)
+	inline THandle<FPipeline> CreatePipeline(THandle<FDescriptorSetLayout> graphBuilderSetLayout, GPUDevice* gpu)
 	{
-	   const FRenderGraphBuilder& graphBuilder = entt::locator<FRenderGraphBuilder>::value();
-
 		FPipelineBuilder builder;
 		builder
-		   .AddDescriptorSetLayout(graphBuilder.GetDescriptorSetLayout())
+		   .AddDescriptorSetLayout(graphBuilderSetLayout)
 			.SetPushConstantType<FPushConstants>()
 			.SetName(FName("ToneMapperPostProcess"));
 
 		builder.mShaderStateBuilder
 			.AddStage("PostProcess/ToneMapperPostProcess", vk::ShaderStageFlagBits::eCompute);
 
-		return gpu.CreatePipeline(builder);
+		return gpu->CreatePipeline(builder);
 	}
 }

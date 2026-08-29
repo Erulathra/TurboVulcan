@@ -7,7 +7,7 @@
 
 #define DESTROYER_BODY()				\
 	public:								\
-		friend class FGPUDevice;
+		friend class GPUDevice;
 
 namespace Turbo
 {
@@ -62,7 +62,7 @@ namespace Turbo
 	{
 		DESTROYER_BODY()
 	public:
-		virtual void Destroy(FGPUDevice& GPUDevice) override;
+		virtual void Destroy(GPUDevice& GPUDevice) override;
 
 	private:
 		vk::Buffer mVkBuffer = nullptr;
@@ -95,7 +95,7 @@ namespace Turbo
 	{
 		DESTROYER_BODY()
 	public:
-		virtual void Destroy(FGPUDevice& GPUDevice) override;
+		virtual void Destroy(GPUDevice& GPUDevice) override;
 
 	private:
 		vk::Sampler mVkSampler;
@@ -133,7 +133,7 @@ namespace Turbo
 	{
 		DESTROYER_BODY()
 	public:
-		virtual void Destroy(FGPUDevice& GPUDevice) override;
+		virtual void Destroy(GPUDevice& GPUDevice) override;
 
 	private:
 		vk::Image mImage = nullptr;
@@ -161,7 +161,7 @@ namespace Turbo
 		DESTROYER_BODY()
 
 	public:
-		virtual void Destroy(FGPUDevice& GPUDevice) override;
+		virtual void Destroy(GPUDevice& GPUDevice) override;
 
 	private:
 		std::array<vk::ShaderModule, kMaxShaderStages> mModules;
@@ -225,7 +225,7 @@ namespace Turbo
 		DESTROYER_BODY()
 
 	public:
-		virtual void Destroy(FGPUDevice& GPUDevice) override;
+		virtual void Destroy(GPUDevice& GPUDevice) override;
 
 	private:
 		vk::DescriptorSetLayout mVkLayout = nullptr;
@@ -237,7 +237,7 @@ namespace Turbo
 		DESTROYER_BODY()
 
 	public:
-		virtual void Destroy(FGPUDevice& GPUDevice) override;
+		virtual void Destroy(GPUDevice& GPUDevice) override;
 
 	private:
 		vk::DescriptorPool mVkDescriptorPool;
@@ -268,7 +268,7 @@ namespace Turbo
 		DESTROYER_BODY()
 
 	public:
-		virtual void Destroy(FGPUDevice& GPUDevice) override;
+		virtual void Destroy(GPUDevice& GPUDevice) override;
 
 	private:
 		vk::Pipeline mPipeline = nullptr;
@@ -311,7 +311,7 @@ namespace Turbo
 		DESTROYER_BODY()
 
 	public:
-		virtual void Destroy(FGPUDevice& GPUDevice) override;
+		virtual void Destroy(GPUDevice& GPUDevice) override;
 
 	protected:
 		vk::AccelerationStructureKHR mAccelerationStructure;

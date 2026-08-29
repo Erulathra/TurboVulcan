@@ -4,14 +4,14 @@
 
 namespace Turbo
 {
-	void RenderGraphUtils::AddClearTexturePass(FRenderGraphBuilder& graphBuilder, FRGResourceHandle texture, glm::float4 color)
+	void RenderGraphUtils::AddClearTexturePass(RenderGraph* renderGraph, FRGResourceHandle texture, glm::float4 color)
 	{
-		const FName passName(fmt::format("Clear {} to {}", graphBuilder.GetTextureInfo(texture).mName, color));
-		FRGPassInitializer pass = graphBuilder.AddPass(passName, EPassType::Transfer);
+		const FName passName(fmt::format("Clear {} to {}", renderGraph->GetTextureInfo(texture).mName, color));
+		FRGPassInitializer pass = renderGraph->AddPass(passName, EPassType::Transfer);
 		pass->WriteTexture(texture);
 
 		pass->mExecutePass.BindLambda(
-			[texture, color](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+			[texture, color](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
 				const THandle<FTexture> handle = resources.GetTexture(texture);
 				cmd.ClearImage(handle, color, vk::ImageLayout::eTransferDstOptimal);
@@ -19,28 +19,28 @@ namespace Turbo
 		);
 	}
 
-	void RenderGraphUtils::AddBlitTexturePass(FRenderGraphBuilder& graphBuilder, FRGResourceHandle srcTexture, FRGResourceHandle dstTexture)
+	void RenderGraphUtils::AddBlitTexturePass(RenderGraph* renderGraph, FRGResourceHandle srcTexture, FRGResourceHandle dstTexture)
 	{
 		TURBO_CHECK(srcTexture != dstTexture)
 
 		const FName passName(fmt::format(
 			"Blit {} to {}",
-			graphBuilder.GetTextureInfo(srcTexture).mName,
-			graphBuilder.GetTextureInfo(dstTexture).mName)
+			renderGraph->GetTextureInfo(srcTexture).mName,
+			renderGraph->GetTextureInfo(dstTexture).mName)
 		);
 
-		FRGPassInitializer pass = graphBuilder.AddPass(passName, EPassType::Transfer);
+		FRGPassInitializer pass = renderGraph->AddPass(passName, EPassType::Transfer);
 		pass->ReadTexture(srcTexture);
 		pass->WriteTexture(dstTexture);
 
 		pass->mExecutePass.BindLambda(
-			[srcTexture, dstTexture](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+			[srcTexture, dstTexture](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
 				const THandle<FTexture> srcHandle = resources.GetTexture(srcTexture);
 				const THandle<FTexture> dstHandle = resources.GetTexture(dstTexture);
 
-				const FTexture* colorTex= gpu.AccessTexture(srcHandle);
-				const FTexture* presentTex= gpu.AccessTexture(dstHandle);
+				const FTexture* colorTex= gpu->AccessTexture(srcHandle);
+				const FTexture* presentTex= gpu->AccessTexture(dstHandle);
 
 				const FRect2DInt srcRect = FRect2DInt::FromSize(colorTex->GetSize2D());
 				const FRect2DInt dstRect = FRect2DInt::FromSize(presentTex->GetSize2D());
@@ -51,7 +51,7 @@ namespace Turbo
 	}
 
 	void RenderGraphUtils::AddFillBufferPass(
-		FRenderGraphBuilder& graphBuilder,
+		RenderGraph* renderGraph,
 		FRGResourceHandle srcBuffer,
 		FDeviceSize offset,
 		FDeviceSize size,
@@ -60,17 +60,17 @@ namespace Turbo
 	{
 		const FName passName(fmt::format(
 			"Fill {} (0x{:x}->0x{:x}) with 0x{:x}",
-			graphBuilder.GetBufferInfo(srcBuffer).mName,
+			renderGraph->GetBufferInfo(srcBuffer).mName,
 			offset,
 			size,
 			value
 		));
 
-		FRGPassInitializer pass = graphBuilder.AddPass(passName, EPassType::Transfer);
+		FRGPassInitializer pass = renderGraph->AddPass(passName, EPassType::Transfer);
 		pass->WriteBuffer(srcBuffer);
 
 		pass->mExecutePass.BindLambda(
-			[=](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+			[=](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
 				const THandle<FBuffer> srcHandle = resources.GetBuffer(srcBuffer);
 				cmd.FillBuffer(srcHandle, offset, size, value);

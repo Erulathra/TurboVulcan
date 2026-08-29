@@ -1,9 +1,13 @@
 #include "CommonTypeDefs.h"
+#include "Core/Platform.h"
+#include "Core/PlatformImplementations/GenericPlatform.h"
 #include <cstdlib>
 #if PLATFORM_LINUX
 
 #include "Core/PlatformImplementations/LinuxPlatform.h"
 #include "CommonMacros.h"
+#include "Core/Engine.h"
+
 #include <cmath>
 #include <cstdint>
 #include <ctime>
@@ -18,6 +22,30 @@
 namespace Turbo
 {
    constexpr u64 kSecondsToNanoSeconds = 1000000000ull;
+
+   void FLinuxPlatform::AllocateGameMemory(PlatformMemory* platformMemory)
+   {
+      TURBO_CHECK(platformMemory)
+
+      // TODO(SS): Replace with nmap
+      void* persistentData = malloc(PlatformMemory::kPersistentDataSize);
+      memset(persistentData, 0, sizeof(PlatformMemory::kPersistentDataSize));
+      platformMemory->mPersistentData.Init(persistentData, PlatformMemory::kPersistentDataSize);
+
+      void* transientData = malloc(PlatformMemory::kTransientDataSize);
+      memset(transientData, 0, sizeof(PlatformMemory::kTransientDataSize));
+      platformMemory->mTransientData.Init(transientData, PlatformMemory::kTransientDataSize);
+   };
+
+   void FLinuxPlatform::FreeGameMemory(PlatformMemory* platformMemory)
+   {
+      TURBO_CHECK(platformMemory);
+
+      // TODO(SS): Replace with nmap
+      free(platformMemory->mPersistentData.mAllocation);
+      free(platformMemory->mTransientData.mAllocation);
+      memset(platformMemory, 0, sizeof(PlatformMemory));
+   }
 
 	bool FLinuxPlatform::IsDebuggerPresent()
 	{

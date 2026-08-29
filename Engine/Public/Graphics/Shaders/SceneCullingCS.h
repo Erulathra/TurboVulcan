@@ -18,7 +18,7 @@ namespace Turbo::SceneCullingCS
 		u32 mNumDraws;
 	};
 
-	inline THandle<FPipeline> CreatePipeline(FGPUDevice& gpu)
+	inline THandle<FPipeline> CreatePipeline(GPUDevice* gpu)
 	{
 		FPipelineBuilder pipelineBuilder = {};
 		pipelineBuilder
@@ -28,6 +28,6 @@ namespace Turbo::SceneCullingCS
 		pipelineBuilder.mShaderStateBuilder
 			.AddStage("SceneRendering/SceneCulling", vk::ShaderStageFlagBits::eCompute);
 
-		return gpu.CreatePipeline(pipelineBuilder);
+		return gpu->CreatePipeline(pipelineBuilder);
 	}
 }

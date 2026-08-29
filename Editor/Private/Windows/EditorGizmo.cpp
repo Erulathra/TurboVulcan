@@ -1,12 +1,11 @@
 #include "Windows/EditorGizmo.h"
 
-#include "EditorLayer.h"
+#include "Editor.h"
 #include "imgui.h"
 #include "ImGuizmo.h"
 #include "Core/Engine.h"
 #include "Core/Input/Keys.h"
 #include "World/Camera.h"
-#include "World/World.h"
 
 namespace Turbo
 {
@@ -30,15 +29,18 @@ namespace Turbo
 
 	void FEditorGizmo::Init()
 	{
+	#if 0
 		IInputSystem& inputSystem = entt::locator<IInputSystem>::value();
 		inputSystem.RegisterBinding(Actions::kToggleTransformSpace);
 		inputSystem.RegisterBinding(Actions::kSetTranslateMode);
 		inputSystem.RegisterBinding(Actions::kSetRotateMode);
 		inputSystem.RegisterBinding(Actions::kSetScaleMode);
+	#endif
 	}
 
 	void FEditorGizmo::Draw()
 	{
+	#if 0
 		entt::registry& registry = gEngine->mWorld->mRegistry;
 		const entt::entity selection = entt::locator<FEditorSelection>::value().GetSelection();
 
@@ -164,11 +166,12 @@ namespace Turbo
 				}
 			}
 		}
+	#endif
 	}
 
 	void FEditorGizmo::HandleEvent(FEventBase& event)
 	{
-		FEventDispatcher::Dispatch<FActionEvent>(event, [this](FActionEvent& event)
+		EventDispatcher::Dispatch<FActionEvent>(event, [this](FActionEvent& event)
 		{
 			if (event.mbDown)
 			{

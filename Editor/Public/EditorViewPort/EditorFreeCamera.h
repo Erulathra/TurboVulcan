@@ -1,28 +1,29 @@
 #pragma once
 
-#include "Core/Input/Input.h"
-#include "Core/Input/Keys.h"
 
 namespace Turbo
 {
+   struct Engine;
+   struct InputSystem;
+   struct World;
+
 	struct FActionEvent;
 	struct FEventBase;
 
-	struct FEditorFreeCameraUtils
+	namespace EditorFreeCameraUtils
 	{
-		static void Init();
-		static void RegisterEvents();
-		static void HandleEvent(FEventBase& Event, bool bViewportFocused);
-		static void Tick(fp64 deltaTime);
+		void Init(Engine* engine);
+		void RegisterEvents(InputSystem* inputSystem);
+		void HandleEvent(FEventBase& Event, bool bViewportFocused);
+		void Tick(World* world, fp32 deltaTime);
 
-	private:
-		static void OnConstructMainViewPort(entt::registry& registry, const entt::entity& entity);
-		static void OnDestroyMainViewPort(entt::registry& registry, const entt::entity& entity);
+		void OnConstructMainViewPort(entt::registry& registry, const entt::entity& entity);
+		void OnDestroyMainViewPort(entt::registry& registry, const entt::entity& entity);
 
-		static void HandleAction(FActionEvent& actionEvent, bool bViewportFocused = true);
-		static bool HandleEnableAction(FActionEvent& actionEvent, bool bViewportFocused = true);
-		static bool HandleMovementAction(FActionEvent& actionEvent);
-		static bool HandleRotationAction(FActionEvent& actionEvent);
-		static bool HandleChangeSpeedAction(FActionEvent& actionEvent);
+		void HandleAction(FActionEvent& actionEvent, bool bViewportFocused = true);
+		bool HandleEnableAction(FActionEvent& actionEvent, bool bViewportFocused = true);
+		bool HandleMovementAction(FActionEvent& actionEvent);
+		bool HandleRotationAction(FActionEvent& actionEvent);
+		bool HandleChangeSpeedAction(FActionEvent& actionEvent);
 	};
 } // Turbo

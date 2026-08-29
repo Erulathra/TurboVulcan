@@ -19,7 +19,6 @@
 #include "Graphics/ShaderCompiler.h"
 #include "Graphics/VulkanInitializers.h"
 
-#include "Debug/IConsoleManager.h"
 #include "vulkan/vulkan.hpp"
 #include "vulkan/vulkan_core.h"
 
@@ -27,23 +26,7 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
 namespace Turbo
 {
-	static FAutoConsoleCommand gRecreatePipelineCommand(
-		"recreatePipelines",
-		"Recreates all pipelines.",
-		FConsoleCommandDelegate::CreateLambda([](IConsoleManager& consoleManager, const FArgsVector args)
-		{
-			entt::locator<FGPUDevice>::value().RecreatePipelines();
-		}));
-
-	static FAutoConsoleCommand gRecompileShadersCommand(
-		"recompileShaders",
-		"Recompiles all shader.",
-		FConsoleCommandDelegate::CreateLambda([](IConsoleManager& consoleManager, const FArgsVector args)
-		{
-			entt::locator<FGPUDevice>::value().RecompileShaders();
-		}));
-
-	void FGPUDevice::RecreatePipelines()
+	void GPUDevice::RecreatePipelines()
 	{
 		CHECK_VULKAN_HPP(mVkDevice.waitIdle())
 
@@ -63,29 +46,27 @@ namespace Turbo
 			});
 	}
 
-	void FGPUDevice::RecompileShaders()
+	void GPUDevice::RecompileShaders()
 	{
 		IShaderCompiler::Get().ClearRuntimeCache();
 		RecreatePipelines();
 	}
 
-	void FGPUDevice::Init(const FGPUDeviceBuilder& gpuDeviceBuilder)
+	void GPUDevice::Init(Engine* engine)
 	{
 		TURBO_LOG(LogGPUDevice, Info, "Initializing GPU Device.");
 
+		// TODO(SS): Replace with ZII
+		new (this) GPUDevice();
 
-		FWindow& window = entt::locator<FWindow>::value();
-		window.InitForVulkan();
-		window.Init();
-
-		std::vector<ConstString> instanceRequiredExtensions = window.GetVulkanRequiredExtensions();
+		std::vector<ConstString> instanceRequiredExtensions = engine->mWindow->GetVulkanRequiredExtensions();
 
 		VULKAN_HPP_DEFAULT_DISPATCHER.init();
 		const vkb::Instance builtInstance = CreateVkInstance(instanceRequiredExtensions);
 		VULKAN_HPP_DEFAULT_DISPATCHER.init(mVkInstance);
 
-		TURBO_CHECK(window.CreateVulkanSurface(mVkInstance));
-		mVkWindowSurface = window.GetVulkanSurface();
+		TURBO_CHECK(engine->mWindow->CreateVulkanSurface(mVkInstance));
+		mVkWindowSurface = engine->mWindow->GetVulkanSurface();
 
 		const vkb::PhysicalDevice selectedPhysicalDevice = SelectPhysicalDevice(builtInstance);
 		const vkb::Device device = CreateDevice(selectedPhysicalDevice);
@@ -95,8 +76,8 @@ namespace Turbo
 
 		InitializeImmediateCommands();
 
-		EngineResources::InitEngineSamplers();
-		EngineResources::InitEngineTextures();
+		EngineResources::InitEngineSamplers(this);
+		EngineResources::InitEngineTextures(this);
 
 		InitializeBindlessResources();
 
@@ -115,11 +96,16 @@ namespace Turbo
 		);
 #endif // WITH_PROFILER
 
-		CreateSwapchain();
+		CreateSwapchain(engine->mWindow->GetFrameBufferSize());
 		CreateFrameDatas();
 	}
 
-	void FGPUDevice::InitializeImmediateCommands()
+	void GPUDevice::HandleEvent(FEventBase& event)
+	{
+	   // TODO(SS): Handle window resize event
+	}
+
+	void GPUDevice::InitializeImmediateCommands()
 	{
 		const vk::FenceCreateInfo fenceCreateInfo = VulkanInitializers::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled);
 		CHECK_VULKAN_RESULT(mImmediateCommandsFence, mVkDevice.createFence(fenceCreateInfo));
@@ -131,7 +117,7 @@ namespace Turbo
 		});
 	}
 
-	void FGPUDevice::InitializeBindlessResources()
+	void GPUDevice::InitializeBindlessResources()
 	{
 		TURBO_LOG(LogGPUDevice, Info, "Initializing bindless resources")
 
@@ -179,7 +165,7 @@ namespace Turbo
 #endif // 0
 	}
 
-	THandle<FBuffer> FGPUDevice::CreateBuffer(const FBufferBuilder& builder)
+	THandle<FBuffer> GPUDevice::CreateBuffer(const FBufferBuilder& builder)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -295,7 +281,7 @@ namespace Turbo
 		return handle;
 	}
 
-	THandle<FTexture> FGPUDevice::CreateTexture(const FTextureBuilder& builder)
+	THandle<FTexture> GPUDevice::CreateTexture(const FTextureBuilder& builder)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -308,7 +294,7 @@ namespace Turbo
 		return handle;
 	}
 
-	THandle<FSampler> FGPUDevice::CreateSampler(const FSamplerBuilder& builder)
+	THandle<FSampler> GPUDevice::CreateSampler(const FSamplerBuilder& builder)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -349,7 +335,7 @@ namespace Turbo
 		return handle;
 	}
 
-	THandle<FPipeline> FGPUDevice::CreatePipeline(const FPipelineBuilder& builder)
+	THandle<FPipeline> GPUDevice::CreatePipeline(const FPipelineBuilder& builder)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -361,7 +347,7 @@ namespace Turbo
 		return handle;
 	}
 
-	THandle<FDescriptorPool> FGPUDevice::CreateDescriptorPool(const FDescriptorPoolBuilder& builder)
+	THandle<FDescriptorPool> GPUDevice::CreateDescriptorPool(const FDescriptorPoolBuilder& builder)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -391,7 +377,7 @@ namespace Turbo
 		return handle;
 	}
 
-	THandle<FDescriptorSetLayout> FGPUDevice::CreateDescriptorSetLayout(const FDescriptorSetLayoutBuilder& builder)
+	THandle<FDescriptorSetLayout> GPUDevice::CreateDescriptorSetLayout(const FDescriptorSetLayoutBuilder& builder)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -436,7 +422,7 @@ namespace Turbo
 		return handle;
 	}
 
-	THandle<FDescriptorSet> FGPUDevice::CreateDescriptorSet(const FDescriptorSetBuilder& builder)
+	THandle<FDescriptorSet> GPUDevice::CreateDescriptorSet(const FDescriptorSetBuilder& builder)
 	{
 		THandle<FDescriptorSet> handle = mDescriptorSetPool.Acquire();
 		TURBO_CHECK(handle);
@@ -474,7 +460,7 @@ namespace Turbo
 		return handle;
 	}
 
-	THandle<FShaderState> FGPUDevice::CreateShaderState(const FShaderStateBuilder& builder)
+	THandle<FShaderState> GPUDevice::CreateShaderState(const FShaderStateBuilder& builder)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -532,7 +518,7 @@ namespace Turbo
 		return handle;
 	}
 
-	THandle<FBLAS> FGPUDevice::CreateBLAS(const FBLASBuilder& builder)
+	THandle<FBLAS> GPUDevice::CreateBLAS(const FBLASBuilder& builder)
 	{
 		THandle<FBLAS> handle = mBLASPool.Acquire();
 		FBLAS* blas = mBLASPool.Get(handle);
@@ -617,7 +603,7 @@ namespace Turbo
 		return handle;
 	}
 
-	THandle<FTLAS> FGPUDevice::CreateTLAS(const FTLASBuilder& builder)
+	THandle<FTLAS> GPUDevice::CreateTLAS(const FTLASBuilder& builder)
 	{
 		THandle<FTLAS> handle = mTLASPool.Acquire();
 		FTLAS* tlas = mTLASPool.Get(handle);
@@ -670,7 +656,7 @@ namespace Turbo
 		return handle;
 	}
 
-	FAccelerationStructureSizeInfo FGPUDevice::CalculateTLASSize(const FTLASBuilder& builder) const
+	FAccelerationStructureSizeInfo GPUDevice::CalculateTLASSize(const FTLASBuilder& builder) const
 	{
 		vk::AccelerationStructureGeometryInstancesDataKHR instancesData = {};
 		instancesData.arrayOfPointers = false;
@@ -697,7 +683,7 @@ namespace Turbo
 			.mUpdateScratchSize = sizeInfo.updateScratchSize
 		};
 	}
-	void FGPUDevice::ResetDescriptorPool(THandle<FDescriptorPool> descriptorPoolHandle)
+	void GPUDevice::ResetDescriptorPool(THandle<FDescriptorPool> descriptorPoolHandle)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -714,7 +700,7 @@ namespace Turbo
 		descriptorPool->mDescriptorSets.clear();
 	}
 
-	void FGPUDevice::DestroyBuffer(THandle<FBuffer> handle)
+	void GPUDevice::DestroyBuffer(THandle<FBuffer> handle)
 	{
 		const FBuffer* buffer = AccessBuffer(handle);
 		TURBO_CHECK(buffer);
@@ -730,7 +716,7 @@ namespace Turbo
 		frameData.mDestroyQueue.RequestDestroy(destroyer);
 	}
 
-	void FGPUDevice::DestroyTexture(THandle<FTexture> handle)
+	void GPUDevice::DestroyTexture(THandle<FTexture> handle)
 	{
 		const FTexture* texture = AccessTexture(handle);
 		TURBO_CHECK(texture)
@@ -747,7 +733,7 @@ namespace Turbo
 		frameData.mDestroyQueue.RequestDestroy(destroyer);
 	}
 
-	void FGPUDevice::DestroySampler(THandle<FSampler> handle)
+	void GPUDevice::DestroySampler(THandle<FSampler> handle)
 	{
 		const FSampler* sampler = AccessSampler(handle);
 		TURBO_CHECK(sampler)
@@ -762,7 +748,7 @@ namespace Turbo
 		frameData.mDestroyQueue.RequestDestroy(destroyer);
 	}
 
-	void FGPUDevice::DestroyPipeline(THandle<FPipeline> handle)
+	void GPUDevice::DestroyPipeline(THandle<FPipeline> handle)
 	{
 		const FPipeline* pipeline = AccessPipeline(handle);
 		TURBO_CHECK(pipeline);
@@ -778,7 +764,7 @@ namespace Turbo
 		DestroyShaderState(pipeline->mShaderState);
 	}
 
-	void FGPUDevice::DestroyDescriptorPool(THandle<FDescriptorPool> handle)
+	void GPUDevice::DestroyDescriptorPool(THandle<FDescriptorPool> handle)
 	{
 		const FDescriptorPool* descriptorPool = AccessDescriptorPool(handle);
 		TURBO_CHECK(descriptorPool)
@@ -791,7 +777,7 @@ namespace Turbo
 		frameData.mDestroyQueue.RequestDestroy(destroyer);
 	}
 
-	void FGPUDevice::DestroyDescriptorSetLayout(THandle<FDescriptorSetLayout> handle)
+	void GPUDevice::DestroyDescriptorSetLayout(THandle<FDescriptorSetLayout> handle)
 	{
 		const FDescriptorSetLayout* layout = AccessDescriptorSetLayout(handle);
 		TURBO_CHECK(layout)
@@ -804,7 +790,7 @@ namespace Turbo
 		frameData.mDestroyQueue.RequestDestroy(destroyer);
 	}
 
-	void FGPUDevice::DestroyShaderState(THandle<FShaderState> handle)
+	void GPUDevice::DestroyShaderState(THandle<FShaderState> handle)
 	{
 		const FShaderState* shaderState = AccessShaderState(handle);
 		TURBO_CHECK(shaderState)
@@ -822,7 +808,7 @@ namespace Turbo
 		frameData.mDestroyQueue.RequestDestroy(destroyer);
 	}
 
-	void FGPUDevice::DestroyBLAS(THandle<FBLAS> handle)
+	void GPUDevice::DestroyBLAS(THandle<FBLAS> handle)
 	{
       FBLAS* blas = mBLASPool.Get(handle);
       TURBO_CHECK(blas)
@@ -830,7 +816,7 @@ namespace Turbo
       DestroyAccelerationStructure(handle, blas);
 	}
 
-	void FGPUDevice::DestroyTLAS(THandle<FTLAS> handle)
+	void GPUDevice::DestroyTLAS(THandle<FTLAS> handle)
 	{
       FTLAS* tlas = mTLASPool.Get(handle);
       TURBO_CHECK(tlas)
@@ -838,7 +824,7 @@ namespace Turbo
       DestroyAccelerationStructure(handle, tlas);
 	}
 
-	void FGPUDevice::DestroyAccelerationStructure(FHandle handle, FAccelerationStructure* accelerationStructure)
+	void GPUDevice::DestroyAccelerationStructure(FHandle handle, FAccelerationStructure* accelerationStructure)
 	{
 		TURBO_CHECK(handle.IsValid())
 
@@ -852,13 +838,13 @@ namespace Turbo
 		frameData.mDestroyQueue.RequestDestroy(destroyer);
 	}
 
-	void FGPUDevice::AddOnDestroyCallback(FOnDestroy::Delegate&& delegate)
+	void GPUDevice::AddOnDestroyCallback(FOnDestroy::Delegate&& delegate)
 	{
 		FBufferedFrameData& frameData = mFrameDatas[mBufferedFrameId];
 		frameData.mDestroyQueue.OnDestroy().Add(std::move(delegate));
 	}
 
-	vkb::Instance FGPUDevice::CreateVkInstance(const std::vector<ConstString>& requiredExtensions)
+	vkb::Instance GPUDevice::CreateVkInstance(const std::vector<ConstString>& requiredExtensions)
 	{
 		// Copy by design
 		std::vector<ConstString> enableExtensions = requiredExtensions;
@@ -873,7 +859,7 @@ namespace Turbo
 			.enable_extensions(enableExtensions)
 #if WITH_VALIDATION_LAYERS
 			.request_validation_layers(true)
-			.set_debug_callback(&FGPUDevice::ValidationLayerCallback)
+			.set_debug_callback(&GPUDevice::ValidationLayerCallback)
 #endif // WITH_VALIDATION_LAYERS
 			.require_api_version(kVulkanVersion);
 
@@ -887,7 +873,7 @@ namespace Turbo
 		return buildInstanceResult.value();
 	}
 
-	vkb::PhysicalDevice FGPUDevice::SelectPhysicalDevice(const vkb::Instance& builtInstance)
+	vkb::PhysicalDevice GPUDevice::SelectPhysicalDevice(const vkb::Instance& builtInstance)
 	{
 		TURBO_CHECK(mVkWindowSurface)
 
@@ -986,7 +972,7 @@ namespace Turbo
 		return physicalDevice;
 	}
 
-	vkb::Device FGPUDevice::CreateDevice(const vkb::PhysicalDevice& physicalDevice)
+	vkb::Device GPUDevice::CreateDevice(const vkb::PhysicalDevice& physicalDevice)
 	{
 		vkb::DeviceBuilder deviceBuilder(physicalDevice);
 		vkb::Result<vkb::Device> buildDeviceResult = deviceBuilder.build();
@@ -1040,12 +1026,11 @@ namespace Turbo
 		return result;
 	}
 
-	vkb::Swapchain FGPUDevice::CreateSwapchain()
+	vkb::Swapchain GPUDevice::CreateSwapchain(glm::uint2 newFramebufferSize)
 	{
 		TURBO_CHECK(mVkWindowSurface)
 
-		const FWindow& window = entt::locator<FWindow>::value();
-		mFramebufferSize = window.GetFrameBufferSize();
+		mFramebufferSize = newFramebufferSize;
 
 		if (glm::length2(glm::float2(mViewportSize)) < TURBO_SMALL_NUMBER)
 		{
@@ -1107,7 +1092,7 @@ namespace Turbo
 		return builtSwapchain;
 	}
 
-	void FGPUDevice::CreateVulkanMemoryAllocator()
+	void GPUDevice::CreateVulkanMemoryAllocator()
 	{
 		vma::AllocatorCreateInfo createInfo = {};
 		createInfo.setPhysicalDevice(mVkPhysicalDevice);
@@ -1125,7 +1110,7 @@ namespace Turbo
 		CHECK_VULKAN_RESULT(mVmaAllocator, vma::createAllocator(createInfo));
 	}
 
-	void FGPUDevice::CreateFrameDatas()
+	void GPUDevice::CreateFrameDatas()
 	{
 		TURBO_LOG(LogGPUDevice, Info, "Creating frames data")
 
@@ -1147,7 +1132,7 @@ namespace Turbo
 		}
 	}
 
-	vk::CommandPool FGPUDevice::CreateCommandPool(u32 queueFamilyIndex, vk::CommandPoolCreateFlags createFlags)
+	vk::CommandPool GPUDevice::CreateCommandPool(u32 queueFamilyIndex, vk::CommandPoolCreateFlags createFlags)
 	{
 		vk::CommandPoolCreateInfo createInfo = {};
 		createInfo.setQueueFamilyIndex(queueFamilyIndex);
@@ -1159,7 +1144,7 @@ namespace Turbo
 		return pool;
 	}
 
-	TUniquePtr<FCommandBuffer> FGPUDevice::CreateCommandBuffer(const FCommandBufferBuilder& builder)
+	TUniquePtr<FCommandBuffer> GPUDevice::CreateCommandBuffer(const FCommandBufferBuilder& builder)
 	{
 		vk::CommandBufferAllocateInfo allocateInfo = {};
 		allocateInfo.commandPool = builder.mVkCommandPool;
@@ -1178,7 +1163,7 @@ namespace Turbo
 		return result;
 	}
 
-	vk::PresentModeKHR FGPUDevice::GetBestPresentMode()
+	vk::PresentModeKHR GPUDevice::GetBestPresentMode()
 	{
 		TURBO_CHECK(mVkWindowSurface)
 
@@ -1201,17 +1186,17 @@ namespace Turbo
 		return vk::PresentModeKHR::eFifo;
 	}
 
-	void FGPUDevice::ResizeSwapChain()
+	void GPUDevice::ResizeSwapChain(glm::uint2 newFramebufferSize)
 	{
 		WaitIdle();
 
 		DestroySwapChain();
-		CreateSwapchain();
+		CreateSwapchain(newFramebufferSize);
 
 		mbRequestedSwapchainResize = false;
 	}
 
-	void FGPUDevice::Shutdown()
+	void GPUDevice::Shutdown(Engine* engine)
 	{
 		CHECK_VULKAN_HPP(mVkDevice.waitIdle())
 
@@ -1223,6 +1208,19 @@ namespace Turbo
 		DestroySwapChain();
 
 		IShaderCompiler::Get().Destroy();
+
+#if TURBO_BUILD_DEVELOPMENT
+		/* Check are all textures and buffers destroyed */
+		for (u32 i = 0; i < mTexturePool.Size(); ++i)
+		{
+		   TURBO_CHECK_MSG(mTexturePool.mUsed[i] == false, "Texture `{}` was not freed.", mTexturePool.mData[i].mName)
+		}
+		for (u32 i = 0; i < mBufferPool.Size(); ++i)
+		{
+		   TURBO_CHECK_MSG(mBufferPool.mUsed[i] == false, "Buffer `{}` was not freed.", mBufferPool.mData[i].mName)
+		}
+
+#endif // TURBO_BUILD_DEVELOPMENT
 
 #if WITH_PROFILER
 		if (mTraceGpuCtx)
@@ -1241,7 +1239,8 @@ namespace Turbo
 			mVkDevice.destroy();
 		}
 
-		entt::locator<FWindow>::value().DestroyVulkanSurface(mVkInstance);
+		// TODO(SS): Move this to the window
+		engine->mWindow->DestroyVulkanSurface(mVkInstance);
 
 		if (mVkInstance)
 		{
@@ -1252,7 +1251,7 @@ namespace Turbo
 		}
 	}
 
-	bool FGPUDevice::BeginFrame()
+	bool GPUDevice::BeginFrame(Engine* engine)
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -1260,7 +1259,7 @@ namespace Turbo
 
 		if (mbRequestedSwapchainResize)
 		{
-			ResizeSwapChain();
+			ResizeSwapChain(engine->mWindow->GetFrameBufferSize());
 		}
 
 		FBufferedFrameData& frameData = mFrameDatas[mBufferedFrameId];
@@ -1292,7 +1291,7 @@ namespace Turbo
 		return true;
 	}
 
-	bool FGPUDevice::PresentFrame()
+	bool GPUDevice::PresentFrame()
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -1338,17 +1337,17 @@ namespace Turbo
 		return true;
 	}
 
-	vk::CommandPool FGPUDevice::GetCommandPool() const
+	vk::CommandPool GPUDevice::GetCommandPool() const
 	{
 		return mFrameDatas[mBufferedFrameId].mVkCommandPool;
 	}
 
-	FCommandBuffer& FGPUDevice::GetMainCommandBuffer() const
+	FCommandBuffer& GPUDevice::GetMainCommandBuffer() const
 	{
 		return *mFrameDatas[mBufferedFrameId].mMainCommandBuffer;
 	}
 
-	void FGPUDevice::UpdateBindlessResources()
+	void GPUDevice::UpdateBindlessResources()
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -1449,14 +1448,14 @@ namespace Turbo
 		mBindlessResourcesToUpdate.clear();
 	}
 
-	void FGPUDevice::WaitIdle() const
+	void GPUDevice::WaitIdle() const
 	{
 		TRACE_ZONE_SCOPED()
 
 		CHECK_VULKAN_HPP(mVkDevice.waitIdle());
 	}
 
-	void FGPUDevice::ImmediateSubmit(const FOnImmediateSubmit& immediateSubmitDelegate)
+	void GPUDevice::ImmediateSubmit(const FOnImmediateSubmit& immediateSubmitDelegate)
 	{
 		if (immediateSubmitDelegate.IsBound())
 		{
@@ -1484,7 +1483,7 @@ namespace Turbo
 		}
 	}
 
-	void FGPUDevice::SubmitMainCommandBufferAndWaitIdle()
+	void GPUDevice::SubmitMainCommandBufferAndWaitIdle()
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -1504,7 +1503,7 @@ namespace Turbo
 		// CHECK_VULKAN_HPP(mVkDevice.waitIdle())
 	}
 
-	void FGPUDevice::DestroySwapChain()
+	void GPUDevice::DestroySwapChain()
 	{
 		mVkDevice.destroySwapchainKHR(mVkSwapchain);
 
@@ -1525,7 +1524,7 @@ namespace Turbo
 		mNumSwapChainImages = 0;
 	}
 
-	void FGPUDevice::DestroyFrameDatas()
+	void GPUDevice::DestroyFrameDatas()
 	{
 		TURBO_LOG(LogGPUDevice, Info, "Destroying frames data")
 
@@ -1550,7 +1549,7 @@ namespace Turbo
 		FlushDestroyQueues();
 	}
 
-	void FGPUDevice::DestroyImmediateCommands()
+	void GPUDevice::DestroyImmediateCommands()
 	{
 		if (mImmediateCommandsFence)
 		{
@@ -1565,7 +1564,7 @@ namespace Turbo
 		}
 	}
 
-	void FGPUDevice::DestroyBindlessResources()
+	void GPUDevice::DestroyBindlessResources()
 	{
 		DestroyDescriptorSetLayout(mBindlessResourcesLayout);
 		DestroyDescriptorPool(mBindlessResourcesPool);
@@ -1575,7 +1574,7 @@ namespace Turbo
 		mBindlessResourcesSet.Reset();
 	}
 
-	void FGPUDevice::FlushDestroyQueues()
+	void GPUDevice::FlushDestroyQueues()
 	{
 		for (FBufferedFrameData& frameData : mFrameDatas)
 		{
@@ -1583,7 +1582,7 @@ namespace Turbo
 		}
 	}
 
-	void FGPUDevice::InitVulkanTexture(const FTextureBuilder& builder, THandle<FTexture> handle)
+	void GPUDevice::InitVulkanTexture(const FTextureBuilder& builder, THandle<FTexture> handle)
 	{
 		FTexture* texture = AccessTexture(handle);
 
@@ -1678,7 +1677,7 @@ namespace Turbo
 		}
 	}
 
-	void FGPUDevice::InitPipeline(const FPipelineBuilder& builder, THandle<FPipeline> handle)
+	void GPUDevice::InitPipeline(const FPipelineBuilder& builder, THandle<FPipeline> handle)
 	{
 		FPipeline* pipeline = mPipelinePool.Get(handle);
 		TURBO_CHECK(pipeline)
@@ -1866,7 +1865,7 @@ namespace Turbo
 		SetResourceName(pipeline->mVkPipeline, builder.mName);
 	}
 
-	void FGPUDevice::UploadTextureUsingStagingBuffer(THandle<FTexture> handle, std::span<const u8> data)
+	void GPUDevice::UploadTextureUsingStagingBuffer(THandle<FTexture> handle, std::span<const u8> data)
 	{
 		// Create staging buffer
 		const FBufferBuilder stagingBufferBuilder = FBufferBuilder::CreateStagingBuffer(data.size());
@@ -1888,26 +1887,26 @@ namespace Turbo
 		DestroyBuffer(stagingBuffer);
 	}
 
-	void FGPUDevice::DestroyBufferImmediate(const FBufferDestroyer& destroyer)
+	void GPUDevice::DestroyBufferImmediate(const FBufferDestroyer& destroyer)
 	{
 		mVmaAllocator.destroyBuffer(destroyer.mVkBuffer, destroyer.mAllocation);
 		mBufferPool.Release(destroyer.mHandle);
 	}
 
-	void FGPUDevice::DestroyTextureImmediate(const FTextureDestroyer& destroyer)
+	void GPUDevice::DestroyTextureImmediate(const FTextureDestroyer& destroyer)
 	{
 		mVmaAllocator.destroyImage(destroyer.mImage, destroyer.mImageAllocation);
 		mVkDevice.destroyImageView(destroyer.mImageView);
 		mTexturePool.Release(destroyer.mHandle);
 	}
 
-	void FGPUDevice::DestroySamplerImmediate(const FSamplerDestroyer& destroyer)
+	void GPUDevice::DestroySamplerImmediate(const FSamplerDestroyer& destroyer)
 	{
 		mVkDevice.destroySampler(destroyer.mVkSampler);
 		mSamplerPool.Release(destroyer.mHandle);
 	}
 
-	void FGPUDevice::DestroyPipelineImmediate(const FPipelineDestroyer& destroyer)
+	void GPUDevice::DestroyPipelineImmediate(const FPipelineDestroyer& destroyer)
 	{
 		// Remember to update also pipeline recreation code.
 		mVkDevice.destroyPipelineLayout(destroyer.mLayout);
@@ -1920,20 +1919,20 @@ namespace Turbo
 		mPipelinePool.Release(destroyer.mHandle);
 	}
 
-	void FGPUDevice::DestroyDescriptorPoolImmediate(const FDescriptorPoolDestroyer& destroyer)
+	void GPUDevice::DestroyDescriptorPoolImmediate(const FDescriptorPoolDestroyer& destroyer)
 	{
 		ResetDescriptorPool(destroyer.mhandle);
 		mVkDevice.destroyDescriptorPool(destroyer.mVkDescriptorPool);
 		mDescriptorPoolPool.Release(destroyer.mhandle);
 	}
 
-	void FGPUDevice::DestroyDescriptorSetLayoutImmediate(const FDescriptorSetLayoutDestroyer& destroyer)
+	void GPUDevice::DestroyDescriptorSetLayoutImmediate(const FDescriptorSetLayoutDestroyer& destroyer)
 	{
 		mVkDevice.destroyDescriptorSetLayout(destroyer.mVkLayout);
 		mDescriptorSetLayoutPool.Release(destroyer.mHandle);
 	}
 
-	void FGPUDevice::DestroyShaderStateImmediate(const FShaderStateDestroyer& destroyer)
+	void GPUDevice::DestroyShaderStateImmediate(const FShaderStateDestroyer& destroyer)
 	{
 		for (u32 shaderId = 0; shaderId < destroyer.mNumActiveShaders; ++shaderId)
 		{
@@ -1943,7 +1942,7 @@ namespace Turbo
 		mShaderStatePool.Release(destroyer.mHandle);
 	}
 
-	void FGPUDevice::DestroyAccelerationStructureImmediate(const FAccelerationStructureDestroyer& destroyer)
+	void GPUDevice::DestroyAccelerationStructureImmediate(const FAccelerationStructureDestroyer& destroyer)
 	{
 		const FBuffer* storageBuffer = AccessBuffer(destroyer.mBuffer);
 
@@ -1968,7 +1967,7 @@ namespace Turbo
 		}
 	}
 
-	VkBool32 FGPUDevice::ValidationLayerCallback(
+	VkBool32 GPUDevice::ValidationLayerCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* callbackData,

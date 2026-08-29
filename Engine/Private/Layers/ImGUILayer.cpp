@@ -1,29 +1,29 @@
 #include "Layers/ImGUILayer.h"
 
-#include "imgui.h"
 #include "Assets/EngineResources.h"
+#include "Core/Window.h"
 #include "backends/imgui_impl_sdl3.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "Core/Engine.h"
+#include "Core/Engine.h"
 #include "Core/FileSystem.h"
-#include "Debug/IConsoleManager.h"
 #include "Graphics/GPUDevice.h"
+#include "imgui.h"
 #include "UserInterface/UserInterfaceHelpers.h"
 
 namespace Turbo
 {
-	void FImGuiLayer::OnSDLEvent(SDL_Event* sdlEvent)
+	void ImGuiLayer::OnSDLEvent(Window* window, SDL_Event* sdlEvent)
 	{
 		if (sdlEvent->type == SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED)
 		{
-			const FWindow& window = entt::locator<FWindow>::value();
-			ImGui::GetStyle().ScaleAllSizes(window.GetDisplayScale());
+			ImGui::GetStyle().ScaleAllSizes(window->GetDisplayScale());
 		}
 
 		ImGui_ImplSDL3_ProcessEvent(sdlEvent);
 	}
 
-	void FImGuiLayer::SetupTheme()
+	void ImGuiLayer::SetupTheme()
 	{
 		// Hazy Dark style by kaitabuchi314 from ImThemes
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -113,21 +113,9 @@ namespace Turbo
 		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.8f, 0.8f, 0.8f, 0.35f);
 	}
 
-	template<>
-	FName GetStaticLayerName<FImGuiLayer>()
+	ImGuiTexture& ImGuiLayer::FindOrRegisterTexture(THandle<FTexture> textureHandle)
 	{
-		static FName Name("ImGUILayer");
-		return Name;
-	}
-
-	FName FImGuiLayer::GetName()
-	{
-		return GetStaticLayerName<FImGuiLayer>();
-	}
-
-	FImGuiTexture& FImGuiLayer::FindOrRegisterTexture(THandle<FTexture> textureHandle)
-	{
-		auto findTexturePredicate = [textureHandle](const FImGuiTexture& imGuiTexture)
+		auto findTexturePredicate = [textureHandle](const ImGuiTexture& imGuiTexture)
 		{
 			return imGuiTexture.mTexture == textureHandle;
 		};
@@ -145,10 +133,13 @@ namespace Turbo
 		return mTextures.back();
 	}
 
-	void FImGuiLayer::Start()
+	void ImGuiLayer::Init(Engine* engine)
 	{
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		FWindow& window = entt::locator<FWindow>::value();
+		GPUDevice* gpu = engine->mGPU;
+		Window* window = engine->mWindow;
+
+		// TODO(SS): Remove when we get rid of the std::vector
+		mTextures = {};
 
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
@@ -163,13 +154,13 @@ namespace Turbo
 		io.IniFilename = kConfigPath.c_str();
 		io.LogFilename = kLogPath.c_str();
 
-		ImGui_ImplSDL3_InitForVulkan(window.GetWindow());
+		ImGui_ImplSDL3_InitForVulkan(window->GetWindow());
 
 		ImGui_ImplVulkan_InitInfo initInfo = {};
-		initInfo.Instance = gpu.GetVkInstance();
-		initInfo.PhysicalDevice = gpu.GetVkPhysicalDevice();
-		initInfo.Device = gpu.GetVkDevice();
-		initInfo.Queue = gpu.GetVkQueue();
+		initInfo.Instance = gpu->GetVkInstance();
+		initInfo.PhysicalDevice = gpu->GetVkPhysicalDevice();
+		initInfo.Device = gpu->GetVkDevice();
+		initInfo.Queue = gpu->GetVkQueue();
 		initInfo.DescriptorPoolSize = 128;
 		initInfo.MinImageCount = 2;
 		initInfo.ImageCount = 2;
@@ -180,7 +171,7 @@ namespace Turbo
 		initInfo.PipelineInfoMain.PipelineRenderingCreateInfo = {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
 		initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
 
-		const FTexture* presentTexture = gpu.AccessTexture(gpu.GetPresentImage());
+		const FTexture* presentTexture = gpu->AccessTexture(gpu->GetPresentImage());
 		VkFormat presentTextureFormat = static_cast<VkFormat>(presentTexture->GetFormat());
 		initInfo.PipelineInfoMain.PipelineRenderingCreateInfo.pColorAttachmentFormats = &presentTextureFormat;
 
@@ -188,14 +179,14 @@ namespace Turbo
 
 		auto LoaderFunction = [](const char* functionName, void* userData)
 		{
-			const FGPUDevice* gpuDevice = static_cast<FGPUDevice*>(userData);
+			const GPUDevice* gpuDevice = static_cast<GPUDevice*>(userData);
 			return gpuDevice->GetVkInstance().getProcAddr(functionName);
 		};
 
-		ImGui_ImplVulkan_LoadFunctions(kVulkanVersion, LoaderFunction, &gpu);
+		ImGui_ImplVulkan_LoadFunctions(kVulkanVersion, LoaderFunction, gpu);
 		ImGui_ImplVulkan_Init(&initInfo);
 
-		window.OnSDLEvent.AddRaw(this, &FImGuiLayer::OnSDLEvent);
+		window->OnSDLEvent.AddRaw(this, &ImGuiLayer::OnSDLEvent);
 
 		ImFont* firaCodeImFont = io.Fonts->AddFontFromFileTTF("Content/Fonts/FiraCode/FiraCode-Regular.ttf");
 
@@ -210,22 +201,19 @@ namespace Turbo
 
 		SetupTheme();
 
-		ImGui::GetStyle().ScaleAllSizes(window.GetDisplayScale());
+		ImGui::GetStyle().ScaleAllSizes(window->GetDisplayScale());
 	}
 
-	void FImGuiLayer::Shutdown()
+	void ImGuiLayer::Shutdown(Engine* engine)
 	{
-		FWindow& window = entt::locator<FWindow>::value();
-		window.OnSDLEvent.RemoveObject(this);
-
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		gpu.WaitIdle();
+		engine->mWindow->OnSDLEvent.RemoveObject(this);
+		engine->mGPU->WaitIdle();
 
 		ImGui_ImplSDL3_Shutdown();
 		ImGui_ImplVulkan_Shutdown();
 	}
 
-	void FImGuiLayer::BeginTick(fp64 deltaTime)
+	void ImGuiLayer::BeginTick(fp64 deltaTime)
 	{
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplSDL3_NewFrame();
@@ -234,44 +222,40 @@ namespace Turbo
 		ImGui::DockSpaceOverViewport(ImGui::GetID(kViewportDockspaceName), ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 	}
 
-	void FImGuiLayer::EndTick(fp64 deltaTime)
+	void ImGuiLayer::EndTick(fp64 deltaTime)
 	{
 		ImGui::Render();
 	}
 
-	void FImGuiLayer::PostBeginFrame(FRenderGraphBuilder& graphBuilder)
-	{
-	}
-
-	void FImGuiLayer::BeginPresentingFrame(FRenderGraphBuilder& graphBuilder, FRGResourceHandle presentImage)
+	void ImGuiLayer::BeginPresentingFrame(GPUDevice* gpu, RenderGraph* renderGraph, FRGResourceHandle presentImage)
 	{
 		// I don't know if setting here read-only as initial layout is a good idea.
-		for (FImGuiTexture& imGuiTexture : mTextures)
+		for (ImGuiTexture& imGuiTexture : mTextures)
 		{
-			imGuiTexture.mRGTexture = graphBuilder.RegisterExternalTexture(imGuiTexture.mTexture, ETextureLayout::ReadOnly);
+			imGuiTexture.mRGTexture = renderGraph->RegisterExternalTexture(imGuiTexture.mTexture, ETextureLayout::ReadOnly);
 		}
 
 		static FName ImGUIPassName("RenderImGUI");
-		FRGPassInitializer pass = graphBuilder.AddPass(ImGUIPassName, EPassType::Graphics);
+		FRGPassInitializer pass = renderGraph->AddPass(ImGUIPassName, EPassType::Graphics);
 		pass->AddAttachment(presentImage, 0);
 		pass->ReadTexture(presentImage);
 
-		for (FImGuiTexture& imGuiTexture : mTextures)
+		for (ImGuiTexture& imGuiTexture : mTextures)
 		{
 			pass->ReadTexture(imGuiTexture.mRGTexture);
 		}
 
 		pass->mExecutePass.BindLambda(
-			[](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+			[](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 			{
 				ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd.GetVkCommandBuffer());
 			}
 		);
 
-		entt::locator<FGPUDevice>::value().AddOnDestroyCallback(FOnDestroy::Delegate::CreateLambda(
+		gpu->AddOnDestroyCallback(FOnDestroy::Delegate::CreateLambda(
 				[texturesToDestroy = std::move(mTextures)]() mutable
 				{
-					for (FImGuiTexture& imGuiTexture : texturesToDestroy)
+					for (ImGuiTexture& imGuiTexture : texturesToDestroy)
 					{
 						ImGui_ImplVulkan_RemoveTexture(imGuiTexture.mDescriptorSet);
 					}
@@ -280,20 +264,15 @@ namespace Turbo
 	}
 } // Turbo
 
-void ImGui::Texture(Turbo::THandle<Turbo::FTexture> textureHandle)
+void ImGui::Texture(Turbo::GPUDevice* gpu, Turbo::ImGuiLayer* imGuiLayer, Turbo::THandle<Turbo::FTexture> textureHandle)
 {
 	using namespace Turbo;
 
-	FLayersStack& layersStack = entt::locator<FLayersStack>::value();
-	FImGuiLayer* imGuiLayer = layersStack.GetLayerChecked<FImGuiLayer>();
-
-	FImGuiTexture& imGuiTexture = imGuiLayer->FindOrRegisterTexture(textureHandle);
-
-	FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-	const FTexture* texture = gpu.AccessTexture(textureHandle);
+	ImGuiTexture& imGuiTexture = imGuiLayer->FindOrRegisterTexture(textureHandle);
+	const FTexture* texture = gpu->AccessTexture(textureHandle);
 
 	const THandle<FSampler> samplerHandle = EngineResources::GetDefaultNearestNeighbourSampler();
-	const FSampler* sampler = gpu.AccessSampler(samplerHandle);
+	const FSampler* sampler = gpu->AccessSampler(samplerHandle);
 
 	imGuiTexture.mDescriptorSet = ImGui_ImplVulkan_AddTexture(sampler->mVkSampler, texture->mVkImageView, VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL);
 	Image(static_cast<VkDescriptorSet>(imGuiTexture.mDescriptorSet), texture->GetSize2D());

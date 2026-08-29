@@ -1,19 +1,19 @@
 #pragma once
 
-#include "MaterialManager.h"
 #include "Graphics/GPUDevice.h"
 
 namespace Turbo
 {
 	struct FMaterial;
 	struct FMesh;
+	struct Engine;
 
 	namespace EngineMaterials
 	{
 		inline const FName kTriangleTest = FName("MeshTriangleTest");
 		inline const FName kOpaqueBasePass = FName("OpaqueBasePass");
 
-		void InitEngineMaterials();
+		void InitEngineMaterials(GPUDevice* gpu);
 
 		struct FBasePassMaterialData
 		{
@@ -37,12 +37,12 @@ namespace Turbo
 
 	namespace EngineResources
 	{
-		void InitEngineSamplers();
-		void InitEngineTextures();
+	   // TODO(SS) Remove global variables
+		void InitEngineSamplers(GPUDevice* gpu);
+		void InitEngineTextures(GPUDevice* gpu);
 		void LoadPlaceholders();
-		void LoadPlaceholderMesh();
 
-		void DestroyEngineResources();
+		void DestroyEngineResources(GPUDevice* gpu);
 
 		THandle<FSampler> GetDefaultLinearSampler();
 		THandle<FSampler> GetDefaultNearestNeighbourSampler();

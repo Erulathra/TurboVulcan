@@ -8,6 +8,6 @@ namespace Turbo
 
 	struct FGLTFSceneLoader
 	{
-		static void LoadGLTFScene(World& world, FName path);
+		static void LoadGLTFScene(Engine* engine, FName path);
 	};
 } // Turbo

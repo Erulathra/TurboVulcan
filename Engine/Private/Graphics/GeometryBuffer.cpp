@@ -6,7 +6,7 @@
 
 namespace Turbo
 {
-	void FGeometryBuffer::Init(FRenderGraphBuilder& graphBuilder, glm::ivec2 resolution)
+	void FGeometryBuffer::Init(RenderGraph* renderGraph, glm::ivec2 resolution)
 	{
 		const static FName geometryBufferColorName = FName{"GBuffer_Color"};
 		const static FName geometryBufferDepthName = FName{"GBuffer_Depth"};
@@ -36,12 +36,12 @@ namespace Turbo
 			.mName = geometryBufferAfterToneMapName
 		};
 
-		mSceneColor = graphBuilder.CreateTexture(colorInfo);
-		mDepthStencil = graphBuilder.CreateTexture(depthInfo);
-		mAfterToneMap = graphBuilder.CreateTexture(afterToneMap);
+		mSceneColor = renderGraph->CreateTexture(colorInfo);
+		mDepthStencil = renderGraph->CreateTexture(depthInfo);
+		mAfterToneMap = renderGraph->CreateTexture(afterToneMap);
 	}
 
-	void FGeometryBuffer::BlitToPresent(FRenderGraphBuilder& graphBuilder, FRGResourceHandle presentTexture) const
+	void FGeometryBuffer::BlitToPresent(RenderGraph* graphBuilder, FRGResourceHandle presentTexture) const
 	{
 		RenderGraphUtils::AddBlitTexturePass(graphBuilder, mAfterToneMap, presentTexture);
 	}

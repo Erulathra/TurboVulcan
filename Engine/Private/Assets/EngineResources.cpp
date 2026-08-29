@@ -2,6 +2,7 @@
 
 #include "Assets/AssetManager.h"
 #include "Assets/MaterialManager.h"
+#include "Graphics/GPUDevice.h"
 
 namespace Turbo
 {
@@ -21,11 +22,10 @@ namespace Turbo
 
 	namespace EngineMaterials
 	{
-		void InitEngineMaterials()
+		void InitEngineMaterials(GPUDevice* gpu)
 		{
 			FMaterialManager& materialManager = entt::locator<FMaterialManager>::value();
 			FPipelineBuilder graphicsPipelineBuilder = FMaterialManager::CreateOpaquePipeline("OpaqueBasePass.slang");
-
 
 			FPipelineBuilder depthPipelineBuilder = FMaterialManager::CreateDepthPrepassPipeline("DepthPrepass.slang");
 			const THandle<FMaterial> basePassMat = materialManager.CreateMaterial(FMaterialBuilder{
@@ -37,8 +37,7 @@ namespace Turbo
 				.mName = kOpaqueBasePass
 			});
 
-			FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-			gpu.ImmediateSubmit(
+			gpu->ImmediateSubmit(
 				FOnImmediateSubmit::CreateLambda(
 					[&](FCommandBuffer& cmd)
 					{
@@ -56,27 +55,25 @@ namespace Turbo
 
 	namespace EngineResources
 	{
-		void InitEngineSamplers()
+		void InitEngineSamplers(GPUDevice* gpu)
 		{
-			FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 			FSamplerBuilder samplerBuilder = {};
 			samplerBuilder
 				.SetMinMagFilter(vk::Filter::eNearest, vk::Filter::eLinear)
 				.SetMipFilter(vk::SamplerMipmapMode::eLinear)
 				.SetName(FName("DefaultLinear"));
-			gDefaultLinearSampler = gpu.CreateSampler(samplerBuilder);
+			gDefaultLinearSampler = gpu->CreateSampler(samplerBuilder);
 
 			samplerBuilder
 				.SetMinMagFilter(vk::Filter::eNearest, vk::Filter::eNearest)
 				.SetMipFilter(vk::SamplerMipmapMode::eNearest)
 				.SetAddressUV(vk::SamplerAddressMode::eClampToEdge, vk::SamplerAddressMode::eClampToEdge)
 				.SetName(FName("DefaultNearestNeighbour"));
-			gDefaultNearestNeighbourSampler = gpu.CreateSampler(samplerBuilder);
+			gDefaultNearestNeighbourSampler = gpu->CreateSampler(samplerBuilder);
 		}
 
-		void InitEngineTextures()
+		void InitEngineTextures(GPUDevice* gpu)
 		{
-			FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 			FTextureBuilder textureBuilder = {};
 			textureBuilder
 				.Init(vk::Format::eR8G8B8A8Unorm, ETextureType::Texture2D)
@@ -84,44 +81,42 @@ namespace Turbo
 				.SetSize(glm::uint3(1, 1, 1));
 
 			textureBuilder.SetName(FName("Engine::White"));
-			gWhiteTexture = gpu.CreateTexture(textureBuilder);
+			gWhiteTexture = gpu->CreateTexture(textureBuilder);
 			constexpr u8 whiteBytes[]{0xff, 0xff, 0xff, 0xff};
-			gpu.UploadTextureUsingStagingBuffer(gWhiteTexture, whiteBytes);
+			gpu->UploadTextureUsingStagingBuffer(gWhiteTexture, whiteBytes);
 
 			textureBuilder.SetName(FName("Engine::Black"));
-			gBlackTexture = gpu.CreateTexture(textureBuilder);
+			gBlackTexture = gpu->CreateTexture(textureBuilder);
 			constexpr u8 blackBytes[]{0x0, 0x0, 0x0, 0xff};
-			gpu.UploadTextureUsingStagingBuffer(gBlackTexture, blackBytes);
+			gpu->UploadTextureUsingStagingBuffer(gBlackTexture, blackBytes);
 
 			textureBuilder.SetName(FName("Engine::ORMPlaceholder"));
-			gORMPlaceholderTexture = gpu.CreateTexture(textureBuilder);
+			gORMPlaceholderTexture = gpu->CreateTexture(textureBuilder);
 			constexpr u8 ormBytes[]{0xFF, 0xFF, 0xFF, 0xFF};
-			gpu.UploadTextureUsingStagingBuffer(gORMPlaceholderTexture, ormBytes);
+			gpu->UploadTextureUsingStagingBuffer(gORMPlaceholderTexture, ormBytes);
 
 			textureBuilder.SetName(FName("Engine::FlatNormalMap"));
-			gFlatNormalMapTexture = gpu.CreateTexture(textureBuilder);
+			gFlatNormalMapTexture = gpu->CreateTexture(textureBuilder);
 			constexpr u8 flatNormalBytes[]{0x80, 0x80, 0xFF, 0xFF};
-			gpu.UploadTextureUsingStagingBuffer(gFlatNormalMapTexture, flatNormalBytes);
+			gpu->UploadTextureUsingStagingBuffer(gFlatNormalMapTexture, flatNormalBytes);
 		}
 
 		void LoadPlaceholders()
 		{
 			FAssetManager& assetManager = entt::locator<FAssetManager>::value();
-			gPlaceholderTexture = assetManager.LoadTexture(FName("Content/Engine/T_Placeholder.dds"), {true, false});
-			// gPlaceholderMesh = assetManager.LoadMesh(FName("Content/Engine/SM_ErrorMesh.glb"), FMeshLoadSettings{.mbLevelAsset = false});
+			gPlaceholderTexture = assetManager.LoadTexture(FName("Content/Engine/T_Placeholder.dds"), {true});
 		}
 
-		void DestroyEngineResources()
+		void DestroyEngineResources(GPUDevice* gpu)
 		{
-			FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-			gpu.DestroySampler(gDefaultLinearSampler);
-			gpu.DestroySampler(gDefaultNearestNeighbourSampler);
+			gpu->DestroySampler(gDefaultLinearSampler);
+			gpu->DestroySampler(gDefaultNearestNeighbourSampler);
 
-			gpu.DestroyTexture(gWhiteTexture);
-			gpu.DestroyTexture(gBlackTexture);
-			gpu.DestroyTexture(gPlaceholderTexture);
-			gpu.DestroyTexture(gORMPlaceholderTexture);
-			gpu.DestroyTexture(gFlatNormalMapTexture);
+			gpu->DestroyTexture(gWhiteTexture);
+			gpu->DestroyTexture(gBlackTexture);
+			gpu->DestroyTexture(gPlaceholderTexture);
+			gpu->DestroyTexture(gORMPlaceholderTexture);
+			gpu->DestroyTexture(gFlatNormalMapTexture);
 
 			FAssetManager& assetManager = entt::locator<FAssetManager>::value();
 			// assetManager.UnloadMesh(gPlaceholderMesh);

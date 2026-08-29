@@ -42,7 +42,7 @@ namespace Turbo
 		}
 
 	public:
-		static size_t Size() { return size; }
+		size_t Size() { return size; }
 
 		THandle<Type> Acquire()
 		{

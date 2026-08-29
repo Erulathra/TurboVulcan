@@ -11,38 +11,37 @@
 
 namespace Turbo
 {
-	void FEditorViewportWindow::Init()
+	void EditorViewportWindow::Init(Engine* engine)
 	{
-		FEditorFreeCameraUtils::Init();
+		EditorFreeCameraUtils::Init(engine);
+
+#if 0
 		mGizmo = std::make_unique<FEditorGizmo>();
 		mGizmo->Init();
+#endif
 	}
 
-	void FEditorViewportWindow::Shutdown()
+	void EditorViewportWindow::Shutdown(Engine* engine)
 	{
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 		for (THandle<FTexture> texture : mRenderedTextures)
 		{
-			gpu.DestroyTexture(texture);
+			engine->mGPU->DestroyTexture(texture);
 		}
 	}
 
-	void FEditorViewportWindow::HandleEvent(FEventBase& event)
+	void EditorViewportWindow::HandleEvent(FEventBase& event)
 	{
-		FEditorFreeCameraUtils::HandleEvent(event, bHasFocus);
+		EditorFreeCameraUtils::HandleEvent(event, bHasFocus);
 
+#if 0
 		if (event.mEventReply != EEventReply::Handled)
 		{
 			mGizmo->HandleEvent(event);
 		}
+#endif
 	}
 
-	void FEditorViewportWindow::Tick(fp32 deltaTime)
-	{
-		FEditorFreeCameraUtils::Tick(deltaTime);
-	}
-
-	void FEditorViewportWindow::Draw()
+	void EditorViewportWindow::Tick(Engine* engine, fp32 deltaTime)
 	{
 		ImGui::SetNextWindowSizeConstraints(glm::uint2(128), glm::uint2(UINT_MAX));
 		ImGui::Begin("Viewport");
@@ -52,30 +51,30 @@ namespace Turbo
 		const glm::uint2 newContentSize = ImGui::GetContentRegionAvail();
 		if (newContentSize != mEditorViewportSize)
 		{
-			ResizeViewport(newContentSize);
+			ResizeViewport(engine, newContentSize);
 		}
 
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		const u32 bufferedFrameId = gpu.GetFrameInFlightId();
-		if (bufferedFrameId < mRenderedTextures.size())
+		const u32 frameInFlight = engine->mGPU->GetFrameInFlightId();
+		if (frameInFlight < mRenderedTextures.size())
 		{
-			ImGui::Texture(mRenderedTextures[bufferedFrameId]);
+			ImGui::Texture(engine->mGPU, engine->mImGuiLayer, mRenderedTextures[frameInFlight]);
 		}
 
+	#if 0
 		mGizmo->Draw();
+	#endif
 
 		ImGui::End();
 	}
 
-	void FEditorViewportWindow::ResizeViewport(const glm::uint2& newSize)
+	void EditorViewportWindow::ResizeViewport(Engine* engine, const glm::uint2& newSize)
 	{
 		mEditorViewportSize = newSize;
 
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		gpu.WaitIdle();
-		gpu.SetMainViewportSize(newSize);
+		engine->mGPU->WaitIdle();
+		engine->mGPU->SetMainViewportSize(newSize);
 
-		World* world = gEngine->mWorld;
+		World* world = engine->mWorld;
 		world->mRegistry.view<FCamera>().each([&](entt::entity entity, FCamera& camera)
 		{
 			camera.mAspectRatio = static_cast<fp32>(newSize.x) / static_cast<fp32>(newSize.y);
@@ -85,12 +84,12 @@ namespace Turbo
 		// Destroy old textures
 		for (THandle<FTexture> texture : mRenderedTextures)
 		{
-			gpu.DestroyTexture(texture);
+			engine->mGPU->DestroyTexture(texture);
 		}
 		mRenderedTextures.clear();
 
 		// Create new ones
-		const u32 numBufferedFrames = gpu.GetNumBufferedFrames();
+		const u32 numBufferedFrames = engine->mGPU->GetNumBufferedFrames();
 		mRenderedTextures.reserve(numBufferedFrames);
 		for (u32 frameId = 0; frameId < numBufferedFrames; ++frameId)
 		{
@@ -100,10 +99,7 @@ namespace Turbo
 				.SetSize(glm::uint3(newSize, 1))
 				.SetName(FName(fmt::format("EditorViewport_{}", frameId)));
 
-			mRenderedTextures.push_back(gpu.CreateTexture(builder));
+			mRenderedTextures.push_back(engine->mGPU->CreateTexture(builder));
 		}
 	}
-
-	FEditorViewportWindow::FEditorViewportWindow() = default;
-	FEditorViewportWindow::~FEditorViewportWindow() = default;
 } // Turbo

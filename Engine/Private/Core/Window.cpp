@@ -4,41 +4,36 @@
 #include "Core/Engine.h"
 #include "Core/FileSystem.h"
 #include "Core/WindowEvents.h"
-#include "Input/FSDLInputSystem.h"
+#include "Core/Input/InputSystem.h"
 
 #include "STB/stb_image.h"
 
 namespace Turbo
 {
-	FWindow::FWindow() = default;
-	FWindow::~FWindow() = default;
-
-	void FWindow::InitBackend()
+	bool Window::Init(Engine* engine)
 	{
-		TURBO_LOG(LogWindow, Info, "Initializing SDL.");
-		if (!SDL_Init(SDL_INIT_VIDEO))
+	   // TODO(SS): Replace with ZII
+	   new (this) Window();
+
+   	TURBO_LOG(LogWindow, Info, "Initializing SDL.");
+   	if (!SDL_Init(SDL_INIT_VIDEO))
+   	{
+   		LogError();
+   	}
+
+      if (!SDL_Vulkan_LoadLibrary(nullptr))
 		{
 			LogError();
 		}
-	}
 
-	void FWindow::StopBackend()
-	{
-		TURBO_LOG(LogWindow, Info, "Stopping SDL.");
-		SDL_Quit();
-	}
-
-	void FWindow::Destroy()
-	{
-		TURBO_LOG(LogWindow, Info, "Destroying window.");
-		SDL_DestroyWindow(mSDLWindow);
-	}
-
-	bool FWindow::Init()
-	{
 		TURBO_LOG(LogWindow, Info, "Initializing Window.");
-		mSDLWindow = SDL_CreateWindow(WindowDefaultValues::kName.data(), WindowDefaultValues::kSizeX, WindowDefaultValues::kSizeY,
-		                                     SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE);
+		mSDLWindow = SDL_CreateWindow(
+			WindowDefaultValues::kName.data(),
+			WindowDefaultValues::kSizeX,
+			WindowDefaultValues::kSizeY,
+			SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE
+		);
+
 		if (!mSDLWindow)
 		{
 			TURBO_LOG(LogWindow, Error, "SDL window creation error. See bellow logs for details");
@@ -50,12 +45,24 @@ namespace Turbo
 		return true;
 	}
 
-	void FWindow::LogError()
+	void Window::Shutdown(Engine* engine)
+	{
+		TURBO_LOG(LogWindow, Info, "Destroying window.");
+		SDL_DestroyWindow(mSDLWindow);
+
+		SDL_Vulkan_UnloadLibrary();
+
+		TURBO_LOG(LogWindow, Info, "Stopping SDL.");
+		SDL_Quit();
+	}
+
+
+	void Window::LogError()
 	{
 		TURBO_LOG(LogWindow, Error, "SDL_ERROR: {}", SDL_GetError());
 	}
 
-	SDL_Surface* FWindow::LoadSurface(std::string_view path)
+	SDL_Surface* Window::LoadSurface(std::string_view path)
 	{
 		std::vector<ByteType> imgData;
 		if (FileSystem::LoadData(path, imgData) == false)
@@ -93,7 +100,7 @@ namespace Turbo
 		return result;
 	}
 
-	void FWindow::PollWindowEventsAndErrors()
+	void Window::PollWindowEventsAndErrors(Engine* engine)
 	{
 		SDL_Event event;
 
@@ -106,47 +113,47 @@ namespace Turbo
 			case SDL_EVENT_TERMINATING:
 				{
 					FCloseWindowEvent newEvent = {};
-					gEngine->PushEvent(newEvent);
+					engine->PushEvent(newEvent);
 					break;
 				}
 			case SDL_EVENT_WINDOW_RESIZED:
 				{
 					FResizeWindowEvent newEvent = {};
 					newEvent.mNewWindowSize = GetFrameBufferSize();
-					gEngine->PushEvent(newEvent);
+					engine->PushEvent(newEvent);
 					break;
 				}
 			case SDL_EVENT_KEY_DOWN:
 			case SDL_EVENT_KEY_UP:
 				{
-					OnSDLKeyboardEvent.ExecuteIfBound(event.key);
+					OnSDLKeyboardEvent.ExecuteIfBound(engine, event.key);
 					break;
 				}
 			case SDL_EVENT_MOUSE_BUTTON_DOWN:
 			case SDL_EVENT_MOUSE_BUTTON_UP:
 				{
-					OnSDLMouseButtonEvent.ExecuteIfBound(event.button);
+					OnSDLMouseButtonEvent.ExecuteIfBound(engine, event.button);
 					break;
 				}
 			case SDL_EVENT_MOUSE_MOTION:
 				{
-					OnSDLMouseMotionEvent.ExecuteIfBound(event.motion);
+					OnSDLMouseMotionEvent.ExecuteIfBound(engine, event.motion);
 					break;
 				}
 			case SDL_EVENT_MOUSE_WHEEL:
 				{
-					OnSDLMouseWheelEvent.ExecuteIfBound(event.wheel);
+					OnSDLMouseWheelEvent.ExecuteIfBound(engine, event.wheel);
 					break;
 				}
 			default:
 				break;
 			}
 
-			OnSDLEvent.Broadcast(&event);
+			OnSDLEvent.Broadcast(this, &event);
 		}
 	}
 
-	void FWindow::ShowWindow(bool bVisible)
+	void Window::ShowWindow(bool bVisible)
 	{
 		TURBO_LOG(LogWindow, Info, "Setting window visibility to {}", bVisible);
 
@@ -160,7 +167,7 @@ namespace Turbo
 		}
 	}
 
-	void FWindow::ShowCursor(bool bVisible)
+	void Window::ShowCursor(bool bVisible)
 	{
 		TURBO_LOG(LogWindow, Display, "Setting cursor visibility to {}", bVisible);
 
@@ -183,7 +190,7 @@ namespace Turbo
 		}
 	}
 
-	glm::uint2 FWindow::GetFrameBufferSize() const
+	glm::uint2 Window::GetFrameBufferSize() const
 	{
 		glm::ivec2 Result;
 		if (!SDL_GetWindowSizeInPixels(mSDLWindow, &Result.x, &Result.y))
@@ -195,18 +202,18 @@ namespace Turbo
 		return glm::ivec2(Result);
 	}
 
-	fp32 FWindow::GetDisplayScale() const
+	fp32 Window::GetDisplayScale() const
 	{
 		const fp32 displayScale = SDL_GetWindowDisplayScale(mSDLWindow);
 		return displayScale > TURBO_SMALL_NUMBER ? displayScale : 1.f;
 	}
 
-	bool FWindow::IsFullscreenEnabled() const
+	bool Window::IsFullscreenEnabled() const
 	{
 		return mbFullscreenEnabled;
 	}
 
-	void FWindow::SetFullscreen(bool bFullscreen)
+	void Window::SetFullscreen(bool bFullscreen)
 	{
 		if (!SDL_SetWindowFullscreen(mSDLWindow, bFullscreen))
 		{
@@ -217,7 +224,7 @@ namespace Turbo
 		 mbFullscreenEnabled = bFullscreen;
 	}
 
-	void FWindow::SetWindowIcon(std::string_view path)
+	void Window::SetWindowIcon(std::string_view path)
 	{
 		TURBO_LOG(LogWindow, Info, "Setting window icon {}", path);
 
@@ -233,20 +240,7 @@ namespace Turbo
 		SDL_SetWindowIcon(mSDLWindow, mWindowIconSurface);
 	}
 
-	void FWindow::InitForVulkan()
-	{
-		if (!SDL_Vulkan_LoadLibrary(nullptr))
-		{
-			LogError();
-		}
-	}
-
-	void FWindow::DeInitForVulkan()
-	{
-		SDL_Vulkan_UnloadLibrary();
-	}
-
-	std::vector<const char*> FWindow::GetVulkanRequiredExtensions()
+	std::vector<const char*> Window::GetVulkanRequiredExtensions()
 	{
 		std::vector<const char*> Result;
 
@@ -266,7 +260,7 @@ namespace Turbo
 		return Result;
 	}
 
-	bool FWindow::CreateVulkanSurface(VkInstance vulkanInstance)
+	bool Window::CreateVulkanSurface(VkInstance vulkanInstance)
 	{
 		if (mVulkanSurface)
 		{
@@ -284,14 +278,14 @@ namespace Turbo
 		return true;
 	}
 
-	VkSurfaceKHR FWindow::GetVulkanSurface()
+	VkSurfaceKHR Window::GetVulkanSurface()
 	{
 		TURBO_CHECK(mVulkanSurface);
 
 		return mVulkanSurface;
 	}
 
-	bool FWindow::DestroyVulkanSurface(VkInstance vulkanInstance)
+	bool Window::DestroyVulkanSurface(VkInstance vulkanInstance)
 	{
 		if (vulkanInstance)
 		{

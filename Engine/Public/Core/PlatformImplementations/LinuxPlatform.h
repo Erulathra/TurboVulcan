@@ -1,14 +1,19 @@
 #pragma once
 
 #include "CommonTypeDefs.h"
-#if PLATFORM_LINUX
+#include "GenericPlatform.h"
 
-#include "Core/PlatformImplementations/GenericPlatform.h"
+#if PLATFORM_LINUX
 
 namespace Turbo
 {
+   struct PlatformMemory;
+
 	struct FLinuxPlatform final : public FGenericPlatform
 	{
+	   static void AllocateGameMemory(PlatformMemory* platformMemory);
+		static void FreeGameMemory(PlatformMemory* platformMemory);
+
 		static bool IsDebuggerPresent();
 		static void Sleep(fp64 seconds);
 		static std::optional<std::string> GetEnviromentalVariable(std::string_view variableName);

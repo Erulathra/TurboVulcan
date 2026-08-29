@@ -20,7 +20,7 @@ namespace Turbo
 	class FBuffer;
 	class FTexture;
 	struct FMesh;
-	class FGPUDevice;
+	class GPUDevice;
 
 	class FAssetManager
 	{
@@ -30,8 +30,8 @@ namespace Turbo
 		FAssetManager() = default;
 
 	public:
-		void Init(FGPUDevice& gpu);
-		void Destroy(FGPUDevice& gpu) const;
+		void Init(GPUDevice* gpu);
+		void Destroy(GPUDevice* gpu) const;
 
 		/** Mesh interface */
 	public:
@@ -43,8 +43,8 @@ namespace Turbo
 		[[nodiscard]] FMesh* AccessMesh(THandle<FMesh> handle) { return mMeshPool.Get(handle); }
 		[[nodiscard]] const FMesh* AccessMesh(THandle<FMesh> handle) const { return mMeshPool.Get(handle); }
 
-		[[nodiscard]] FDeviceAddress GetMeshPointersAddress(const FGPUDevice& gpu, THandle<FMesh> handle) const;
-		[[nodiscard]] FDeviceAddress GetBoundsAddress(const FGPUDevice& gpu) const;
+		[[nodiscard]] FDeviceAddress GetMeshPointersAddress(THandle<FMesh> handle) const;
+		[[nodiscard]] FDeviceAddress GetBoundsAddress() const;
 
 		/** Mesh interface end */
 
@@ -73,6 +73,8 @@ namespace Turbo
 		}
 
 	private:
+		GPUDevice* mGPU;
+
 		TGenPool<FMesh, 2048> mMeshPool;
 		THandle<FBuffer> mMeshPointersPool;
 		THandle<FBuffer> mBoundsPool;
@@ -80,6 +82,5 @@ namespace Turbo
 		TManualPoolGrowable<FTextureAsset> mTexturePool;
 
 		entt::dense_map<u32, FHandle> mAssetCache;
-
 	};
 } // Turbo

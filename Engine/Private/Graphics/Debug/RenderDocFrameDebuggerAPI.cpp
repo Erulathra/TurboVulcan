@@ -60,7 +60,7 @@ namespace Turbo
 		return mbInitialized;
 	}
 
-	void FRenderDocFrameDebuggerAPI::BeginCapture(FGPUDevice* gpu, FWindow* window)
+	void FRenderDocFrameDebuggerAPI::BeginCapture(GPUDevice* gpu, Window* window)
 	{
 		TURBO_CHECK(mbInitialized)
 		TURBO_CHECK(mApi->IsFrameCapturing() == false)
@@ -74,7 +74,7 @@ namespace Turbo
 			);
 	}
 
-	void FRenderDocFrameDebuggerAPI::EndCapture(FGPUDevice* gpu, FWindow* window)
+	void FRenderDocFrameDebuggerAPI::EndCapture(GPUDevice* gpu, Window* window)
 	{
 		TURBO_CHECK(mbInitialized)
 		TURBO_CHECK(mApi->IsFrameCapturing())

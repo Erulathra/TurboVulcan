@@ -15,8 +15,8 @@ namespace Turbo
 		static constexpr vk::Format kAfterToneMapFormat = vk::Format::eR8G8B8A8Unorm;
 
 	public:
-		void Init(FRenderGraphBuilder& graphBuilder, glm::ivec2 resolution);
-		void BlitToPresent(FRenderGraphBuilder& graphBuilder, FRGResourceHandle presentTexture) const;
+		void Init(RenderGraph* renderGraph, glm::ivec2 resolution);
+		void BlitToPresent(RenderGraph* renderGraph, FRGResourceHandle presentTexture) const;
 
 	public:
 		FRGResourceHandle mDepthStencil = {};

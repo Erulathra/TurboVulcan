@@ -25,8 +25,7 @@ namespace Turbo
 		inputSystem.RegisterBinding(ActionBindings::kExit);
 		inputSystem.RegisterBinding(ActionBindings::kToggleFullscreen);
 
-		FWindow& window = entt::locator<FWindow>::value();
-		window.ShowCursor(false);
+		window->ShowCursor(false);
 
 		World* world = gEngine->mWorld;
 		world->OpenLevel(FName("Content/External/main_sponza/SponzaCompressed.gltf"));
@@ -55,7 +54,7 @@ namespace Turbo
 
 		FFlyMovementSystem::HandleEvent(event);
 
-		FEventDispatcher::Dispatch<FActionEvent>(
+		EventDispatcher::Dispatch<FActionEvent>(
 			event, [](FActionEvent& event)
 			{
 				if (event.mName == ActionBindings::kExit.mName && event.mbDown)
@@ -65,8 +64,8 @@ namespace Turbo
 				}
 				else if (event.mName == ActionBindings::kToggleFullscreen.mName && event.mbDown)
 				{
-					const bool bFullscreen = entt::locator<FWindow>::value().IsFullscreenEnabled();
-					entt::locator<FWindow>::value().SetFullscreen(!bFullscreen);
+					const bool bFullscreen = window->IsFullscreenEnabled();
+					entt::locator<Window>::value().SetFullscreen(!bFullscreen);
 				}
 			}
 		);

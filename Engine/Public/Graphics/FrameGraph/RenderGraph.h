@@ -9,7 +9,6 @@
 #include "Graphics/GraphicsCore.h"
 #include "Graphics/FrameGraph/RenderGraphHelpers.h"
 #include "Graphics/Resources.h"
-#include <array>
 
 DECLARE_LOG_CATEGORY(LogRenderGraph, Info, Display)
 
@@ -17,12 +16,12 @@ namespace Turbo
 {
 	struct FRenderResources;
 	class FCommandBuffer;
-	class FGPUDevice;
+	class GPUDevice;
 	struct FRGPassInfo;
-	struct FRenderGraphBuilder;
+	struct RenderGraph;
 	struct FTexture;
 
-	DECLARE_DELEGATE(FRGExecutePassDelegate, FGPUDevice& /*gpu*/, FCommandBuffer& /*cmd*/, FRenderResources& /*resources*/);
+	DECLARE_DELEGATE(FRGExecutePassDelegate, GPUDevice* /*gpu*/, FCommandBuffer& /*cmd*/, FRenderResources& /*resources*/);
 
 	struct FRGPassInfo
 	{
@@ -51,18 +50,17 @@ namespace Turbo
 
 		FRGExecutePassDelegate mExecutePass;
 
-		FRenderGraphBuilder* mGraphBuilder = nullptr;
+		RenderGraph* mGraphBuilder = nullptr;
 		FRGPassHandle mHandle = {};
 		FName mName = {};
 	};
 
-	/** Validates pass in RAII style */
 	struct FRGPassInitializer final
 	{
 		DELETE_COPY(FRGPassInitializer)
 
 	public:
-		explicit FRGPassInitializer(FRenderGraphBuilder& graphBuilder, FRGPassInfo& passInfo);
+		explicit FRGPassInitializer(RenderGraph& graphBuilder, FRGPassInfo& passInfo);
 		~FRGPassInitializer();
 
 		[[nodiscard]] FRGPassInfo& Get() const;
@@ -70,11 +68,11 @@ namespace Turbo
 		const FRGPassInfo* operator->() const;
 
 	private:
-		FRenderGraphBuilder* mOwner = nullptr;
+		RenderGraph* mOwner = nullptr;
 		FRGPassHandle mHandle = {};
 
 	public:
-		friend struct FRenderGraphBuilder;
+		friend struct RenderGraph;
 	};
 
 	struct FRenderResources
@@ -96,17 +94,46 @@ namespace Turbo
       }
 	};
 
-	struct FRenderGraphBuilder
+	struct RenderGraph
 	{
 		static constexpr u32 kPerFrameStackSize = 64 * Memory::kMebi;
 		static constexpr u32 kBufferAddressTableSize = 1024;
 		static constexpr u32 kTextureBindingTableSize = 1024;
 
-		DELETE_COPY(FRenderGraphBuilder)
-		FRenderGraphBuilder() = default;
+		/* Properties */
+		GPUDevice* mGPU = nullptr;
 
-		void Init();
-		void Shutdown();
+		/* Render passes */
+		std::vector<FRGPassInfo> mRenderPasses;
+
+		/* Textures */
+		std::vector<FRGTextureInfo> mTextures;
+		using FRGPassTextureBarriers = std::vector<FRGTextureMemoryBarrier>;
+		std::vector<FRGPassTextureBarriers> mPerPassTextureBarriers;
+		FRGPassTextureBarriers mExternalTexturesBarriers;
+
+		/* Buffer */
+		std::vector<FRGBufferInfo> mBuffers;
+		std::vector<FRGBufferUpload> mQueuedBufferUploads;
+
+		using FRGPassBufferBarriers = std::vector<FRGBufferMemoryBarrier>;
+		std::vector<FRGPassBufferBarriers> mPerPassBufferBarriers;
+
+		/* Render graph Resources */
+		THandle<FDescriptorPool> mDescriptorPool;
+		THandle<FDescriptorSetLayout> mDescriptorSetLayout;
+		std::array<THandle<FDescriptorSet>, kMaxFramesInFlight> mDescriptorSets;
+
+		/* Allocator */
+		FArenaAllocator mAllocator = FArenaAllocator(kPerFrameStackSize);
+
+		/* API */
+
+		DELETE_COPY(RenderGraph)
+		RenderGraph() = default;
+
+		void Init(GPUDevice* gpu);
+		void Shutdown(GPUDevice* gpu);
 
 		/* Texture related methods */
 		[[nodiscard]] FRGResourceHandle CreateTexture(const FRGTextureInfo& textureInfo);
@@ -137,7 +164,7 @@ namespace Turbo
 		void CompileBufferSynchronization();
 
 		/* Execution */
-		void Execute(FGPUDevice& gpu, FCommandBuffer& cmd);
+		void Execute(GPUDevice* gpu, FCommandBuffer& cmd);
 		void Reset();
 
 		/* Stack allocation Interface */
@@ -151,33 +178,5 @@ namespace Turbo
 
 		/* Other */
 		[[nodiscard]] vk::Format GetTextureFormat(FRGResourceHandle resourceHandle) const;
-
-		[[nodiscard]] THandle<FDescriptorSetLayout> GetDescriptorSetLayout() const { return mDescriptorSetLayout; }
-
-	public:
-	   /* Render passes */
-		std::vector<FRGPassInfo> mRenderPasses;
-
-		/* Textures */
-		std::vector<FRGTextureInfo> mTextures;
-
-		using FRGPassTextureBarriers = std::vector<FRGTextureMemoryBarrier>;
-		std::vector<FRGPassTextureBarriers> mPerPassTextureBarriers;
-		FRGPassTextureBarriers mExternalTexturesBarriers;
-
-		/* Buffer */
-		std::vector<FRGBufferInfo> mBuffers;
-		std::vector<FRGBufferUpload> mQueuedBufferUploads;
-
-		using FRGPassBufferBarriers = std::vector<FRGBufferMemoryBarrier>;
-		std::vector<FRGPassBufferBarriers> mPerPassBufferBarriers;
-
-		/* Render graph Resources */
-      THandle<FDescriptorPool> mDescriptorPool;
-      THandle<FDescriptorSetLayout> mDescriptorSetLayout;
-      std::array<THandle<FDescriptorSet>, kMaxFramesInFlight> mDescriptorSets;
-
-      /* Allocator */
-		FArenaAllocator mAllocator = FArenaAllocator(kPerFrameStackSize);
 	};
 } // Turbo

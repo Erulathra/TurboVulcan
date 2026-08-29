@@ -1,6 +1,7 @@
 #include "World/GLTFSceneLoader.h"
 
 #include "Assets/AssetManager.h"
+#include "Assets/AssetManagerHelpers.h"
 #include "Assets/EngineResources.h"
 #include "Assets/GLTFHelpers.h"
 #include "Assets/MaterialManager.h"
@@ -35,10 +36,13 @@ namespace Turbo
 		u32 mNumSubmeshes = 0;
 	};
 
-	void FGLTFSceneLoader::LoadGLTFScene(World& world, FName path)
+	void FGLTFSceneLoader::LoadGLTFScene(Engine* engine, FName path)
 	{
 		TURBO_LOG(LogGLTFSceneLoader, Info, "Loading {} scene using gltf scene loader.", path)
 		const std::filesystem::path baseAssetPath = std::filesystem::path(path.ToString()).parent_path();
+
+		GPUDevice* gpu = engine->mGPU;
+		World* world = engine->mWorld;
 
 		FTurboGLTFDataBuffer dataBuffer = FTurboGLTFDataBuffer::Load(path.ToString());
 
@@ -74,20 +78,19 @@ namespace Turbo
 					const fastgltf::sources::URI& uri = std::get<fastgltf::sources::URI>(gltfImage.data);
 
 					const std::filesystem::path texturePath = baseAssetPath / uri.uri.path();
-					THandle<FTexture> textureHandle = assetManager.LoadTexture(FName(texturePath.string()));
+					THandle<FTexture> textureHandle = assetManager.LoadTexture(FName(texturePath.string()), {.mOwner = world});
 					loadedTextures.push_back(textureHandle);
 				}
 			}
 		}
 
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
 		FMaterialManager& materialManager = entt::locator<FMaterialManager>::value();
 		THandle<FMaterial> opaqueMaterial = materialManager.GetMaterial(EngineMaterials::kOpaqueBasePass);
 		std::vector<THandle<FMaterial::Instance>> materialInstanceHandles;
 		materialInstanceHandles.reserve(gltfAsset->materials.size());
 
 		// Load and submit Materials
-		gpu.ImmediateSubmit(
+		gpu->ImmediateSubmit(
 			FOnImmediateSubmit::CreateLambda(
 				[&](FCommandBuffer& cmd)
 				{
@@ -166,7 +169,8 @@ namespace Turbo
 			{
 				FMeshLoadSettings meshLoadSettings = {
 					.mMeshIndex = meshId,
-					.mSubMeshIndex = subMeshId
+					.mSubMeshIndex = subMeshId,
+					.mOwner = world,
 				};
 				meshData.mSubMeshes[subMeshId] = assetManager.LoadMeshGLTF(path, meshLoadSettings, gltfAsset.get());
 
@@ -181,15 +185,15 @@ namespace Turbo
 
 		for (const fastgltf::Node& node : gltfAsset->nodes)
 		{
-			entt::entity nodeEntity = world.mRegistry.create();
-			world.mRegistry.emplace<FSpawnedByLevelTag>(nodeEntity);
-			world.mRegistry.emplace<FRelationship>(nodeEntity);
-			FEntityLabel& entityName = world.mRegistry.emplace<FEntityLabel>(nodeEntity);
+			entt::entity nodeEntity = world->mRegistry.create();
+			world->mRegistry.emplace<FSpawnedByLevelTag>(nodeEntity);
+			world->mRegistry.emplace<FRelationship>(nodeEntity);
+			FEntityLabel& entityName = world->mRegistry.emplace<FEntityLabel>(nodeEntity);
 			entityName.mName = FName(node.name);
 
 			nodeEntities.push_back(nodeEntity);
 
-			FTransform& transform = world.mRegistry.emplace<FTransform>(nodeEntity);
+			FTransform& transform = world->mRegistry.emplace<FTransform>(nodeEntity);
 			TURBO_CHECK(std::holds_alternative<fastgltf::TRS>(node.transform))
 			{
 				const fastgltf::TRS& trs = std::get<fastgltf::TRS>(node.transform);
@@ -222,7 +226,7 @@ namespace Turbo
 						continue;
 					}
 
-					FMeshComponent& meshComponent = world.mRegistry.emplace<FMeshComponent>(nodeEntity);
+					FMeshComponent& meshComponent = world->mRegistry.emplace<FMeshComponent>(nodeEntity);
 					meshComponent.mMaterial = opaqueMaterial;
 					meshComponent.mMaterialInstance = meshNodeData.mMaterials[0];
 					meshComponent.mMesh = meshNodeData.mSubMeshes[0];
@@ -237,12 +241,12 @@ namespace Turbo
 							continue;
 						}
 
-						const entt::entity meshEntity = world.mRegistry.create();
-						world.mRegistry.emplace<FSpawnedByLevelTag>(meshEntity);
-						world.mRegistry.emplace<FRelationship>(meshEntity);
-						SceneGraph::AddChild(world.mRegistry, nodeEntity, meshEntity);
+						const entt::entity meshEntity = world->mRegistry.create();
+						world->mRegistry.emplace<FSpawnedByLevelTag>(meshEntity);
+						world->mRegistry.emplace<FRelationship>(meshEntity);
+						SceneGraph::AddChild(world->mRegistry, nodeEntity, meshEntity);
 
-						FMeshComponent& meshComponent = world.mRegistry.emplace<FMeshComponent>(meshEntity);
+						FMeshComponent& meshComponent = world->mRegistry.emplace<FMeshComponent>(meshEntity);
 						meshComponent.mMaterial = opaqueMaterial;
 						meshComponent.mMaterialInstance = meshNodeData.mMaterials[subMeshId];
 						meshComponent.mMesh = meshNodeData.mSubMeshes[subMeshId];
@@ -254,7 +258,7 @@ namespace Turbo
 			{
 				const fastgltf::Light& light = gltfAsset->lights[node.lightIndex.value()];
 
-				FLightComponent& newLight = world.mRegistry.emplace<FLightComponent>(nodeEntity);
+				FLightComponent& newLight = world->mRegistry.emplace<FLightComponent>(nodeEntity);
 
 				switch (light.type)
 				{
@@ -292,7 +296,7 @@ namespace Turbo
 			const fastgltf::Node& gltfNode = gltfAsset->nodes[nodeId];
 			for (std::size_t childId : gltfNode.children)
 			{
-				SceneGraph::AddChild(world.mRegistry, nodeEntities[nodeId], nodeEntities[childId]);
+				SceneGraph::AddChild(world->mRegistry, nodeEntities[nodeId], nodeEntities[childId]);
 			}
 		}
 	}

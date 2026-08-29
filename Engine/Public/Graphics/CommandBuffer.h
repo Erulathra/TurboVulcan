@@ -9,7 +9,7 @@
 
 namespace Turbo
 {
-	class FGPUDevice;
+	class GPUDevice;
 
 	enum class EClearColor : u8
 	{
@@ -165,7 +165,7 @@ namespace Turbo
 #endif // WITH_DEBUG_RENDERING_FEATURES
 	public:
 		vk::CommandBuffer GetVkCommandBuffer() const { return mVkCommandBuffer; }
-		FGPUDevice* GetGPUDevice() const { return mGpu; }
+		GPUDevice* GetGPUDevice() const { return mGpu; }
 
 	private:
 		void Begin();
@@ -178,7 +178,7 @@ namespace Turbo
 		void PushConstants_Internal(void* pushConstants, u32 size);
 
 	private:
-		FGPUDevice* mGpu;
+		GPUDevice* mGpu;
 		vk::CommandBuffer mVkCommandBuffer = nullptr;
 
 		std::array<THandle<FDescriptorSet>, kMaxDescriptorSets> mBoundDescriptorSets;
@@ -187,7 +187,7 @@ namespace Turbo
 		bool mbRecording = false;
 
 	public:
-		friend class FGPUDevice;
+		friend class GPUDevice;
 	};
 
 	constexpr vk::AttachmentLoadOp ToVkLoadOp(ELoadOp loadOp)

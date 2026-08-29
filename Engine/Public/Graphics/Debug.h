@@ -2,9 +2,9 @@
 
 namespace Turbo
 {
-	struct FRenderGraphBuilder;
-	class FWindow;
-	class FGPUDevice;
+	struct RenderGraph;
+	class Window;
+	class GPUDevice;
 	class FCommandBuffer;
 
 #if WITH_DEBUG_RENDERING_FEATURES
@@ -43,8 +43,8 @@ namespace Turbo
 
 		virtual bool CanCapture() { return false; }
 
-		virtual void BeginCapture(FGPUDevice* gpu, FWindow* window) = 0;
-		virtual void EndCapture(FGPUDevice* gpu, FWindow* window) = 0;
+		virtual void BeginCapture(GPUDevice* gpu, Window* window) = 0;
+		virtual void EndCapture(GPUDevice* gpu, Window* window) = 0;
 
 		virtual void CaptureFrame() = 0;
 	};
@@ -54,8 +54,8 @@ namespace Turbo
 	public:
 		virtual bool Init() override { return true; }
 		virtual void Shutdown() override {}
-		virtual void BeginCapture(FGPUDevice* gpu, FWindow* window) override {}
-		virtual void EndCapture(FGPUDevice* gpu, FWindow* window) override {}
+		virtual void BeginCapture(GPUDevice* gpu, Window* window) override {}
+		virtual void EndCapture(GPUDevice* gpu, Window* window) override {}
 		virtual void CaptureFrame() override {}
 	};
 
@@ -63,12 +63,12 @@ namespace Turbo
 	{
 	public:
 		FScopedRenderCapture() = delete;
-		FScopedRenderCapture(bool bCapture, FRenderGraphBuilder& graphBuilder);
+		FScopedRenderCapture(bool bCapture, RenderGraph& graphBuilder);
 		~FScopedRenderCapture();
 
 		DELETE_COPY(FScopedRenderCapture)
 
 	private:
-		FRenderGraphBuilder* mGraphBuilder = nullptr;
+		RenderGraph* mGraphBuilder = nullptr;
 	};
 } // Turbo

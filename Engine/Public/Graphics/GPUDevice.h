@@ -4,6 +4,7 @@
 #include "Core/Allocators/ArenaAllocator.h"
 #include "Core/DataStructures/Handle.h"
 #include "Graphics/GraphicsCore.h"
+#include "Layers/Event.h"
 #include "Resources.h"
 #include "VkBootstrap.h"
 
@@ -18,7 +19,8 @@ DECLARE_LOG_CATEGORY(LogGPUDevice, Info, Display)
 
 namespace Turbo
 {
-	class FWindow;
+	class Window;
+	class Engine;
 
 	DECLARE_DELEGATE(FOnImmediateSubmit, FCommandBuffer&);
 
@@ -42,17 +44,20 @@ namespace Turbo
 		FDestroyQueue mDestroyQueue;
 	};
 
-	class FGPUDevice final
+	class GPUDevice final
 	{
-		/** Initialization interface */
+		/** Engine service interface */
 	public:
-		void Init(const FGPUDeviceBuilder& gpuDeviceBuilder);
-		void Shutdown();
-		/** Initialization interface end */
+		void Init(Engine* engine);
+		void Shutdown(Engine* engine);
+
+		void HandleEvent(FEventBase& event);
+
+		/** Engine service interface end */
 
 		/** Rendering interface */
 	public:
-		bool BeginFrame();
+		bool BeginFrame(Engine* engine);
 		bool PresentFrame();
 
 		[[nodiscard]] const FBufferedFrameData& GetFrameData(u32 index) const { return mFrameDatas[index]; }
@@ -195,7 +200,7 @@ namespace Turbo
 		vkb::Instance CreateVkInstance(const std::vector<ConstString>& requiredExtensions);
 		vkb::PhysicalDevice SelectPhysicalDevice(const vkb::Instance& builtInstance);
 		vkb::Device CreateDevice(const vkb::PhysicalDevice& physicalDevice);
-		vkb::Swapchain CreateSwapchain();
+		vkb::Swapchain CreateSwapchain(glm::uint2 framebufferSize);
 		void CreateVulkanMemoryAllocator();
 		void CreateFrameDatas();
 
@@ -207,7 +212,7 @@ namespace Turbo
 		/** Initialization methods end */
 
 	private:
-		void ResizeSwapChain();
+		void ResizeSwapChain(glm::uint2 newFramebufferSize);
 
 		/** Destroy methods */
 	private:
@@ -361,10 +366,10 @@ namespace Turbo
 		/** Other end */
 
 	private:
-		FGPUDevice() = default;
+		GPUDevice() = default;
 
 	public:
-		DELETE_COPY(FGPUDevice);
+		DELETE_COPY(GPUDevice);
 
 	public:
 		friend class Engine;
@@ -372,13 +377,13 @@ namespace Turbo
 
 
 	template <typename HandleType>
-	void FGPUDevice::SetResourceName(HandleType vkHandle, FName name) const
+	void GPUDevice::SetResourceName(HandleType vkHandle, FName name) const
 	{
 		SetResourceName(vkHandle, name.ToString());
 	}
 
 	template <typename HandleType>
-	void FGPUDevice::SetResourceName(HandleType vkHandle, const std::string_view name) const
+	void GPUDevice::SetResourceName(HandleType vkHandle, const std::string_view name) const
 	{
 #if WITH_DEBUG_RENDERING_FEATURES
 		vk::DebugUtilsObjectNameInfoEXT nameInfo = {};

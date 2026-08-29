@@ -2,6 +2,8 @@
 
 namespace Turbo
 {
+   struct World;
+
 	using FAssetHash = u32;
 
 	// Replace with something more robust
@@ -11,7 +13,7 @@ namespace Turbo
 	{
 		u32 mMeshIndex = 0;
 		u32 mSubMeshIndex = 0;
-		bool mbLevelAsset = true;
+		World* mOwner = nullptr;
 	};
 
 	struct FTextureAsset
@@ -22,6 +24,6 @@ namespace Turbo
 	struct FTextureLoadingSettings
 	{
 		bool mbSRGB : 1 = true;
-		bool mbLevelAsset : 1 = true;
+		World* mOwner = nullptr;
 	};
 }

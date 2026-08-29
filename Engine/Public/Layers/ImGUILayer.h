@@ -1,51 +1,55 @@
 #pragma once
 
-#include "Layer.h"
-#include "SDL3/SDL_events.h"
+#include "Graphics/GPUDevice.h"
+union SDL_Event;
+
+namespace Turbo
+{
+   struct FTexture;
+   struct FRGResourceHandle;
+   struct ImGuiLayer;
+   struct RenderGraph;
+}
 
 namespace ImGui
 {
 	using FTextureId = u32;
-
-	void Texture(Turbo::THandle<Turbo::FTexture> textureHandle);
+	void Texture(Turbo::GPUDevice* gpu, Turbo::ImGuiLayer* imguiLayer, Turbo::THandle<Turbo::FTexture> textureHandle);
 }
 
 namespace Turbo
 {
-struct FImGuiTexture
+   struct Engine;
+   struct Window;
+   struct RenderGraph;
+
+   struct ImGuiTexture
 	{
 		THandle<FTexture> mTexture;
 		FRGResourceHandle mRGTexture = {};
 		vk::DescriptorSet mDescriptorSet = {};
 	};
 
-	class FImGuiLayer final : public ILayer
+	struct ImGuiLayer
 	{
-	public:
-		FImGuiTexture& FindOrRegisterTexture(THandle<FTexture> textureHandle);
+	   // TODO(SS): Replace with static sized stack
+   	std::vector<ImGuiTexture> mTextures;
+
+      /* Public api */
+		ImGuiTexture& FindOrRegisterTexture(THandle<FTexture> textureHandle);
 
 		/** Service Api */
-	public:
-		virtual void Start() override;
-		virtual void Shutdown() override;
+		void Init(Engine* engine);
+		void Shutdown(Engine* engine);
 
-		virtual void BeginTick(fp64 deltaTime) override;
-		virtual void EndTick(fp64 deltaTime) override;
-		virtual bool ShouldTick() override { return true; }
+		void BeginTick(fp64 deltaTime);
+		void EndTick(fp64 deltaTime);
 
-		virtual void PostBeginFrame(FRenderGraphBuilder& graphBuilder) override;
-		virtual void BeginPresentingFrame(FRenderGraphBuilder& graphBuilder, FRGResourceHandle presentImage) override;
-		virtual bool ShouldRender() override { return true; }
+		void BeginPresentingFrame(GPUDevice* gpu, RenderGraph* renderGraph, FRGResourceHandle presentImage);
 
-		virtual FName GetName() override;
-		/** Service Api end */
-
-	private:
-		void OnSDLEvent(SDL_Event* sdlEvent);
+		/* Internals */
+		void OnSDLEvent(Window* window, SDL_Event* sdlEvent);
 		void SetupTheme();
-
-	private:
-		std::vector<FImGuiTexture> mTextures;
 	};
 
 } // Turbo

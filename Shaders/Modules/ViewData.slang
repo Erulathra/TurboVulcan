@@ -12,7 +12,6 @@ public struct FViewData
     public double mTime;
     public double mWorldTime;
     public double mDeltaTime;
-    public uint mFrameIndex;
 
     // In world space
     public FFrustum mViewFrustum;

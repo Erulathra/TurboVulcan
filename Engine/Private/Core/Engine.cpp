@@ -1,28 +1,25 @@
 #include "Core/Engine.h"
 
-#include "CommonMacros.h"
-#include "Core/CommandLineArgs.h"
-#include "Core/EnviromentalVariables.h"
-#include "Core/Platform.h"
-#include "Graphics/FrameGraph/RenderGraph.h"
 #include "Assets/AssetManager.h"
 #include "Assets/EngineResources.h"
 #include "Assets/MaterialManager.h"
+#include "CommonMacros.h"
+#include "Core/CommandLineArgs.h"
 #include "Core/CoreTimer.h"
 #include "Core/FileSystem.h"
+#include "Core/Input/InputSystem.h"
+#include "Core/Platform.h"
 #include "Core/Window.h"
 #include "Core/WindowEvents.h"
-#include "Core/Input/FSDLInputSystem.h"
-#include "Core/Input/Input.h"
 #include "Debug/IConsoleManager.h"
 #include "Graphics/Debug.h"
-#include "Graphics/GeometryBuffer.h"
+#include "Graphics/FrameGraph/RenderGraph.h"
 #include "Graphics/GPUDevice.h"
+#include "Graphics/GeometryBuffer.h"
 #include "Layers/ConsoleFrontendLayer.h"
+#include "Layers/Event.h"
 #include "Layers/ImGUILayer.h"
-#include "Layers/Layer.h"
 #include "Layers/SceneRenderingLayer.h"
-#include "Turbo.h"
 #include "TurboLog.h"
 #include "World/World.h"
 #include "entt/locator/locator.hpp"
@@ -35,7 +32,7 @@ namespace Turbo
 		"The gBuffer resolution scale. This factor multiplies viewport resolution."
 	);
 
-	void InitEngine(i32 argc, char* argv[])
+	Engine* InitEngine(PlatformMemory* memory, i32 argc, char* argv[])
 	{
    	FileSystem::InitDirectories();
    	InitLogger();
@@ -45,9 +42,7 @@ namespace Turbo
 
    	TURBO_LOG(LogEngine, Info, "Creating engine instance.")
 
-   	gEngine = (Engine*)DEV_MALLOC(sizeof(Engine));
-
-   	entt::locator<FLayersStack>::emplace();
+     	Engine* engine = (Engine*)memory->mPersistentData.Allocate(sizeof(Engine));
 
    #if TURBO_BUILD_SHIPPING == false
    	const static bool bWaitForDebugger = FCommandLineArgs::HasFlag("WaitForAttach");
@@ -63,267 +58,197 @@ namespace Turbo
    		TURBO_DEBUG_BREAK();
    	}
    #endif // TURBO_BUILD_SHIPPING == false
+
+      return engine;
 	}
 
-	i32 Engine::Start()
+	i32 Engine::Start(PlatformMemory* platformMemory)
 	{
-		mEngineState = EEngineState::Initializing;
+      mPlatformMemory = platformMemory;
 
-		entt::locator<FCoreTimer>::reset(new FCoreTimer());
-		FCoreTimer& coreTimer = entt::locator<FCoreTimer>::value();
-		coreTimer.Init();
+		mCoreTimer = (CoreTimer*)platformMemory->mPersistentData.Allocate(sizeof(CoreTimer));
+		mCoreTimer->Init(this);
 
+		mWindow = (Window*)platformMemory->mPersistentData.Allocate(sizeof(Window));
+		mWindow->Init(this);
 
-		entt::locator<FGPUDevice>::reset(new FGPUDevice());
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
+		mGPU = (GPUDevice*)platformMemory->mPersistentData.Allocate(sizeof(GPUDevice));
+		mGPU->Init(this);
 
-		entt::locator<FWindow>::reset(new FWindow());
-		FWindow& window = entt::locator<FWindow>::value();
-
-		entt::locator<IInputSystem>::reset<FSDLInputSystem>(new FSDLInputSystem());
-
-		window.InitBackend();
-
-		for (const TSharedPtr<ILayer>& layer : entt::locator<FLayersStack>::value())
-		{
-			TRACE_ZONE_SCOPED_FORMAT(LayerStart, "Layer Start - {}", layer->GetName())
-			layer->PreGPUInit();
-		}
-
-		FGPUDeviceBuilder gpuDeviceBuilder;
-		gpu.Init(gpuDeviceBuilder);
-
+	   // TODO(SS): Frame debugger abstraction
 		IFrameDebuggerAPI::Emplace();
 
-		FRenderGraphBuilder& renderGraph = entt::locator<FRenderGraphBuilder>::emplace();
-		renderGraph.Init();
+		mRenderGraph = (RenderGraph*)platformMemory->mPersistentData.Allocate(sizeof(RenderGraph));
+		mRenderGraph->Init(mGPU);
 
+		// TODO(SS): ged rid of the entt
 		FAssetManager& assetManager = entt::locator<FAssetManager>::emplace<FAssetManager>();
-		assetManager.Init(gpu);
+		assetManager.Init(mGPU);
 
 		FMaterialManager& materialManager = entt::locator<FMaterialManager>::emplace<FMaterialManager>();
-		materialManager.Init(gpu);
+		materialManager.Init(mGPU);
 
-		EngineMaterials::InitEngineMaterials();
+		EngineMaterials::InitEngineMaterials(mGPU);
 
 		entt::locator<FGeometryBuffer>::emplace();
 
-		IInputSystem& inputSystem = entt::locator<IInputSystem>::value();
-		inputSystem.Init();
+		mInputSystem = (InputSystem*)platformMemory->mPersistentData.Allocate(sizeof(InputSystem));
+		mInputSystem->Init(this);
 
-		// TODO(SS): this is a bad place to initialize the world.
-		mWorld = (World*)DEV_MALLOC(sizeof(World));
-		new(mWorld) World();
+		/* Services initialization */
+		mSceneRenderingLayer = (SceneRenderingLayer*)platformMemory->mPersistentData.Allocate(sizeof(SceneRenderingLayer));
+		mSceneRenderingLayer->Init(this);
+
+		mImGuiLayer = (ImGuiLayer*)platformMemory->mPersistentData.Allocate(sizeof(ImGuiLayer));
+		mImGuiLayer->Init(this);
+
+		mDeveloperConsoleLayer = (ConsoleFrontendLayer*)platformMemory->mPersistentData.Allocate(sizeof(ConsoleFrontendLayer));
+		mDeveloperConsoleLayer->Init(this);
+
+		// TODO(SS): We need to define arena for world
+		mWorld = (World*)platformMemory->mPersistentData.Allocate(sizeof(World));
+		mWorld->Init(this);
 
 		SceneGraph::InitSceneGraph(mWorld->mRegistry);
 
-		for (const TSharedPtr<ILayer>& layer : entt::locator<FLayersStack>::value())
+		if (mRuntimeModule && mRuntimeModule->mfStart)
 		{
-			TRACE_ZONE_SCOPED_FORMAT(LayerStart, "Layer Start - {}", layer->GetName())
-			layer->Start();
+         mRuntimeModule->mfStart(mRuntimeModule->mUserData, this);
 		}
 
-		window.SetWindowIcon("Content/Textures/Icons/T_TurboVulkan.png");
-		window.ShowWindow(true);
-
-		mEngineState = EEngineState::Running;
+		mWindow->SetWindowIcon("Content/Textures/Icons/T_TurboVulkan.png");
+		mWindow->ShowWindow(true);
 
 		GameThreadLoop();
 
-		mEngineState = EEngineState::Finalizing;
-		End();
+		Shutdown();
 
 		return static_cast<i32>(mExitCode);
 	}
 
 	EEventReply Engine::PushEvent(FEventBase& event)
 	{
-		OnEvent(event);
+      event.mEngine = this;
 
-		FLayersStack& layerStack = entt::locator<FLayersStack>::value();
-		for (auto It = layerStack.rbegin();  It != layerStack.rend(); ++It)
+	   #define CALL_HANDLER(BODY) (BODY); if (event.mEventReply == EEventReply::Handled) { return EEventReply::Handled; }
+
+		CALL_HANDLER(mGPU->HandleEvent(event))
+		CALL_HANDLER(mDeveloperConsoleLayer->HandleEvent(event))
+
+		if (mRuntimeModule && mRuntimeModule->mfHandleEvent)
 		{
-			It->get()->OnEvent(event);
-			if (event.mEventReply != EEventReply::Unhandled)
-			{
-				return event.mEventReply;
-			}
+   		CALL_HANDLER(mRuntimeModule->mfHandleEvent(mRuntimeModule->mUserData, this, event))
 		}
+
+		#undef CALL_HANDLER
 
 		return event.mEventReply;
 	}
 
+	// TODO(SS): Rename service methods to be more verbosive
 	void Engine::GameThreadLoop()
 	{
-		FWindow& window = entt::locator<FWindow>::value();
 		while (!mbExitRequested)
 		{
 			TRACE_ZONE_SCOPED_N("GameThreadTick")
 
-			FCoreTimer& coreTimer = entt::locator<FCoreTimer>::value();
-			coreTimer.Tick();
-			const fp64 deltaTime = coreTimer.GetDeltaTime();
+			mCoreTimer->Tick();
+			const fp32 deltaTime = mCoreTimer->mDeltaTime;
 
-			FLayersStack& layerStack = entt::locator<FLayersStack>::value();
+			/* Begin tick */
+			mImGuiLayer->BeginTick(deltaTime);
+			mDeveloperConsoleLayer->BeginTick(deltaTime);
+
+			if (mRuntimeModule && mRuntimeModule->mfTick)
 			{
-				TRACE_ZONE_SCOPED_N("Services: Begin Tick")
-				for (const TSharedPtr<ILayer>& layer : layerStack)
-				{
-					if (layer->ShouldTick())
-					{
-						TRACE_ZONE_SCOPED_FORMAT(BeginTick, "Begin Tick - {}", layer->GetName())
-						layer->BeginTick(deltaTime);
-					}
-				}
+            mRuntimeModule->mfTick(mRuntimeModule->mUserData, this, deltaTime);
 			}
 
-			{
-				TRACE_ZONE_SCOPED_N("Services: End Tick")
-				for (const TSharedPtr<ILayer>& layerIt : std::ranges::reverse_view(layerStack))
-				{
-					if (ILayer* layer = layerIt.get(); layer->ShouldTick())
-					{
-						TRACE_ZONE_SCOPED_FORMAT(EndTick, "End Tick - {}", layer->GetName())
-						layer->EndTick(deltaTime);
-					}
-				}
-			}
+			/* End tick */
+			mImGuiLayer->EndTick(deltaTime);
 
-			FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-			FRenderGraphBuilder& graphBuilder = entt::locator<FRenderGraphBuilder>::value();
+			/* Rendering frame */
 
-			if (gpu.BeginFrame())
+			if (mGPU->BeginFrame(this))
 			{
-				FCommandBuffer& cmd = gpu.GetMainCommandBuffer();
-				graphBuilder.Reset();
+				FCommandBuffer& cmd = mGPU->GetMainCommandBuffer();
+				mRenderGraph->Reset();
 
 				FGeometryBuffer& geometryBuffer = entt::locator<FGeometryBuffer>::value();
 
-				TURBO_CHECK(gpu.GetMainViewportSize() != glm::uint2(0))
+				TURBO_CHECK(mGPU->GetMainViewportSize() != glm::uint2(0))
 				const glm::int2 gbufferResolution
-					= glm::floor(glm::float2(gpu.GetMainViewportSize()) * CVarResolutionScale.Get());
-				geometryBuffer.Init(graphBuilder, gbufferResolution);
+					= glm::floor(glm::float2(mGPU->GetMainViewportSize()) * CVarResolutionScale.Get());
+				geometryBuffer.Init(mRenderGraph, gbufferResolution);
 
-				const THandle<FTexture> presentHandle = gpu.GetPresentImage();
-				FRGResourceHandle presentTexture = graphBuilder.RegisterExternalTexture(
+				const THandle<FTexture> presentHandle = mGPU->GetPresentImage();
+				FRGResourceHandle presentTexture = mRenderGraph->RegisterExternalTexture(
 					presentHandle, ETextureLayout::Undefined, ETextureLayout::PresentSrc
 				);
 
+				/* Rendering services */
+				mSceneRenderingLayer->Render(this);
+
+				if (mRuntimeModule && mRuntimeModule->mfCopyPresentTexture)
 				{
-					TRACE_ZONE_SCOPED_N("Services: Post begin frame")
-					for (const TSharedPtr<ILayer>& layer : layerStack)
-					{
-						if (layer->ShouldRender())
-						{
-							TRACE_ZONE_SCOPED_FORMAT(PostBeginFrame, "Post begin frame - {}", layer->GetName())
-							layer->PostBeginFrame(graphBuilder);
-						}
-					}
+   				mRuntimeModule->mfCopyPresentTexture(mRuntimeModule->mUserData, this, mRenderGraph, presentTexture);
 				}
 
-				{
-					FSceneRenderingLayer* sceneRenderingLayer = layerStack.GetLayerChecked<FSceneRenderingLayer>();
-					sceneRenderingLayer->Render(graphBuilder);
-				}
+				/* Begin presenting frame */
+				mImGuiLayer->BeginPresentingFrame(mGPU, mRenderGraph, presentTexture);
 
-				{
-					TRACE_ZONE_SCOPED_N("Services: End frame")
-					for (const TSharedPtr<ILayer>& layer : layerStack)
-					{
-						if (layer->ShouldRender())
-						{
-							TRACE_ZONE_SCOPED_FORMAT(PostPresentingFrame, "End frame - {}", layer->GetName())
-							layer->EndFrame(graphBuilder, presentTexture);
-						}
-					}
-				}
+				/* Graph builder */
+				mRenderGraph->Compile();
+				mRenderGraph->Execute(mGPU, cmd);
 
-				{
-					TRACE_ZONE_SCOPED_N("Services: Begin presenting frame")
-					for (const TSharedPtr<ILayer>& layer : layerStack)
-					{
-						if (layer->ShouldRender())
-						{
-							TRACE_ZONE_SCOPED_FORMAT(
-								PostPresentingFrame, "Begin presenting frame - {}", layer->GetName()
-							)
-							layer->BeginPresentingFrame(graphBuilder, presentTexture);
-						}
-					}
-				}
-
-				graphBuilder.Compile();
-				graphBuilder.Execute(gpu, cmd);
-
-				gpu.PresentFrame();
+				/* Present frame */
+				mGPU->PresentFrame();
 			}
 
 			TRACE_MARK_FRAME();
-			window.PollWindowEventsAndErrors();
+			mWindow->PollWindowEventsAndErrors(this);
 		}
 	}
 
-
-	void Engine::OnEvent(FEventBase& event)
+	static void HandleResizeEvent(const FResizeWindowEvent& resizeWindowEvent, Engine* engine)
 	{
-		FEventDispatcher::Dispatch<FResizeWindowEvent>(
-			event, [](const FResizeWindowEvent& resizeWindowEvent)
-		{
-			TURBO_LOG(LogEngine, Info, "Window resized. New size {}", resizeWindowEvent.mNewWindowSize)
-
-			FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-			gpu.RequestSwapChainResize();
-		});
+   	TURBO_LOG(LogEngine, Info, "Window resized. New size {}", resizeWindowEvent.mNewWindowSize)
+   	engine->mGPU->RequestSwapChainResize();
 	}
 
-	void Engine::RegisterEngineLayers()
-	{
-		FLayersStack& layerStack = entt::locator<FLayersStack>::value();
-		layerStack.PushLayer<FSceneRenderingLayer>();
-		layerStack.PushLayer<FImGuiLayer>();
-		layerStack.PushLayer<FConsoleFrontendLayer>();
-	}
-
-	void Engine::End()
+	void Engine::Shutdown()
 	{
 		TURBO_LOG(LogEngine, Info, "Begin exit sequence.");
 
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		gpu.WaitIdle();
-		gpu.FlushDestroyQueues();
+		mGPU->WaitIdle();
+		mGPU->FlushDestroyQueues();
 
-		FLayersStack& layerStack = entt::locator<FLayersStack>::value();
-		for (auto & layerIt : std::views::reverse(layerStack))
+		if (mRuntimeModule && mRuntimeModule->mfShutdown)
 		{
-			layerIt.get()->Shutdown();
+         mRuntimeModule->mfShutdown(mRuntimeModule->mUserData, this);
 		}
 
 		mWorld->UnloadLevel();
-		DEV_FREE(mWorld);
 
-		EngineResources::DestroyEngineResources();
+		/* Shutdown services */
+		mDeveloperConsoleLayer->Shutdown(this);
+		mImGuiLayer->Shutdown(this);
+		mSceneRenderingLayer->Shutdown(this);
 
-		entt::locator<FAssetManager>::value().Destroy(gpu);
-		entt::locator<FMaterialManager>::value().Destroy(gpu);
+		EngineResources::DestroyEngineResources(mGPU);
 
-		entt::locator<FRenderGraphBuilder>::value().Shutdown();
+		entt::locator<FAssetManager>::value().Destroy(mGPU);
+		entt::locator<FMaterialManager>::value().Destroy(mGPU);
+
+		mRenderGraph->Shutdown(mGPU);
 		entt::locator<IFrameDebuggerAPI>::value().Shutdown();
 
-		gpu.Shutdown();
-		entt::locator<FGeometryBuffer>::reset();
+		mGPU->Shutdown(this);
 
-		entt::locator<IInputSystem>::value().Destroy();
-		entt::locator<IInputSystem>::reset();
+		mInputSystem->Shutdown(this);
 
-		FWindow& window = entt::locator<FWindow>::value();
-		window.Destroy();
-		window.StopBackend();
-
-		entt::locator<FWindow>::reset();
-		entt::locator<FGPUDevice>::reset();
-
-		/* Free engine */
-		DEV_FREE(gEngine);
+		mWindow->Shutdown(this);
+		mCoreTimer->Shutdown(this);
 	}
 
 	void Engine::RequestExit(EExitCode InExitCode)

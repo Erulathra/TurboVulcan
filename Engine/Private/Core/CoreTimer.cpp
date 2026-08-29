@@ -3,27 +3,18 @@
 #include "Core/Engine.h"
 
 namespace Turbo {
-	void FCoreTimer::Init()
+	void CoreTimer::Init(Engine* engine)
 	{
 		mEngineStartTime = std::chrono::steady_clock::now();
+		mTickStartTime = {};
 	}
 
-	void FCoreTimer::Destroy()
+	void CoreTimer::Shutdown(Engine* engine)
 	{
 		// do nothing
 	}
 
-	FCoreTimer* FCoreTimer::Get()
-	{
-		if (entt::locator<FCoreTimer>::has_value())
-		{
-			return &entt::locator<FCoreTimer>::value();
-		}
-
-		return nullptr;
-	}
-
-	void FCoreTimer::Tick()
+	void CoreTimer::Tick()
 	{
 		if (mTickIndex == 0)
 		{
@@ -38,7 +29,7 @@ namespace Turbo {
 
 		const FChronoTimePoint newTickStartTime = std::chrono::steady_clock::now();
 
-		mDeltaTime = std::chrono::duration<fp64>(newTickStartTime - mTickStartTime).count();
+		mDeltaTime = std::chrono::duration<fp32>(newTickStartTime - mTickStartTime).count();
 		mTimeFromEngineStart = std::chrono::duration<fp64>(newTickStartTime - mEngineStartTime).count();
 
 		mTickStartTime = newTickStartTime;

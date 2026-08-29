@@ -2,6 +2,7 @@
 
 #include "Core/DataStructures/GenPool.h"
 #include "Core/DataStructures/Handle.h"
+#include "Graphics/GPUDevice.h"
 #include "Graphics/ResourceBuilders.h"
 
 namespace Turbo
@@ -78,8 +79,9 @@ namespace Turbo
 
 	public:
 		FMaterialManager() = default;
-		void Init(FGPUDevice& gpuDevice);
-		void Destroy(FGPUDevice& gpuDevice);
+
+		void Init(GPUDevice* gpu);
+		void Destroy(GPUDevice* gpu);
 
 	public:
 		static FPipelineBuilder CreateOpaquePipeline(std::string_view shaderName);
@@ -95,12 +97,12 @@ namespace Turbo
 		template<typename PerInstanceData>
 		void UpdateMaterialInstance(FCommandBuffer& cmd, THandle<FMaterial::Instance> instanceHandle, PerInstanceData* data);
 		void UpdateMaterialInstance(FCommandBuffer& cmd, THandle<FMaterial::Instance> instanceHandle, std::span<ByteType> data);
-		[[nodiscard]] FDeviceAddress GetMaterialInstanceAddress(const FGPUDevice& gpu, THandle<FMaterial::Instance> instanceHandle) const;
+		[[nodiscard]] FDeviceAddress GetMaterialInstanceAddress(THandle<FMaterial::Instance> instanceHandle) const;
 
 		template<typename MaterialData>
 		void UpdateMaterialData(FCommandBuffer& cmd, THandle<FMaterial> handle, MaterialData* data);
 		auto UpdateMaterialData(FCommandBuffer& cmd, THandle<FMaterial> handle, std::span<ByteType> data) -> void;
-		[[nodiscard]] FDeviceAddress GetMaterialDataAddress(const FGPUDevice& gpu, THandle<FMaterial> handle) const;
+		[[nodiscard]] FDeviceAddress GetMaterialDataAddress(THandle<FMaterial> handle) const;
 
 	public:
 		[[nodiscard]] static size_t CalculateInstanceByteOffset(const FMaterial& material, u32 instanceIndex);
@@ -116,6 +118,8 @@ namespace Turbo
 		void DestroyMaterialInstance(THandle<FMaterial::Instance> handle);
 
 	private:
+	   GPUDevice* mGPU;
+
 		TGenPool<FMaterial, 128> mMaterialPool;
 		TGenPool<FMaterial::Instance, 2048> mMaterialInstancePool;
 

@@ -30,6 +30,7 @@
 
       "allow_concurrent_runs": false,
       "hide": "never",
+      "reveal": "no_focus"
    },
 
    {

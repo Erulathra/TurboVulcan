@@ -2,41 +2,23 @@
 
 namespace Turbo
 {
+   struct Engine;
+   // TODO(SS): replace with platform performance counters
 	using FChronoTimePoint = std::chrono::time_point<std::chrono::steady_clock>;
 
-	class FCoreTimer
+	struct CoreTimer
 	{
-	private:
-		FCoreTimer() = default;
+   	FChronoTimePoint mEngineStartTime {};
+   	FChronoTimePoint mTickStartTime {};
 
-	public:
-		void Init();
-		void Destroy();
+   	fp32 mDeltaTime = 0;
+   	fp64 mTimeFromEngineStart = 0;
+   	u64 mTickIndex = 0;
 
-		static FCoreTimer* Get();
-		[[nodiscard]] static fp64 DeltaTime() { return Get()->GetDeltaTime(); }
-		[[nodiscard]] static fp64 TimeFromEngineStart() { return Get()->GetTimeFromEngineStart(); }
-		[[nodiscard]] static u64 TickIndex() { return Get()->GetTickIndex(); }
+		/* Engine API */
+      void Init(Engine* engine);
+      void Shutdown(Engine* engine);
 
-		DELETE_COPY(FCoreTimer)
-
-	protected:
-		void Tick();
-
-	private:
-		[[nodiscard]] fp64 GetDeltaTime() const { return mDeltaTime; }
-		[[nodiscard]] fp64 GetTimeFromEngineStart() const { return mTimeFromEngineStart; };
-		[[nodiscard]] u64 GetTickIndex() const { return mTickIndex; };
-
-	private:
-		FChronoTimePoint mEngineStartTime {};
-		FChronoTimePoint mTickStartTime {};
-
-		fp64 mDeltaTime = -1.;
-		fp64 mTimeFromEngineStart = -1.;
-		u64 mTickIndex = 0;
-
-	public:
-		friend class Engine;
+      void Tick();
 	};
 } // Turbo

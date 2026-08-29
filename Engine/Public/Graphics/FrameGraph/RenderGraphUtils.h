@@ -5,11 +5,11 @@ namespace Turbo
 {
 	namespace RenderGraphUtils
 	{
-		void AddClearTexturePass(FRenderGraphBuilder& graphBuilder, FRGResourceHandle texture, glm::float4 color);
-		void AddBlitTexturePass(FRenderGraphBuilder& graphBuilder, FRGResourceHandle srcTexture, FRGResourceHandle dstTexture);
+		void AddClearTexturePass(RenderGraph* renderGraph, FRGResourceHandle texture, glm::float4 color);
+		void AddBlitTexturePass(RenderGraph* renderGraph, FRGResourceHandle srcTexture, FRGResourceHandle dstTexture);
 
 		void AddFillBufferPass(
-			FRenderGraphBuilder& graphBuilder,
+			RenderGraph* renderGraph,
 			FRGResourceHandle srcBuffer,
 			FDeviceSize offset,
 			FDeviceSize size,

@@ -57,7 +57,6 @@
 
 // Internal headers
 #include "CommonTypeDefs.h"
-#include "Turbo.h"
 
 #include "Core/Platform.h"
 #include "CommonMacros.h"
@@ -74,3 +73,5 @@
 #include "Core/Math/Vector.h"
 
 #include "Core/StandardFormatters.h"
+
+#include "Core/Engine.h"

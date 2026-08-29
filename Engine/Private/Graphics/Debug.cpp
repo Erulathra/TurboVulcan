@@ -57,7 +57,7 @@ namespace Turbo
 		}
 	}
 
-	FScopedRenderCapture::FScopedRenderCapture(bool bCapture, FRenderGraphBuilder& graphBuilder)
+	FScopedRenderCapture::FScopedRenderCapture(bool bCapture, RenderGraph& graphBuilder)
 	{
 		if (bCapture)
 		{
@@ -66,9 +66,9 @@ namespace Turbo
 			static FName passName = FName("BeginRenderCapture");
 			auto pass = graphBuilder.AddPass(passName, EPassType::Compute);
 			pass->mExecutePass.BindLambda(
-				[](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+				[](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 				{
-					entt::locator<IFrameDebuggerAPI>::value().BeginCapture(&gpu, nullptr);
+					entt::locator<IFrameDebuggerAPI>::value().BeginCapture(gpu, nullptr);
 				}
 			);
 		}
@@ -81,9 +81,9 @@ namespace Turbo
 			static FName passName = FName("EndRenderCapture");
 			FRGPassInitializer pass = mGraphBuilder->AddPass(passName, EPassType::Compute);
 			pass->mExecutePass.BindLambda(
-				[](FGPUDevice& gpu, FCommandBuffer& cmd, FRenderResources& resources)
+				[](GPUDevice* gpu, FCommandBuffer& cmd, FRenderResources& resources)
 				{
-					entt::locator<IFrameDebuggerAPI>::value().EndCapture(&gpu, nullptr);
+					entt::locator<IFrameDebuggerAPI>::value().EndCapture(gpu, nullptr);
 				}
 			);
 		}

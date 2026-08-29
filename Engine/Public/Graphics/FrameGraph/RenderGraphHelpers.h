@@ -6,7 +6,7 @@
 
 namespace Turbo
 {
-	class FGPUDevice;
+	class GPUDevice;
 	struct FTexture;
 
 	struct FRGPassHandle
@@ -215,7 +215,7 @@ namespace Turbo
 
 		FRGResourceHandle mBuffer = {};
 
-		[[nodiscard]] vk::BufferMemoryBarrier2 ToVkBufferBarrier(FGPUDevice& gpu, THandle<FBuffer> bufferHandle) const;
+		[[nodiscard]] vk::BufferMemoryBarrier2 ToVkBufferBarrier(GPUDevice* gpu, THandle<FBuffer> bufferHandle) const;
 	};
 
 	struct FRGTextureMemoryBarrier
@@ -231,7 +231,7 @@ namespace Turbo
 
 		FRGResourceHandle mTexture = {};
 
-		[[nodiscard]] vk::ImageMemoryBarrier2 ToVkImageBarrier(FGPUDevice& gpu, THandle<FTexture> textureHandle) const;
+		[[nodiscard]] vk::ImageMemoryBarrier2 ToVkImageBarrier(GPUDevice* gpu, THandle<FTexture> textureHandle) const;
 		[[nodiscard]] std::string ToString() const;
 	};
 

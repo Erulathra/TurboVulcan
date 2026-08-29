@@ -12,12 +12,8 @@
 #include "Graphics/Resources.h"
 #include "ProfilingMacros.h"
 #include "TurboLog.h"
-#include "entt/locator/locator.hpp"
 #include "vulkan/vulkan.hpp"
 #include "vulkan/vulkan_to_string.hpp"
-#include <array>
-#include <iterator>
-#include <vector>
 
 namespace Turbo
 {
@@ -97,7 +93,7 @@ namespace Turbo
 		mDepthStencilAttachment = attachment;
 	}
 
-	FRGPassInitializer::FRGPassInitializer(FRenderGraphBuilder& graphBuilder, FRGPassInfo& passInfo)
+	FRGPassInitializer::FRGPassInitializer(RenderGraph& graphBuilder, FRGPassInfo& passInfo)
 		: mOwner(&graphBuilder)
 		, mHandle(passInfo.mHandle)
 	{
@@ -126,17 +122,21 @@ namespace Turbo
 		return &mOwner->mRenderPasses[mHandle.mIndex];
 	}
 
-	void FRenderGraphBuilder::Init()
+	void RenderGraph::Init(GPUDevice* gpu)
 	{
       TURBO_LOG(LogRenderGraph, Info, "Initialzing RenderGraphBuilder")
-      FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
+
+      // TODO(SS): Replace with ZII
+      new(this) RenderGraph();
+
+      mGPU = gpu;
 
       FDescriptorPoolBuilder descriptorPoolBuilder = {};
       descriptorPoolBuilder
          .SetMaxSets(kMaxDescriptorSets)
          .SetPoolRatio(vk::DescriptorType::eUniformBuffer, 2)
          .SetName(FName("RenderGraphUniforms"));
-      mDescriptorPool = gpu.CreateDescriptorPool(descriptorPoolBuilder);
+      mDescriptorPool = mGPU->CreateDescriptorPool(descriptorPoolBuilder);
       TURBO_CHECK(mDescriptorPool);
 
       FDescriptorSetLayoutBuilder descriptroLayoutBuilder = {};
@@ -145,7 +145,7 @@ namespace Turbo
          .AddBinding(vk::DescriptorType::eUniformBuffer, 0, 1, {}, FName("rgTextureBindingTable"))
          .AddBinding(vk::DescriptorType::eUniformBuffer, 1, 1, {}, FName("rgBufferBindingTable"))
          .SetName(FName("RenderGraphUniforms"));
-      mDescriptorSetLayout = gpu.CreateDescriptorSetLayout(descriptroLayoutBuilder);
+      mDescriptorSetLayout = mGPU->CreateDescriptorSetLayout(descriptroLayoutBuilder);
       TURBO_CHECK(mDescriptorSetLayout)
 
       /* Create descriptor set per frame in flight */
@@ -158,33 +158,32 @@ namespace Turbo
 			   .SetLayout(mDescriptorSetLayout)
 			   .SetName(descriptorSetName);
 
-			mDescriptorSets[frameId] = gpu.CreateDescriptorSet(descriptorSetBuilder);
+			mDescriptorSets[frameId] = mGPU->CreateDescriptorSet(descriptorSetBuilder);
 			TURBO_CHECK(mDescriptorSets[frameId])
       }
 	}
 
-	void FRenderGraphBuilder::Shutdown()
+	void RenderGraph::Shutdown(GPUDevice* gpu)
 	{
    	TURBO_LOG(LogRenderGraph, Info, "Destroying RenderGraphBuilder")
 
-      FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-      gpu.DestroyDescriptorSetLayout(mDescriptorSetLayout);
-      gpu.DestroyDescriptorPool(mDescriptorPool);
+      mGPU->DestroyDescriptorSetLayout(mDescriptorSetLayout);
+      mGPU->DestroyDescriptorPool(mDescriptorPool);
 	}
 
-	FRGResourceHandle FRenderGraphBuilder::CreateTexture(const FRGTextureInfo& textureInfo)
+	FRGResourceHandle RenderGraph::CreateTexture(const FRGTextureInfo& textureInfo)
 	{
 		TURBO_CHECK(textureInfo.IsValid())
 		mTextures.push_back(textureInfo);
 		return {ERGResourceType::Texture, static_cast<u32>(mTextures.size() - 1)};
 	}
 
-	FRGResourceHandle FRenderGraphBuilder::RegisterExternalTexture(THandle<FTexture> texture, ETextureLayout initLayout)
+	FRGResourceHandle RenderGraph::RegisterExternalTexture(THandle<FTexture> texture, ETextureLayout initLayout)
 	{
 		return RegisterExternalTexture(texture, initLayout, initLayout);
 	}
 
-	FRGResourceHandle FRenderGraphBuilder::RegisterExternalTexture(THandle<FTexture> textureHandle, ETextureLayout initLayout, ETextureLayout finalLayout)
+	FRGResourceHandle RenderGraph::RegisterExternalTexture(THandle<FTexture> textureHandle, ETextureLayout initLayout, ETextureLayout finalLayout)
 	{
 		TURBO_CHECK(textureHandle)
 
@@ -202,8 +201,7 @@ namespace Turbo
 			}
 		}
 
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		const FTexture* texture = gpu.AccessTexture(textureHandle);
+		const FTexture* texture = mGPU->AccessTexture(textureHandle);
 		TURBO_CHECK(textureHandle);
 
 		FRGTextureInfo textureInfo = {
@@ -223,20 +221,20 @@ namespace Turbo
 		return {ERGResourceType::Texture, static_cast<u32>(mTextures.size()) - 1, true};
 	}
 
-	FRGTextureInfo FRenderGraphBuilder::GetTextureInfo(FRGResourceHandle resourceHandle) const
+	FRGTextureInfo RenderGraph::GetTextureInfo(FRGResourceHandle resourceHandle) const
 	{
 		TURBO_CHECK(resourceHandle.GetType() == ERGResourceType::Texture && resourceHandle.IsValid())
 		return mTextures[resourceHandle.GetIndex()];
 	}
 
-	FRGResourceHandle FRenderGraphBuilder::CreateBuffer(const FRGBufferInfo& bufferInfo)
+	FRGResourceHandle RenderGraph::CreateBuffer(const FRGBufferInfo& bufferInfo)
 	{
 		TURBO_CHECK(bufferInfo.IsValid())
 		mBuffers.push_back(bufferInfo);
 		return {ERGResourceType::Buffer, static_cast<u32>(mBuffers.size() - 1)};
 	}
 
-	void FRenderGraphBuilder::QueueBufferUpload(const FRGBufferUpload& bufferUpload)
+	void RenderGraph::QueueBufferUpload(const FRGBufferUpload& bufferUpload)
 	{
 #if WITH_SLOW_ASSERTIONS
 		const FRGBufferInfo& bufferInfo = mBuffers[bufferUpload.mTargetBuffer.GetIndex()];
@@ -247,7 +245,7 @@ namespace Turbo
 		mQueuedBufferUploads.push_back(bufferUpload);
 	}
 
-	std::tuple<FRGResourceHandle, void* /*intermediatePtr */> FRenderGraphBuilder::CreateAndQueueBufferUpload(const FCreateAndUploadBuffer& createAndUploadBuffer)
+	std::tuple<FRGResourceHandle, void* /*intermediatePtr */> RenderGraph::CreateAndQueueBufferUpload(const FCreateAndUploadBuffer& createAndUploadBuffer)
 	{
 		TURBO_CHECK(createAndUploadBuffer.mData)
 
@@ -274,7 +272,7 @@ namespace Turbo
 		return std::make_tuple(result, data);
 	}
 
-	FRGBufferInfo FRenderGraphBuilder::GetBufferInfo(FRGResourceHandle resourceHandle) const
+	FRGBufferInfo RenderGraph::GetBufferInfo(FRGResourceHandle resourceHandle) const
 	{
 		TURBO_CHECK(resourceHandle.GetType() == ERGResourceType::Buffer && resourceHandle.IsValid())
 		TURBO_CHECK(resourceHandle.IsExternal() == false)
@@ -282,7 +280,7 @@ namespace Turbo
 		return mBuffers[resourceHandle.GetIndex()];
 	}
 
-	FRGResourceHandle FRenderGraphBuilder::RegisterExternalBuffer(THandle<FBuffer> bufferHandle)
+	FRGResourceHandle RenderGraph::RegisterExternalBuffer(THandle<FBuffer> bufferHandle)
 	{
 		TURBO_CHECK(bufferHandle)
 
@@ -295,8 +293,7 @@ namespace Turbo
 			}
 		}
 
-		FGPUDevice& gpu = entt::locator<FGPUDevice>::value();
-		const FBuffer* buffer = gpu.AccessBuffer(bufferHandle);
+		const FBuffer* buffer = mGPU->AccessBuffer(bufferHandle);
 		TURBO_CHECK(bufferHandle)
 
 		const FRGBufferInfo externalBufferInfo = {
@@ -310,7 +307,7 @@ namespace Turbo
 		return {ERGResourceType::Buffer, static_cast<u32>(mBuffers.size()) - 1, true};
 	}
 
-	FRGPassInitializer FRenderGraphBuilder::AddPass(FName passName, EPassType passType)
+	FRGPassInitializer RenderGraph::AddPass(FName passName, EPassType passType)
 	{
 		mRenderPasses.emplace_back();
 		FRGPassInfo& passInfo = mRenderPasses.back();
@@ -393,7 +390,7 @@ namespace Turbo
 		}
 	}
 
-	void FRenderGraphBuilder::CompileTextureSynchronization()
+	void RenderGraph::CompileTextureSynchronization()
 	{
 		struct FResourceState
 		{
@@ -564,7 +561,7 @@ namespace Turbo
 		}
 	}
 
-	void FRenderGraphBuilder::CompileBufferSynchronization()
+	void RenderGraph::CompileBufferSynchronization()
 	{
 		struct FResourceState
 		{
@@ -666,7 +663,7 @@ namespace Turbo
 		}
 	}
 
-	void FRenderGraphBuilder::Compile()
+	void RenderGraph::Compile()
 	{
 		TRACE_ZONE_SCOPED()
 
@@ -674,7 +671,7 @@ namespace Turbo
 		CompileBufferSynchronization();
 	}
 
-   void FRenderGraphBuilder::Execute(FGPUDevice& gpu, FCommandBuffer& cmd)
+   void RenderGraph::Execute(GPUDevice* gpu, FCommandBuffer& cmd)
 	{
 		TRACE_ZONE_SCOPED()
 		TURBO_LOG(LogRenderGraph, Display, "Executing render graph");
@@ -714,7 +711,7 @@ namespace Turbo
    				.mName = textureInfo.mName
    			};
 
-   			const THandle<FTexture> texture = gpu.CreateTexture(builder);
+   			const THandle<FTexture> texture = gpu->CreateTexture(builder);
    			TURBO_CHECK(texture)
 
    			renderResources.mTextures.push_back(texture);
@@ -746,7 +743,7 @@ namespace Turbo
    			};
 
    			const FRGResourceHandle handle(ERGResourceType::Buffer, bufferId, false);
-   			const THandle<FBuffer> buffer = gpu.CreateBuffer(builder);
+   			const THandle<FBuffer> buffer = gpu->CreateBuffer(builder);
    			TURBO_CHECK(buffer)
 
    			renderResources.mBuffers.push_back(buffer);
@@ -758,7 +755,7 @@ namespace Turbo
 		{
    		TURBO_LOG(LogRenderGraph, Display, "Uploading data to \"{}\" buffer", mBuffers[bufferUpload.mTargetBuffer.GetIndex()].mName);
 
-			const FBuffer* buffer = gpu.AccessBuffer(renderResources.GetBuffer(bufferUpload.mTargetBuffer));
+			const FBuffer* buffer = gpu->AccessBuffer(renderResources.GetBuffer(bufferUpload.mTargetBuffer));
 			std::memcpy(
 				static_cast<ByteType*>(buffer->mMappedAddress) + bufferUpload.mOffset,
 				bufferUpload.mData,
@@ -772,17 +769,17 @@ namespace Turbo
 
 		   /* Create buffer address table */
 			static const FName bufferAddressTableName("BufferAddressTable");
-			const THandle<FBuffer> bufferAddressTableHandle = gpu.CreateBuffer({
+			const THandle<FBuffer> bufferAddressTableHandle = gpu->CreateBuffer({
 				.mBufferFlags = EBufferFlags::UniformBuffer | EBufferFlags::CreateMapped,
 				.mSize = kBufferAddressTableSize * sizeof(FDeviceAddress),
 				.mName = bufferAddressTableName,
 			});
-			const FBuffer* bufferAddressTable = gpu.AccessBuffer(bufferAddressTableHandle);
+			const FBuffer* bufferAddressTable = gpu->AccessBuffer(bufferAddressTableHandle);
 			FDeviceAddress* batMappedAddress = reinterpret_cast<FDeviceAddress*>(bufferAddressTable->mMappedAddress);
 
 			for (u32 bufferId = 0; bufferId < renderResources.mBuffers.size(); ++bufferId)
 			{
-   			const FBuffer* buffer = gpu.AccessBuffer(renderResources.mBuffers[bufferId]);
+   			const FBuffer* buffer = gpu->AccessBuffer(renderResources.mBuffers[bufferId]);
             TURBO_CHECK(buffer)
 
             batMappedAddress[bufferId] = buffer->mDeviceAddress;
@@ -790,12 +787,12 @@ namespace Turbo
 
          /* Create texture index table */
          static const FName textureIndexTableName("TextureIndexTable");
-         const THandle<FBuffer> textureIndexTableHandle = gpu.CreateBuffer({
+         const THandle<FBuffer> textureIndexTableHandle = gpu->CreateBuffer({
             .mBufferFlags = EBufferFlags::UniformBuffer | EBufferFlags::CreateMapped,
             .mSize = kTextureBindingTableSize * sizeof(FHandle::IndexType),
             .mName = textureIndexTableName,
          });
-         const FBuffer* textureIndexTable = gpu.AccessBuffer(textureIndexTableHandle);
+         const FBuffer* textureIndexTable = gpu->AccessBuffer(textureIndexTableHandle);
          FHandle::IndexType* titMappedAddress = reinterpret_cast<FHandle::IndexType*>(textureIndexTable->mMappedAddress);
 
          for (u32 textureId = 0; textureId < renderResources.mTextures.size(); ++textureId)
@@ -803,8 +800,8 @@ namespace Turbo
 				titMappedAddress[textureId] = renderResources.mTextures[textureId].GetIndex();
 			}
 
-			renderResources.mDescriptorSet = mDescriptorSets[gpu.GetFrameInFlightId()];
-			FDescriptorSet* descriptorSet = gpu.AccessDescriptorSet(renderResources.mDescriptorSet);
+			renderResources.mDescriptorSet = mDescriptorSets[gpu->GetFrameInFlightId()];
+			FDescriptorSet* descriptorSet = gpu->AccessDescriptorSet(renderResources.mDescriptorSet);
 
 			// TODO: Replace with abstraction (?)
 			std::array<vk::WriteDescriptorSet, 2> writeSets;
@@ -831,11 +828,11 @@ namespace Turbo
 			titBufferInfo.range = vk::WholeSize;
 			titWrite.pBufferInfo = &titBufferInfo;
 
-			gpu.GetVkDevice().updateDescriptorSets(2, writeSets.data(), 0, nullptr);
+			gpu->GetVkDevice().updateDescriptorSets(2, writeSets.data(), 0, nullptr);
 
 			// Destroy buffers at the end of the frame.
-			gpu.DestroyBuffer(bufferAddressTableHandle);
-			gpu.DestroyBuffer(textureIndexTableHandle);
+			gpu->DestroyBuffer(bufferAddressTableHandle);
+			gpu->DestroyBuffer(textureIndexTableHandle);
 		}
 
 		for (u32 passId = 0; passId < mRenderPasses.size(); ++passId)
@@ -856,7 +853,7 @@ namespace Turbo
 				THandle<FTexture> textureHandle = renderResources.GetTexture(rgBarrier.mTexture);
 				TURBO_LOG(
 					LogRenderGraph, Display, "[Image Barrier] Texture: {}; ({}, {}, {}) -> ({}, {}, {})",
-					gpu.AccessTexture(textureHandle)->mName,
+					gpu->AccessTexture(textureHandle)->mName,
 					magic_enum::enum_name(rgBarrier.mOldLayout),
 					vk::to_string(rgBarrier.mSrcStageMask),
 					vk::to_string(rgBarrier.mSrcAccessMask),
@@ -878,7 +875,7 @@ namespace Turbo
 				THandle<FBuffer> bufferHandle = renderResources.GetBuffer(rgBarrier.mBuffer);
 				bufferBarriers.push_back(rgBarrier.ToVkBufferBarrier(gpu, bufferHandle));
 
-				TURBO_LOG(LogRenderGraph, Display, "[Buffer Barrier] Buffer: {}", gpu.AccessBuffer(bufferHandle)->mName);
+				TURBO_LOG(LogRenderGraph, Display, "[Buffer Barrier] Buffer: {}", gpu->AccessBuffer(bufferHandle)->mName);
 			}
 
 			vk::DependencyInfo dependencyInfo = {};
@@ -917,7 +914,7 @@ namespace Turbo
 
 						TURBO_LOG(
 							LogRenderGraph, Display, "[GraphicsPass] Bind {} as color attachment {}",
-							gpu.AccessTexture(renderResources.GetTexture(attachment.mTexture))->mName,
+							gpu->AccessTexture(renderResources.GetTexture(attachment.mTexture))->mName,
 							attachmentId
 						);
 					}
@@ -945,7 +942,7 @@ namespace Turbo
 
 					TURBO_LOG(
 						LogRenderGraph, Display, "[GraphicsPass] Bind {} as depth attachment",
-						gpu.AccessTexture(renderResources.GetTexture(pass.mDepthStencilAttachment.mTexture))->mName
+						gpu->AccessTexture(renderResources.GetTexture(pass.mDepthStencilAttachment.mTexture))->mName
 					);
 				}
 
@@ -969,7 +966,7 @@ namespace Turbo
 			TURBO_CHECK(pass.mExecutePass.IsBound());
 
 			TURBO_LOG(LogRenderGraph, Display, "Execute: {}", pass.mName);
-			pass.mExecutePass.Execute(gpu, cmd, renderResources);
+			pass.mExecutePass.Execute(mGPU, cmd, renderResources);
 
 			if (pass.mPassType == EPassType::Graphics)
 			{
@@ -987,8 +984,8 @@ namespace Turbo
          if (textureInfo.mExternalTextureHandle.IsValid() == false)
          {
             THandle<FTexture> textureHandle = renderResources.mTextures[textureId];
-            TURBO_LOG(LogRenderGraph, Display, "Destroying texture: {}", gpu.AccessTexture(textureHandle)->mName);
-   			gpu.DestroyTexture(textureHandle);
+            TURBO_LOG(LogRenderGraph, Display, "Destroying texture: {}", gpu->AccessTexture(textureHandle)->mName);
+   			gpu->DestroyTexture(textureHandle);
          }
 		}
 
@@ -999,9 +996,9 @@ namespace Turbo
 			if (bufferInfo.mExternalBufferHandle.IsValid() == false)
 			{
             THandle<FBuffer> bufferHandle = renderResources.mBuffers[bufferId];
-            TURBO_LOG(LogRenderGraph, Display, "Destroying buffer: {}", gpu.AccessBuffer(bufferHandle)->mName);
+            TURBO_LOG(LogRenderGraph, Display, "Destroying buffer: {}", gpu->AccessBuffer(bufferHandle)->mName);
 
-            gpu.DestroyBuffer(bufferHandle);
+            gpu->DestroyBuffer(bufferHandle);
 			}
 		}
 
@@ -1018,7 +1015,7 @@ namespace Turbo
 
 			TURBO_LOG(
 				LogRenderGraph, Display, "[External Image Barrier] Texture: {}; ({}, {}, {}) -> ({}, {}, {})",
-				gpu.AccessTexture(textureHandle)->mName,
+				gpu->AccessTexture(textureHandle)->mName,
 				magic_enum::enum_name(rgBarrier.mOldLayout),
 				vk::to_string(rgBarrier.mSrcStageMask),
 				vk::to_string(rgBarrier.mSrcAccessMask),
@@ -1035,7 +1032,7 @@ namespace Turbo
 		cmd.PipelineBarrier(dependencyInfo);
 	}
 
-	void FRenderGraphBuilder::Reset()
+	void RenderGraph::Reset()
 	{
 		mRenderPasses.clear();
 		mPerPassTextureBarriers.clear();
@@ -1048,7 +1045,7 @@ namespace Turbo
 		mAllocator.Clear();
 	}
 
-	vk::Format FRenderGraphBuilder::GetTextureFormat(FRGResourceHandle resourceHandle) const
+	vk::Format RenderGraph::GetTextureFormat(FRGResourceHandle resourceHandle) const
 	{
 		TURBO_CHECK(resourceHandle.GetType() == ERGResourceType::Texture)
 		return mTextures[resourceHandle.GetIndex()].mFormat;

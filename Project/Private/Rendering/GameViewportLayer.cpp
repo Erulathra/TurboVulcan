@@ -10,7 +10,7 @@ namespace Turbo
 
 	void FGameViewportLayer::Start()
 	{
-		const glm::uint2 framebufferSize = entt::locator<FWindow>::value().GetFrameBufferSize();
+		const glm::uint2 framebufferSize = window->GetFrameBufferSize();
 		entt::locator<FGPUDevice>::value().SetMainViewportSize(framebufferSize);
 	}
 
@@ -31,7 +31,7 @@ namespace Turbo
 
 	void FGameViewportLayer::OnEvent(FEventBase& event)
 	{
-		FEventDispatcher::DispatchLayer<FResizeWindowEvent>(event, this, &FGameViewportLayer::HandleResizeWindowEvent);
+		EventDispatcher::DispatchLayer<FResizeWindowEvent>(event, this, &FGameViewportLayer::HandleResizeWindowEvent);
 	}
 
 	template<>

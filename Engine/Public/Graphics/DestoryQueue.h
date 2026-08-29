@@ -8,12 +8,12 @@
 
 namespace Turbo
 {
-	class FGPUDevice;
+	class GPUDevice;
 
 	class IDestroyer
 	{
 	public:
-		virtual void Destroy(FGPUDevice& GPUDevice) = 0;
+		virtual void Destroy(GPUDevice& GPUDevice) = 0;
 	};
 
 	class IDestroyQueue
@@ -22,7 +22,7 @@ namespace Turbo
 		virtual ~IDestroyQueue() = default;
 
 	public:
-		virtual void Flush(FGPUDevice& GPUDevice) = 0;
+		virtual void Flush(GPUDevice& GPUDevice) = 0;
 	};
 
 	template <typename DestroyerType>
@@ -31,7 +31,7 @@ namespace Turbo
 	{
 	public:
 		inline void RequestDestroy(const DestroyerType& destroyer) { mDestroyers.push_back(destroyer); }
-		virtual void Flush(FGPUDevice& GPUDevice) override
+		virtual void Flush(GPUDevice& GPUDevice) override
 		{
 			for (DestroyerType& destroyer : std::ranges::reverse_view(mDestroyers))
 			{
@@ -75,7 +75,7 @@ namespace Turbo
 			castedQueue->RequestDestroy(destroyer);
 		}
 
-		void Flush(FGPUDevice& GPUDevice);
+		void Flush(GPUDevice& GPUDevice);
 
 	public:
 		FOnDestroy& OnDestroy() { return mOnDestroy; }
